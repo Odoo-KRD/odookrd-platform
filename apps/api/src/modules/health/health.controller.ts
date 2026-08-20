@@ -5,9 +5,14 @@ import {
   type HealthCheckResult,
 } from '@nestjs/terminus';
 
+import { DatabaseHealthIndicator } from './database-health.indicator';
+
 @Controller('health')
 export class HealthController {
-  constructor(private readonly health: HealthCheckService) {}
+  constructor(
+    private readonly health: HealthCheckService,
+    private readonly database: DatabaseHealthIndicator,
+  ) {}
 
   @Get('live')
   @HealthCheck()
@@ -18,6 +23,6 @@ export class HealthController {
   @Get('ready')
   @HealthCheck()
   ready(): Promise<HealthCheckResult> {
-    return this.health.check([]);
+    return this.health.check([() => this.database.isHealthy('database')]);
   }
 }

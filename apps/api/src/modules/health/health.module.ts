@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
+
+import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { DatabaseHealthIndicator } from './database-health.indicator';
 import { HealthController } from './health.controller';
 
 @Module({
-  imports: [TerminusModule],
+  imports: [TerminusModule, DatabaseModule],
   controllers: [HealthController],
+  providers: [DatabaseHealthIndicator],
 })
 export class HealthModule {}
