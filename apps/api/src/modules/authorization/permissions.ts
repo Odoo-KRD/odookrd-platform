@@ -1,0 +1,14 @@
+export const PERMISSIONS = {
+  COMPANIES_READ: 'companies.read',
+  COMPANIES_MANAGE: 'companies.manage',
+
+  USERS_READ: 'users.read',
+  USERS_MANAGE: 'users.manage',
+
+  ROLES_READ: 'roles.read',
+  ROLES_MANAGE: 'roles.manage',
+
+  AUDIT_LOGS_READ: 'audit_logs.read',
+} as const;
+
+export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
