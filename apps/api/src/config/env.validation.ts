@@ -29,6 +29,12 @@ export const environmentValidationSchema = Joi.object({
     .max(1024)
     .default(128),
 
+  AUTH_INVITATION_TTL_SECONDS: Joi.number()
+    .integer()
+    .min(300)
+    .max(604800)
+    .default(86400),
+
   AUTH_LOGIN_MAX_ATTEMPTS: Joi.number().integer().min(1).max(100).default(5),
 
   AUTH_LOGIN_WINDOW_SECONDS: Joi.number()

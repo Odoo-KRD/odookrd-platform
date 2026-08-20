@@ -6,6 +6,9 @@ import { DatabaseModule } from './infrastructure/database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';
 import { HealthModule } from './modules/health/health.module';
+import { CompaniesModule } from './modules/companies/companies.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { HealthModule } from './modules/health/health.module';
     HealthModule,
     AuthModule,
     AuthorizationModule,
+    CompaniesModule,
+    RolesModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
