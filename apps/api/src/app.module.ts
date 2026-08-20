@@ -1,28 +1,22 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import * as Joi from 'joi';
 
+import { environmentValidationSchema } from './config/env.validation';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { HealthModule } from './modules/health/health.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      validationSchema: Joi.object({
-        NODE_ENV: Joi.string()
-          .valid('development', 'test', 'staging', 'production')
-          .required(),
-
-        PORT: Joi.number().port().default(4000),
-
-        DATABASE_URL: Joi.string().uri().required(),
-      }),
+      validationSchema: environmentValidationSchema,
     }),
 
     DatabaseModule,
     HealthModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
