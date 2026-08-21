@@ -334,4 +334,14 @@ export const adminEn = {
     description: "This section could not be loaded. Please try again.",
     retry: "Try again",
   },
+  content: {
+    translations: "Translations",
+    defaultLanguage: "Primary language",
+    optionalLanguage: "Optional",
+    languages: {
+      ku: "Kurdish",
+      ar: "Arabic",
+      en: "English",
+    },
+  },
 } satisfies AdminTranslations;

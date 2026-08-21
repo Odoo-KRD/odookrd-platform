@@ -82,6 +82,17 @@ export default async function CustomerServiceDetailsPage({
           </div>
         </div>
 
+        {assignment.service.description ? (
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <p className="text-xs font-medium text-slate-500">
+              {services.serviceDescription}
+            </p>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+              {assignment.service.description}
+            </p>
+          </div>
+        ) : null}
+
         {assignment.notes ? (
           <div className="mt-8 border-t border-slate-200 pt-6">
             <p className="text-xs font-medium text-slate-500">

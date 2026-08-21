@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
@@ -6,10 +7,12 @@ import {
   IsUrl,
   IsUUID,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/pagination/pagination-query.dto';
 import { CompanyServiceStatus } from '../../../generated/prisma/enums';
+import { LocalizedNameDto } from '../../../i18n/localized-content.dto';
 
 export class ListServiceAssignmentsQueryDto extends PaginationQueryDto {
   @IsOptional()
@@ -36,6 +39,11 @@ export class CreateServiceAssignmentDto {
   @IsString()
   @MaxLength(200)
   displayName?: string | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  displayNameTranslations?: LocalizedNameDto;
 
   @IsOptional()
   @IsEnum(CompanyServiceStatus)
@@ -70,6 +78,11 @@ export class UpdateServiceAssignmentDto {
   @IsString()
   @MaxLength(200)
   displayName?: string | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  displayNameTranslations?: LocalizedNameDto;
 
   @IsOptional()
   @IsEnum(CompanyServiceStatus)

@@ -27,11 +27,12 @@ interface ServiceDetailsPageProps {
 export default async function ServiceDetailsPage({
   params,
 }: ServiceDetailsPageProps) {
-  const [{ session, token }, { locale, services }, { id }] = await Promise.all([
-    getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
-    getServicesDictionary(),
-    params,
-  ]);
+  const [{ session, token }, { locale, services, content }, { id }] =
+    await Promise.all([
+      getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
+      getServicesDictionary(),
+      params,
+    ]);
 
   if (session.user.accountScope !== "PLATFORM") {
     redirect("/dashboard");
@@ -106,6 +107,7 @@ export default async function ServiceDetailsPage({
         <ServiceForm
           action={updateServiceAction.bind(null, service.id)}
           labels={services}
+          content={content}
           initial={service}
           cancelHref="/admin/services"
         />

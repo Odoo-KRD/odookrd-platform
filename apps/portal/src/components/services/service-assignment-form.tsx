@@ -10,8 +10,10 @@ import { ActionButton } from "@odookrd/ui";
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
 import type { ServicesDictionary } from "@/lib/i18n/services";
+import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 const statuses: readonly CompanyServiceStatus[] = [
   "PROVISIONING",
@@ -29,6 +31,7 @@ type AssignmentFormAction = (
 interface ServiceAssignmentFormProps {
   action: AssignmentFormAction;
   labels: ServicesDictionary;
+  content: ContentEditorDictionary;
   companies?: Company[];
   services?: ManagedService[];
   initial?: CompanyServiceAssignment;
@@ -42,6 +45,7 @@ const inputClassName =
 export function ServiceAssignmentForm({
   action,
   labels,
+  content,
   companies = [],
   services = [],
   initial,
@@ -123,44 +127,34 @@ export function ServiceAssignmentForm({
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <label
-            htmlFor="assignment-display-name"
-            className="text-sm font-medium text-slate-700"
-          >
-            {labels.displayName}
-          </label>
-          <input
-            id="assignment-display-name"
-            name="displayName"
-            type="text"
-            defaultValue={initial?.displayName ?? ""}
-            maxLength={200}
-            className={inputClassName}
-          />
-        </div>
+      <LocalizedTextFields
+        field="displayName"
+        label={labels.displayName}
+        content={content}
+        translations={initial?.displayNameTranslations}
+        fallback={initial?.displayName}
+        maxLength={200}
+      />
 
-        <div className="grid gap-2">
-          <label
-            htmlFor="assignment-status"
-            className="text-sm font-medium text-slate-700"
-          >
-            {labels.status}
-          </label>
-          <select
-            id="assignment-status"
-            name="status"
-            defaultValue={initial?.status ?? "PROVISIONING"}
-            className={inputClassName}
-          >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {labels.assignmentStatusLabels[status]}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="grid gap-2">
+        <label
+          htmlFor="assignment-status"
+          className="text-sm font-medium text-slate-700"
+        >
+          {labels.status}
+        </label>
+        <select
+          id="assignment-status"
+          name="status"
+          defaultValue={initial?.status ?? "PROVISIONING"}
+          className={inputClassName}
+        >
+          {statuses.map((status) => (
+            <option key={status} value={status}>
+              {labels.assignmentStatusLabels[status]}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="grid gap-2">

@@ -21,11 +21,12 @@ interface AssignServicePageProps {
 export default async function AssignServicePage({
   searchParams,
 }: AssignServicePageProps) {
-  const [{ session, token }, { services }, parameters] = await Promise.all([
-    getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
-    getServicesDictionary(),
-    searchParams,
-  ]);
+  const [{ session, token }, { services, content }, parameters] =
+    await Promise.all([
+      getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
+      getServicesDictionary(),
+      searchParams,
+    ]);
 
   if (session.user.accountScope !== "PLATFORM") {
     redirect("/dashboard");
@@ -56,6 +57,7 @@ export default async function AssignServicePage({
         <ServiceAssignmentForm
           action={createAssignmentAction}
           labels={services}
+          content={content}
           companies={companies.items}
           services={catalog.items}
           selectedServiceId={

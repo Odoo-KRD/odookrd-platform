@@ -328,4 +328,14 @@ export const adminAr = {
     description: "تعذر تحميل هذا القسم. يرجى المحاولة مرة أخرى.",
     retry: "إعادة المحاولة",
   },
+  content: {
+    translations: "الترجمات",
+    defaultLanguage: "اللغة الأساسية",
+    optionalLanguage: "اختياري",
+    languages: {
+      ku: "الكردية",
+      ar: "العربية",
+      en: "الإنجليزية",
+    },
+  },
 } satisfies AdminTranslations;

@@ -311,12 +311,20 @@ export interface AdminErrorDictionary {
   retry: string;
 }
 
+export interface ContentEditorDictionary {
+  translations: string;
+  defaultLanguage: string;
+  optionalLanguage: string;
+  languages: Record<Locale, string>;
+}
+
 export interface AdminTranslations {
   administration: AdminDictionary;
   users: UsersDictionary;
   settings: SettingsDictionary;
   services: ServicesDictionary;
   errors: AdminErrorDictionary;
+  content: ContentEditorDictionary;
 }
 
 export interface FrontendTranslations {

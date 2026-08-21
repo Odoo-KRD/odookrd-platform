@@ -9,7 +9,7 @@ import { getServicesDictionary } from "@/lib/i18n/services-server";
 import { createServiceAction } from "../actions";
 
 export default async function NewServicePage() {
-  const [{ session }, { services }] = await Promise.all([
+  const [{ session }, { services, content }] = await Promise.all([
     getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
     getServicesDictionary(),
   ]);
@@ -28,6 +28,7 @@ export default async function NewServicePage() {
         <ServiceForm
           action={createServiceAction}
           labels={services}
+          content={content}
           cancelHref="/admin/services"
         />
       </Panel>

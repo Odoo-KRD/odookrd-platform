@@ -9,7 +9,7 @@ import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { createCompanyAction } from "../actions";
 
 export default async function NewCompanyPage() {
-  const [session, { admin }] = await Promise.all([
+  const [session, { admin, content }] = await Promise.all([
     requireAdminPermission(PERMISSIONS.COMPANIES_MANAGE),
     getAdminDictionary(),
   ]);
@@ -29,6 +29,7 @@ export default async function NewCompanyPage() {
         <CompanyForm
           action={createCompanyAction}
           labels={admin.companies}
+          content={content}
           cancelHref="/admin/companies"
         />
       </Panel>

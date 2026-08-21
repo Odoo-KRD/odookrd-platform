@@ -5,6 +5,7 @@ import {
   type CompanyServiceAssignment,
   type CompanyServiceStatus,
   type ManagedService,
+  type LocalizedText,
   type ServiceCatalogStatus,
   type ServiceCategory,
 } from "@odookrd/types";
@@ -14,6 +15,7 @@ import { redirect } from "next/navigation";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import type { FormState } from "@/lib/forms";
+import { localizedFormValues, primaryLocalizedValue } from "@/lib/i18n/content";
 
 const serviceCategories: readonly ServiceCategory[] = [
   "ODOO",
@@ -120,10 +122,20 @@ export async function createServiceAction(
   }
 
   const key = textValue(formData, "key", 100);
-  const name = textValue(formData, "name", 200);
+  const nameTranslations = localizedFormValues(formData, "name", 200);
+  const name = nameTranslations
+    ? primaryLocalizedValue(nameTranslations)
+    : null;
   const category = formData.get("category");
   const status = formData.get("status");
-  const description = textValue(formData, "description", 1000);
+  const descriptionTranslations = localizedFormValues(
+    formData,
+    "description",
+    1000,
+  );
+  const description = descriptionTranslations
+    ? primaryLocalizedValue(descriptionTranslations)
+    : null;
 
   if (!key || !/^[a-z][a-z0-9_-]{1,99}$/.test(key)) {
     return {
@@ -133,7 +145,8 @@ export async function createServiceAction(
 
   if (
     !name ||
-    description === null ||
+    !nameTranslations?.ku ||
+    !descriptionTranslations ||
     !isServiceCategory(category) ||
     !isCatalogStatus(status)
   ) {
@@ -149,9 +162,11 @@ export async function createServiceAction(
       body: JSON.stringify({
         key,
         name,
+        nameTranslations,
         category,
         status,
         description: description || null,
+        descriptionTranslations,
       }),
     });
   } catch (error: unknown) {
@@ -178,14 +193,25 @@ export async function updateServiceAction(
     return { message: "Platform service administration is forbidden." };
   }
 
-  const name = textValue(formData, "name", 200);
+  const nameTranslations = localizedFormValues(formData, "name", 200);
+  const name = nameTranslations
+    ? primaryLocalizedValue(nameTranslations)
+    : null;
   const category = formData.get("category");
   const status = formData.get("status");
-  const description = textValue(formData, "description", 1000);
+  const descriptionTranslations = localizedFormValues(
+    formData,
+    "description",
+    1000,
+  );
+  const description = descriptionTranslations
+    ? primaryLocalizedValue(descriptionTranslations)
+    : null;
 
   if (
     !name ||
-    description === null ||
+    !nameTranslations?.ku ||
+    !descriptionTranslations ||
     !isServiceCategory(category) ||
     !isCatalogStatus(status)
   ) {
@@ -218,6 +244,7 @@ export async function updateServiceAction(
 
 interface AssignmentFormInput {
   displayName: string | null;
+  displayNameTranslations: LocalizedText;
   status: CompanyServiceStatus;
   serviceUrl: string | null;
   startsAt: string | null;
@@ -227,7 +254,14 @@ interface AssignmentFormInput {
 }
 
 function assignmentInput(formData: FormData): AssignmentFormInput | null {
-  const displayName = textValue(formData, "displayName", 200);
+  const displayNameTranslations = localizedFormValues(
+    formData,
+    "displayName",
+    200,
+  );
+  const displayName = displayNameTranslations
+    ? primaryLocalizedValue(displayNameTranslations)
+    : null;
   const serviceUrl = textValue(formData, "serviceUrl", 2048);
   const notes = textValue(formData, "notes", 2000);
   const internalNotes = textValue(formData, "internalNotes", 2000);
@@ -236,7 +270,7 @@ function assignmentInput(formData: FormData): AssignmentFormInput | null {
   const status = formData.get("status");
 
   if (
-    displayName === null ||
+    !displayNameTranslations ||
     serviceUrl === null ||
     notes === null ||
     internalNotes === null ||
@@ -251,6 +285,7 @@ function assignmentInput(formData: FormData): AssignmentFormInput | null {
 
   return {
     displayName: displayName || null,
+    displayNameTranslations,
     status,
     serviceUrl: serviceUrl || null,
     startsAt,

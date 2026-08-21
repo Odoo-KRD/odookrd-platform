@@ -333,4 +333,14 @@ export const adminKu = {
     description: "نەتوانرا ئەم بەشە بار بکرێت. تکایە دووبارە هەوڵ بدەوە.",
     retry: "دووبارە هەوڵدانەوە",
   },
+  content: {
+    translations: "وەرگێڕانەکان",
+    defaultLanguage: "زمانی سەرەکی",
+    optionalLanguage: "ئارەزوومەندانە",
+    languages: {
+      ku: "کوردی",
+      ar: "عەرەبی",
+      en: "ئینگلیزی",
+    },
+  },
 } satisfies AdminTranslations;

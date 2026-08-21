@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import type { Prisma } from '../../generated/prisma/client';
+import { normalizeLocalizedText } from '../../i18n/localized-content';
 import {
   AccountScope,
   CompanyServiceStatus,
@@ -31,8 +32,10 @@ const serviceSelect = {
   id: true,
   key: true,
   name: true,
+  nameTranslations: true,
   category: true,
   description: true,
+  descriptionTranslations: true,
   status: true,
   createdAt: true,
   updatedAt: true,
@@ -44,6 +47,7 @@ const assignmentSelect = {
   companyId: true,
   serviceId: true,
   displayName: true,
+  displayNameTranslations: true,
   status: true,
   serviceUrl: true,
   startsAt: true,
@@ -52,9 +56,20 @@ const assignmentSelect = {
   internalNotes: true,
   createdAt: true,
   updatedAt: true,
-  company: { select: { id: true, name: true, status: true } },
+  company: {
+    select: { id: true, name: true, nameTranslations: true, status: true },
+  },
   service: {
-    select: { id: true, key: true, name: true, category: true, status: true },
+    select: {
+      id: true,
+      key: true,
+      name: true,
+      nameTranslations: true,
+      description: true,
+      descriptionTranslations: true,
+      category: true,
+      status: true,
+    },
   },
 } satisfies Prisma.CompanyServiceSelect;
 
@@ -155,8 +170,16 @@ export class ServicesService {
         data: {
           key: input.key,
           name,
+          nameTranslations: normalizeLocalizedText(
+            input.nameTranslations,
+            name,
+          ),
           category: input.category,
           description: this.optionalText(input.description),
+          descriptionTranslations: normalizeLocalizedText(
+            input.descriptionTranslations,
+            input.description,
+          ),
           status: input.status ?? ServiceCatalogStatus.ACTIVE,
         },
         select: serviceSelect,
@@ -205,9 +228,25 @@ export class ServicesService {
         where: { id: serviceId },
         data: {
           ...(name !== undefined ? { name } : {}),
+          ...(input.nameTranslations !== undefined
+            ? {
+                nameTranslations: normalizeLocalizedText(
+                  input.nameTranslations,
+                  name,
+                ),
+              }
+            : {}),
           ...(input.category !== undefined ? { category: input.category } : {}),
           ...(input.description !== undefined
             ? { description: this.optionalText(input.description) }
+            : {}),
+          ...(input.descriptionTranslations !== undefined
+            ? {
+                descriptionTranslations: normalizeLocalizedText(
+                  input.descriptionTranslations,
+                  input.description,
+                ),
+              }
             : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
         },
@@ -323,6 +362,10 @@ export class ServicesService {
           companyId: input.companyId,
           serviceId: input.serviceId,
           displayName: this.optionalText(input.displayName),
+          displayNameTranslations: normalizeLocalizedText(
+            input.displayNameTranslations,
+            input.displayName,
+          ),
           status: input.status ?? CompanyServiceStatus.PROVISIONING,
           serviceUrl: this.optionalText(input.serviceUrl),
           startsAt,
@@ -383,6 +426,14 @@ export class ServicesService {
         data: {
           ...(input.displayName !== undefined
             ? { displayName: this.optionalText(input.displayName) }
+            : {}),
+          ...(input.displayNameTranslations !== undefined
+            ? {
+                displayNameTranslations: normalizeLocalizedText(
+                  input.displayNameTranslations,
+                  input.displayName,
+                ),
+              }
             : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
           ...(input.serviceUrl !== undefined

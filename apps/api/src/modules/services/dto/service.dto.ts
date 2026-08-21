@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsOptional,
@@ -5,6 +6,7 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/pagination/pagination-query.dto';
@@ -12,6 +14,10 @@ import {
   ServiceCatalogStatus,
   ServiceCategory,
 } from '../../../generated/prisma/enums';
+import {
+  LocalizedDescriptionDto,
+  LocalizedNameDto,
+} from '../../../i18n/localized-content.dto';
 
 export class ListServicesQueryDto extends PaginationQueryDto {
   @IsOptional()
@@ -38,6 +44,11 @@ export class CreateServiceDto {
   @MaxLength(200)
   name!: string;
 
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  nameTranslations?: LocalizedNameDto;
+
   @IsEnum(ServiceCategory)
   category!: ServiceCategory;
 
@@ -45,6 +56,11 @@ export class CreateServiceDto {
   @IsString()
   @MaxLength(1000)
   description?: string | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedDescriptionDto)
+  descriptionTranslations?: LocalizedDescriptionDto;
 
   @IsOptional()
   @IsEnum(ServiceCatalogStatus)
@@ -59,6 +75,11 @@ export class UpdateServiceDto {
   name?: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  nameTranslations?: LocalizedNameDto;
+
+  @IsOptional()
   @IsEnum(ServiceCategory)
   category?: ServiceCategory;
 
@@ -66,6 +87,11 @@ export class UpdateServiceDto {
   @IsString()
   @MaxLength(1000)
   description?: string | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedDescriptionDto)
+  descriptionTranslations?: LocalizedDescriptionDto;
 
   @IsOptional()
   @IsEnum(ServiceCatalogStatus)

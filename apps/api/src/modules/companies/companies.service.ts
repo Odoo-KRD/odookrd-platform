@@ -16,6 +16,7 @@ import type { ListCompaniesQueryDto } from './dto/list-companies-query.dto';
 import type { UpdateCompanyStatusDto } from './dto/update-company-status.dto';
 import type { UpdateCompanyDto } from './dto/update-company.dto';
 import type { CompanyResponse } from './interfaces/company-response.interface';
+import { normalizeLocalizedText } from '../../i18n/localized-content';
 
 @Injectable()
 export class CompaniesService {
@@ -117,6 +118,14 @@ export class CompaniesService {
     return this.prisma.$transaction(async (tx) => {
       const company = await tx.company.create({
         data: {
+          ...(dto.nameTranslations === undefined
+            ? {}
+            : {
+                nameTranslations: normalizeLocalizedText(
+                  dto.nameTranslations,
+                  dto.name,
+                ),
+              }),
           name,
         },
         select: {
@@ -185,6 +194,14 @@ export class CompaniesService {
           id: companyId,
         },
         data: {
+          ...(dto.nameTranslations === undefined
+            ? {}
+            : {
+                nameTranslations: normalizeLocalizedText(
+                  dto.nameTranslations,
+                  dto.name,
+                ),
+              }),
           name,
         },
         select: {

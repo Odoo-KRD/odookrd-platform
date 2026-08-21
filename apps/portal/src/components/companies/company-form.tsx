@@ -1,11 +1,14 @@
 "use client";
 
+import type { LocalizedText } from "@odookrd/types";
 import { ActionButton } from "@odookrd/ui";
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
 import type { AdminDictionary } from "@/lib/i18n/admin";
+import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 type CompanyFormAction = (
   previousState: FormState,
@@ -15,14 +18,18 @@ type CompanyFormAction = (
 interface CompanyFormProps {
   action: CompanyFormAction;
   labels: AdminDictionary["companies"];
+  content: ContentEditorDictionary;
   initialName?: string;
+  initialTranslations?: LocalizedText;
   cancelHref: string;
 }
 
 export function CompanyForm({
   action,
   labels,
+  content,
   initialName = "",
+  initialTranslations,
   cancelHref,
 }: CompanyFormProps) {
   const [state, formAction, pending] = useActionState(action, {
@@ -30,24 +37,22 @@ export function CompanyForm({
   });
 
   return (
-    <form action={formAction} className="grid max-w-xl gap-5">
-      <div className="grid gap-2">
-        <label htmlFor="company-name" className="text-sm font-medium text-slate-700">
-          {labels.name}
-        </label>
-        <input
-          id="company-name"
-          name="name"
-          type="text"
-          defaultValue={initialName}
-          maxLength={200}
-          required
-          className="h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#714b67] focus:ring-2 focus:ring-[#714b67]/15"
-        />
-      </div>
+    <form action={formAction} className="grid max-w-2xl gap-5">
+      <LocalizedTextFields
+        field="name"
+        label={labels.name}
+        content={content}
+        translations={initialTranslations}
+        fallback={initialName}
+        maxLength={200}
+        required
+      />
 
       {state.message ? (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {state.message}
         </p>
       ) : null}

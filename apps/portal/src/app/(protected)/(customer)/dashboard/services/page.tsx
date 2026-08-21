@@ -75,6 +75,12 @@ export default async function CustomerServicesPage({
                 />
               </div>
 
+              {assignment.service.description ? (
+                <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">
+                  {assignment.service.description}
+                </p>
+              ) : null}
+
               {assignment.expiresAt ? (
                 <p className="mt-5 text-sm text-slate-500">
                   {services.expiresAt}:{" "}

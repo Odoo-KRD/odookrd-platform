@@ -3,6 +3,7 @@ export type CompanyStatus = "ACTIVE" | "SUSPENDED" | "ARCHIVED";
 export type UserStatus = "INVITED" | "ACTIVE" | "SUSPENDED";
 export type RoleScope = "PLATFORM" | "COMPANY";
 export type Locale = "ku" | "ar" | "en";
+export type LocalizedText = Partial<Record<Locale, string>>;
 export type TextDirection = "rtl" | "ltr";
 
 export const PERMISSIONS = {
@@ -51,6 +52,7 @@ export interface ApiLoginResponse {
 export interface Company {
   id: string;
   name: string;
+  nameTranslations: LocalizedText;
   status: CompanyStatus;
   createdAt: string;
   updatedAt: string;
@@ -135,8 +137,10 @@ export interface ManagedService {
   id: string;
   key: string;
   name: string;
+  nameTranslations: LocalizedText;
   category: ServiceCategory;
   description: string | null;
+  descriptionTranslations: LocalizedText;
   status: ServiceCatalogStatus;
   createdAt: string;
   updatedAt: string;
@@ -148,6 +152,7 @@ export interface CompanyServiceAssignment {
   companyId: string;
   serviceId: string;
   displayName: string | null;
+  displayNameTranslations: LocalizedText;
   status: CompanyServiceStatus;
   serviceUrl: string | null;
   startsAt: string | null;
@@ -156,6 +161,16 @@ export interface CompanyServiceAssignment {
   internalNotes?: string | null;
   createdAt: string;
   updatedAt: string;
-  company: Pick<Company, "id" | "name" | "status">;
-  service: Pick<ManagedService, "id" | "key" | "name" | "category" | "status">;
+  company: Pick<Company, "id" | "name" | "nameTranslations" | "status">;
+  service: Pick<
+    ManagedService,
+    | "id"
+    | "key"
+    | "name"
+    | "nameTranslations"
+    | "description"
+    | "descriptionTranslations"
+    | "category"
+    | "status"
+  >;
 }

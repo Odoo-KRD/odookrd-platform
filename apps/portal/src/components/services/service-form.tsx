@@ -9,8 +9,10 @@ import { ActionButton } from "@odookrd/ui";
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
 import type { ServicesDictionary } from "@/lib/i18n/services";
+import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 const categories: readonly ServiceCategory[] = [
   "ODOO",
@@ -31,6 +33,7 @@ type ServiceFormAction = (
 interface ServiceFormProps {
   action: ServiceFormAction;
   labels: ServicesDictionary;
+  content: ContentEditorDictionary;
   initial?: ManagedService;
   cancelHref: string;
 }
@@ -41,6 +44,7 @@ const inputClassName =
 export function ServiceForm({
   action,
   labels,
+  content,
   initial,
   cancelHref,
 }: ServiceFormProps) {
@@ -71,23 +75,15 @@ export function ServiceForm({
         />
       </div>
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="service-name"
-          className="text-sm font-medium text-slate-700"
-        >
-          {labels.name}
-        </label>
-        <input
-          id="service-name"
-          name="name"
-          type="text"
-          defaultValue={initial?.name ?? ""}
-          maxLength={200}
-          required
-          className={inputClassName}
-        />
-      </div>
+      <LocalizedTextFields
+        field="name"
+        label={labels.name}
+        content={content}
+        translations={initial?.nameTranslations}
+        fallback={initial?.name}
+        maxLength={200}
+        required
+      />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="grid gap-2">
@@ -133,22 +129,15 @@ export function ServiceForm({
         </div>
       </div>
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="service-description"
-          className="text-sm font-medium text-slate-700"
-        >
-          {labels.serviceDescription}
-        </label>
-        <textarea
-          id="service-description"
-          name="description"
-          defaultValue={initial?.description ?? ""}
-          maxLength={1000}
-          rows={4}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#714b67] focus:ring-2 focus:ring-[#714b67]/15"
-        />
-      </div>
+      <LocalizedTextFields
+        field="description"
+        label={labels.serviceDescription}
+        content={content}
+        translations={initial?.descriptionTranslations}
+        fallback={initial?.description}
+        maxLength={1000}
+        multiline
+      />
 
       {state.message ? (
         <p

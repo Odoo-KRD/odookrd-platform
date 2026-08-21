@@ -19,11 +19,12 @@ interface CompanyDetailsPageProps {
 export default async function CompanyDetailsPage({
   params,
 }: CompanyDetailsPageProps) {
-  const [{ session, token }, { locale, admin }, { id }] = await Promise.all([
-    getAdminApiContext(PERMISSIONS.COMPANIES_READ),
-    getAdminDictionary(),
-    params,
-  ]);
+  const [{ session, token }, { locale, admin, content }, { id }] =
+    await Promise.all([
+      getAdminApiContext(PERMISSIONS.COMPANIES_READ),
+      getAdminDictionary(),
+      params,
+    ]);
 
   const company = await apiRequest<Company>(
     `/companies/${encodeURIComponent(id)}`,
@@ -90,7 +91,9 @@ export default async function CompanyDetailsPage({
           <CompanyForm
             action={updateCompanyAction.bind(null, company.id)}
             labels={admin.companies}
+            content={content}
             initialName={company.name}
+            initialTranslations={company.nameTranslations}
             cancelHref="/admin/companies"
           />
         </Panel>

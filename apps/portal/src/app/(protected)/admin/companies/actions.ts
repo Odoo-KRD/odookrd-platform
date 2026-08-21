@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import type { FormState } from "@/lib/forms";
+import { localizedFormValues, primaryLocalizedValue } from "@/lib/i18n/content";
 
 function failure(error: unknown): FormState {
   if (error instanceof ApiRequestError) {
@@ -16,31 +17,33 @@ function failure(error: unknown): FormState {
   return { message: "The request could not be completed." };
 }
 
-function companyName(formData: FormData): string | null {
-  const value = formData.get("name");
+function companyInput(formData: FormData) {
+  const nameTranslations = localizedFormValues(formData, "name", 200);
 
-  if (typeof value !== "string") {
+  if (!nameTranslations || !nameTranslations.ku) {
     return null;
   }
 
-  const name = value.trim();
+  const name = primaryLocalizedValue(nameTranslations);
 
-  return name.length > 0 && name.length <= 200 ? name : null;
+  return name ? { name, nameTranslations } : null;
 }
 
 export async function createCompanyAction(
   _previousState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { session, token } = await getAdminApiContext(PERMISSIONS.COMPANIES_MANAGE);
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
 
   if (session.user.accountScope !== "PLATFORM") {
     return { message: "Only platform administrators can create companies." };
   }
 
-  const name = companyName(formData);
+  const input = companyInput(formData);
 
-  if (!name) {
+  if (!input) {
     return { message: "Enter a company name between 1 and 200 characters." };
   }
 
@@ -50,7 +53,7 @@ export async function createCompanyAction(
     company = await apiRequest<Company>("/companies", {
       method: "POST",
       token,
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(input),
     });
   } catch (error: unknown) {
     return failure(error);
@@ -65,7 +68,9 @@ export async function updateCompanyAction(
   _previousState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { session, token } = await getAdminApiContext(PERMISSIONS.COMPANIES_MANAGE);
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
 
   if (
     session.user.accountScope === "COMPANY" &&
@@ -74,9 +79,9 @@ export async function updateCompanyAction(
     return { message: "Access outside company scope is forbidden." };
   }
 
-  const name = companyName(formData);
+  const input = companyInput(formData);
 
-  if (!name) {
+  if (!input) {
     return { message: "Enter a company name between 1 and 200 characters." };
   }
 
@@ -84,7 +89,7 @@ export async function updateCompanyAction(
     await apiRequest<Company>(`/companies/${encodeURIComponent(companyId)}`, {
       method: "PATCH",
       token,
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(input),
     });
   } catch (error: unknown) {
     return failure(error);
@@ -100,10 +105,14 @@ export async function updateCompanyStatusAction(
   _previousState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { session, token } = await getAdminApiContext(PERMISSIONS.COMPANIES_MANAGE);
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
 
   if (session.user.accountScope !== "PLATFORM") {
-    return { message: "Only platform administrators can change company status." };
+    return {
+      message: "Only platform administrators can change company status.",
+    };
   }
 
   const selected = formData.get("status");
