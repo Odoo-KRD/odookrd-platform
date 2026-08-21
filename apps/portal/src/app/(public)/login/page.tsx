@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/auth/login-form";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { getDefaultAuthenticatedPath } from "@/lib/authorization";
 import { getDictionary } from "@/lib/i18n/server";
-import { usersDictionaries } from "@/lib/i18n/users";
+import { frontendTranslations } from "@/lib/i18n/frontend";
 import { getPublicSettings } from "@/lib/public-settings";
 import { getSession } from "@/lib/session";
 
@@ -69,7 +69,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               role="status"
               className="mt-5 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"
             >
-              {usersDictionaries[locale].accountActivated}
+              {frontendTranslations[locale].invitations.accountActivated}
             </p>
           ) : null}
 

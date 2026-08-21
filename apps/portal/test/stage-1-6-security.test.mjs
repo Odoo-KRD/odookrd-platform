@@ -38,11 +38,20 @@ test("session credentials remain in the server-only HttpOnly cookie", async () =
 
   assert.match(loginRoute, /response\.cookies\.set\(\{/);
   assert.match(loginRoute, /httpOnly:\s*true/);
-  assert.match(loginRoute, /secure:\s*process\.env\.NODE_ENV\s*===\s*["']production["']/);
+  assert.match(
+    loginRoute,
+    /secure:\s*process\.env\.NODE_ENV\s*===\s*["']production["']/,
+  );
   assert.match(loginRoute, /sameSite:\s*["']lax["']/);
   assert.match(loginRoute, /priority:\s*["']high["']/);
-  assert.match(loginRoute, /NextResponse\.json\(\s*\{\s*user:\s*result\.user\s*\}/s);
-  assert.match(apiClient, /headers\.set\(["']Authorization["'],\s*`Bearer \$\{token\}`\)/);
+  assert.match(
+    loginRoute,
+    /NextResponse\.json\(\s*\{\s*user:\s*result\.user\s*\}/s,
+  );
+  assert.match(
+    apiClient,
+    /headers\.set\(["']Authorization["'],\s*`Bearer \$\{token\}`\)/,
+  );
 
   const clientFiles = (await filesBelow(path.join(portalRoot, "src"))).filter(
     (file) => /\.(?:ts|tsx)$/.test(file),
@@ -77,7 +86,11 @@ test("every state-changing public BFF endpoint rejects cross-origin requests", a
     const content = await source(route);
     const originGuard = content.indexOf("if (!isSameOrigin(request))");
 
-    assert.notEqual(originGuard, -1, `${route} must enforce same-origin requests`);
+    assert.notEqual(
+      originGuard,
+      -1,
+      `${route} must enforce same-origin requests`,
+    );
 
     const firstMutation = [
       content.indexOf("apiRequest<"),
@@ -123,13 +136,25 @@ test("redirects, permissions, and company scope remain server constrained", asyn
   assert.match(loginPage, /value\.startsWith\(["']\/admin\/["']\)/);
   assert.match(loginPage, /:\s*["']\/admin["']/);
   assert.match(authorization, /requireSession\(\)/);
-  assert.match(authorization, /session\.authorization\.permissions\.includes\(permission\)/);
+  assert.match(
+    authorization,
+    /session\.authorization\.permissions\.includes\(permission\)/,
+  );
   assert.match(adminLayout, /if\s*\(!hasAdminAccess\(session\)\)/);
   assert.match(adminLayout, /redirect\(["']\/dashboard["']\)/);
   assert.match(userActions, /getAdminApiContext\(PERMISSIONS\.USERS_MANAGE\)/);
-  assert.match(userActions, /session\.user\.accountScope\s*===\s*["']COMPANY["']/);
-  assert.match(userActions, /selectedCompanyId\s*!==\s*session\.user\.companyId/);
-  assert.match(companyActions, /getAdminApiContext\(PERMISSIONS\.COMPANIES_MANAGE\)/);
+  assert.match(
+    userActions,
+    /session\.user\.accountScope\s*===\s*["']COMPANY["']/,
+  );
+  assert.match(
+    userActions,
+    /selectedCompanyId\s*!==\s*session\.user\.companyId/,
+  );
+  assert.match(
+    companyActions,
+    /getAdminApiContext\(PERMISSIONS\.COMPANIES_MANAGE\)/,
+  );
 });
 
 test("Kurdish default, Arabic RTL, and English LTR contracts remain intact", async () => {
@@ -141,13 +166,35 @@ test("Kurdish default, Arabic RTL, and English LTR contracts remain intact", asy
   ]);
 
   assert.match(config, /DEFAULT_LOCALE:\s*Locale\s*=\s*["']ku["']/);
-  assert.match(config, /SUPPORTED_LOCALES\s*=\s*\[["']ku["'],\s*["']ar["'],\s*["']en["']\]/);
-  assert.match(config, /locale\s*===\s*["']en["']\s*\?\s*["']ltr["']\s*:\s*["']rtl["']/);
-  assert.match(layout, /<html\s+lang=\{locale\}\s+dir=\{getTextDirection\(locale\)\}/);
+  assert.match(
+    config,
+    /SUPPORTED_LOCALES\s*=\s*\[["']ku["'],\s*["']ar["'],\s*["']en["']\]/,
+  );
+  assert.match(config, /ku:\s*\{[^}]*direction:\s*["']rtl["']/);
+  assert.match(config, /ar:\s*\{[^}]*direction:\s*["']rtl["']/);
+  assert.match(config, /en:\s*\{[^}]*direction:\s*["']ltr["']/);
+  assert.match(config, /LOCALE_METADATA\[locale\]\.direction/);
+  assert.match(
+    layout,
+    /<html\s+lang=\{locale\}\s+dir=\{getTextDirection\(locale\)\}/,
+  );
 
   for (const locale of ["ku", "ar", "en"]) {
-    assert.match(dictionaries, new RegExp(`\\n\\s*${locale}:\\s*\\{`));
-    assert.match(usersDictionaries, new RegExp(`\\n\\s*${locale}:\\s*\\{`));
+    const [commonTranslation, adminTranslation] = await Promise.all([
+      source("src/lib/i18n/common/" + locale + ".ts"),
+      source("src/lib/i18n/admin/" + locale + ".ts"),
+    ]);
+
+    assert.match(
+      dictionaries,
+      new RegExp("\\b" + locale + ":\\s*commonTranslations\\."),
+    );
+    assert.match(
+      usersDictionaries,
+      new RegExp("\\b" + locale + ":\\s*adminTranslations\\."),
+    );
+    assert.match(commonTranslation, /common:\s*\{/);
+    assert.match(adminTranslation, /users:\s*\{/);
   }
 });
 
@@ -155,8 +202,14 @@ test("baseline browser hardening headers remain configured", async () => {
   const nextConfig = await source("next.config.ts");
 
   assert.match(nextConfig, /poweredByHeader:\s*false/);
-  assert.match(nextConfig, /Referrer-Policy["'],\s*value:\s*["']strict-origin-when-cross-origin/);
-  assert.match(nextConfig, /X-Content-Type-Options["'],\s*value:\s*["']nosniff/);
+  assert.match(
+    nextConfig,
+    /Referrer-Policy["'],\s*value:\s*["']strict-origin-when-cross-origin/,
+  );
+  assert.match(
+    nextConfig,
+    /X-Content-Type-Options["'],\s*value:\s*["']nosniff/,
+  );
   assert.match(nextConfig, /X-Frame-Options["'],\s*value:\s*["']DENY/);
   assert.match(nextConfig, /Permissions-Policy/);
 });

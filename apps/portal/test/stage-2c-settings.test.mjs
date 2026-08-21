@@ -20,7 +20,9 @@ const authorization = read("src/lib/authorization.ts");
 const adminLayout = read("src/app/(protected)/admin/layout.tsx");
 const customerLayout = read("src/app/(protected)/(customer)/layout.tsx");
 const loginPage = read("src/app/(public)/login/page.tsx");
-const dictionaries = read("src/lib/i18n/settings.ts");
+const dictionaries = ["ku", "ar", "en"]
+  .map((locale) => read("src/lib/i18n/admin/" + locale + ".ts"))
+  .join("\n");
 
 test("settings administration requires explicit permissions and server API context", () => {
   assert.match(page, /getAdminApiContext\(PERMISSIONS\.SETTINGS_READ\)/);
@@ -71,8 +73,10 @@ test("public settings apply only safe branding, locale, and font values", () => 
 
 test("Kurdish, Arabic, and English settings copy stays complete", () => {
   for (const locale of ["ku", "ar", "en"]) {
-    assert.match(dictionaries, new RegExp("\\n  " + locale + ": \\{"));
+    const translations = read("src/lib/i18n/admin/" + locale + ".ts");
+    assert.match(translations, /settings:\s*\{/);
   }
+
   for (const key of [
     "general.site_title",
     "theme.default_font",
@@ -83,6 +87,7 @@ test("Kurdish, Arabic, and English settings copy stays complete", () => {
     const matches = dictionaries.match(
       new RegExp(key.replaceAll(".", "\\."), "g"),
     );
+
     assert.equal(matches?.length, 3, key + " must be translated three times");
   }
 });

@@ -36,7 +36,7 @@ export function AssignmentStatusBadge({
   labels,
 }: {
   status: CompanyServiceStatus;
-  labels: ServicesDictionary;
+  labels: Pick<ServicesDictionary, "assignmentStatusLabels">;
 }) {
   return (
     <Badge tone={assignmentTones[status]}>

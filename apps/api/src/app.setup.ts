@@ -1,8 +1,11 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
+import { apiLocaleMiddleware } from './i18n';
+
 export function configureApplication(app: INestApplication): void {
   app.use(helmet());
+  app.use(apiLocaleMiddleware);
 
   app.setGlobalPrefix('v1', {
     exclude: ['health/live', 'health/ready'],

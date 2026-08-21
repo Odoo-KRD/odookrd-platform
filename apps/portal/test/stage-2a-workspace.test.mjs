@@ -62,19 +62,29 @@ test("reverse-proxy origin validation preserves HTTPS and strict host matching",
 });
 
 test("customer workspace remains translated in Kurdish, Arabic, and English", async () => {
-  const dictionary = await portalSource("src/lib/i18n/portal.ts");
+  const adapter = await portalSource("src/lib/i18n/portal.ts");
 
   for (const locale of ["ku", "ar", "en"]) {
-    assert.match(dictionary, new RegExp("\\n\\s*" + locale + ":\\s*\\{"));
-  }
+    const dictionary = await portalSource(
+      "src/lib/i18n/frontend/" + locale + ".ts",
+    );
 
-  assert.match(dictionary, /companyAdministrator:/);
-  assert.match(dictionary, /companyUser:/);
+    assert.match(
+      adapter,
+      new RegExp("\\b" + locale + ":\\s*frontendTranslations\\."),
+    );
+    assert.match(dictionary, /portal:\s*\{/);
+    assert.match(dictionary, /companyAdministrator:/);
+    assert.match(dictionary, /companyUser:/);
+  }
 });
 
 test("systemd services use production processes and start automatically", async () => {
   const [apiService, portalService, apiMain] = await Promise.all([
-    readFile(path.join(projectRoot, "deploy/systemd/odookrd-api.service"), "utf8"),
+    readFile(
+      path.join(projectRoot, "deploy/systemd/odookrd-api.service"),
+      "utf8",
+    ),
     readFile(
       path.join(projectRoot, "deploy/systemd/odookrd-portal.service"),
       "utf8",

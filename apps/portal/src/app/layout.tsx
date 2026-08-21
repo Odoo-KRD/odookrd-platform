@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { getTextDirection } from "@/lib/i18n/config";
-import { getLocale } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { getPublicSettings } from "@/lib/public-settings";
 
 import "./globals.css";
@@ -14,14 +14,17 @@ const fontStacks: Record<string, string> = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getPublicSettings();
+  const [settings, { dictionary }] = await Promise.all([
+    getPublicSettings(),
+    getDictionary(),
+  ]);
 
   return {
     title: {
-      default: `${settings.siteTitle} | Customer Platform`,
+      default: `${settings.siteTitle} | ${dictionary.common.platform}`,
       template: `%s | ${settings.siteTitle}`,
     },
-    description: "Secure customer and administration platform.",
+    description: dictionary.common.secureAccess,
     robots: { index: false, follow: false },
   };
 }

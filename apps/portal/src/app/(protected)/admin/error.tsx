@@ -2,23 +2,7 @@
 
 import { ActionButton, Panel } from "@odookrd/ui";
 
-const copy = {
-  ku: {
-    title: "هەڵەیەک ڕوویدا",
-    description: "نەتوانرا ئەم بەشە بار بکرێت. تکایە دووبارە هەوڵ بدەوە.",
-    retry: "دووبارە هەوڵدانەوە",
-  },
-  ar: {
-    title: "حدث خطأ",
-    description: "تعذر تحميل هذا القسم. يرجى المحاولة مرة أخرى.",
-    retry: "إعادة المحاولة",
-  },
-  en: {
-    title: "Something went wrong",
-    description: "This section could not be loaded. Please try again.",
-    retry: "Try again",
-  },
-};
+import { adminTranslations } from "@/lib/i18n/admin/index";
 
 interface AdminErrorProps {
   error: Error & { digest?: string };
@@ -28,7 +12,12 @@ interface AdminErrorProps {
 export default function AdminError({ reset }: AdminErrorProps) {
   const language =
     typeof document === "undefined" ? "ku" : document.documentElement.lang;
-  const messages = language === "ar" ? copy.ar : language === "en" ? copy.en : copy.ku;
+  const messages =
+    language === "ar"
+      ? adminTranslations.ar.errors
+      : language === "en"
+        ? adminTranslations.en.errors
+        : adminTranslations.ku.errors;
 
   return (
     <Panel className="p-8">

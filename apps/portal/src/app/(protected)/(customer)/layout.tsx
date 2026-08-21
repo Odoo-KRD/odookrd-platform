@@ -9,7 +9,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { getPortalDictionary } from "@/lib/i18n/portal-server";
-import { servicesDictionaries } from "@/lib/i18n/services";
+import { frontendTranslations } from "@/lib/i18n/frontend";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 
@@ -34,7 +34,7 @@ export default async function ProtectedCustomerLayout({
   if (hasPermission(session, PERMISSIONS.SERVICES_READ)) {
     navigation.push({
       href: "/dashboard/services",
-      label: servicesDictionaries[locale].title,
+      label: frontendTranslations[locale].services.title,
     });
   }
 

@@ -23,7 +23,9 @@ const customerDetails = read(
 const assignmentForm = read(
   "src/components/services/service-assignment-form.tsx",
 );
-const dictionaries = read("src/lib/i18n/services.ts");
+const dictionaries = ["ku", "ar", "en"]
+  .map((locale) => read("src/lib/i18n/admin/" + locale + ".ts"))
+  .join("\n");
 
 test("platform service administration navigation requires management permission", () => {
   assert.match(
@@ -83,7 +85,13 @@ test("service write actions stay server-side and validate HTTPS plus company ide
 
 test("Kurdish, Arabic, and English service labels include all supported categories", () => {
   for (const locale of ["ku", "ar", "en"]) {
-    assert.match(dictionaries, new RegExp("\\b" + locale + ":\\s*\\{"));
+    const admin = read("src/lib/i18n/admin/" + locale + ".ts");
+    const frontend = read("src/lib/i18n/frontend/" + locale + ".ts");
+
+    assert.match(admin, /services:\s*\{/);
+    assert.match(frontend, /services:\s*\{/);
+    assert.match(admin, /internalNotesHint/);
+    assert.doesNotMatch(frontend, /internalNotesHint/);
   }
 
   for (const category of [
@@ -96,6 +104,4 @@ test("Kurdish, Arabic, and English service labels include all supported categori
   ]) {
     assert.match(dictionaries, new RegExp("\\b" + category + ":"));
   }
-
-  assert.match(dictionaries, /internalNotesHint/);
 });

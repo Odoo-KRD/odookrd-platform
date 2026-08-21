@@ -1,10 +1,6 @@
 import type { Locale } from "@odookrd/types";
 
-const dateLocales: Record<Locale, string> = {
-  ku: "ckb-IQ",
-  ar: "ar-IQ",
-  en: "en-GB",
-};
+import { LOCALE_METADATA } from "@/lib/i18n/config";
 
 export function formatDate(value: string, locale: Locale): string {
   const date = new Date(value);
@@ -13,7 +9,7 @@ export function formatDate(value: string, locale: Locale): string {
     return "—";
   }
 
-  return new Intl.DateTimeFormat(dateLocales[locale], {
+  return new Intl.DateTimeFormat(LOCALE_METADATA[locale].dateLocale, {
     day: "numeric",
     month: "short",
     year: "numeric",

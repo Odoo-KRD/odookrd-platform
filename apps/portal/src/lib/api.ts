@@ -1,3 +1,8 @@
+import { cookies } from "next/headers";
+
+import { LOCALE_COOKIE_NAME } from "@/lib/constants";
+import { DEFAULT_LOCALE, isSupportedLocale } from "@/lib/i18n/config";
+
 export class ApiRequestError extends Error {
   constructor(
     public readonly status: number,
@@ -30,6 +35,13 @@ function getErrorMessage(value: unknown, fallback: string): string {
   return fallback;
 }
 
+async function getRequestLocale(): Promise<string> {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
+
+  return isSupportedLocale(locale) ? locale : DEFAULT_LOCALE;
+}
+
 export async function apiRequest<T>(
   path: string,
   { token, headers: requestedHeaders, ...options }: ApiRequestOptions = {},
@@ -37,12 +49,19 @@ export async function apiRequest<T>(
   const apiBaseUrl = process.env.ODOOKRD_API_URL;
 
   if (!apiBaseUrl || !path.startsWith("/")) {
-    throw new ApiRequestError(500, "The portal API is not configured correctly.");
+    throw new ApiRequestError(
+      500,
+      "The portal API is not configured correctly.",
+    );
   }
 
   const headers = new Headers(requestedHeaders);
 
   headers.set("Accept", "application/json");
+
+  if (!headers.has("Accept-Language")) {
+    headers.set("Accept-Language", await getRequestLocale());
+  }
 
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
@@ -62,7 +81,10 @@ export async function apiRequest<T>(
       signal: options.signal ?? AbortSignal.timeout(10_000),
     });
   } catch {
-    throw new ApiRequestError(502, "The API service is temporarily unavailable.");
+    throw new ApiRequestError(
+      502,
+      "The API service is temporarily unavailable.",
+    );
   }
 
   if (response.status === 204) {

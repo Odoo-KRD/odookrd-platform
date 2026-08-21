@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 
-import type { UsersDictionary } from "@/lib/i18n/users";
+import type { InvitationDictionary } from "@/lib/i18n/types";
 
 interface AcceptInvitationFormProps {
-  labels: UsersDictionary;
+  labels: InvitationDictionary;
 }
 
 function subscribeToHash(callback: () => void): () => void {
@@ -72,7 +72,9 @@ export function AcceptInvitationForm({ labels }: AcceptInvitationFormProps) {
 
       if (!response.ok) {
         let message =
-          response.status === 400 || response.status === 404 || response.status === 409
+          response.status === 400 ||
+          response.status === 404 ||
+          response.status === 409
             ? labels.invalidInvitation
             : labels.acceptanceUnavailable;
 
@@ -150,7 +152,10 @@ export function AcceptInvitationForm({ labels }: AcceptInvitationFormProps) {
       </div>
 
       {error ? (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </p>
       ) : null}

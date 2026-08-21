@@ -6,7 +6,7 @@ import { AssignmentStatusBadge } from "@/components/services/service-status-badg
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { getServicesDictionary } from "@/lib/i18n/services-server";
+import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
 
 interface CustomerServiceDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -17,7 +17,7 @@ export default async function CustomerServiceDetailsPage({
 }: CustomerServiceDetailsPageProps) {
   const [{ session, token }, { locale, services }, { id }] = await Promise.all([
     getCustomerApiContext(PERMISSIONS.SERVICES_READ),
-    getServicesDictionary(),
+    getFrontendDictionary(),
     params,
   ]);
 

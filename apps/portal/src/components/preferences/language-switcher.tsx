@@ -4,11 +4,13 @@ import type { Locale } from "@odookrd/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const languages: ReadonlyArray<{ value: Locale; label: string }> = [
-  { value: "ku", label: "کوردی" },
-  { value: "ar", label: "العربية" },
-  { value: "en", label: "English" },
-];
+import { LOCALE_METADATA, SUPPORTED_LOCALES } from "@/lib/i18n/config";
+
+const languages: ReadonlyArray<{ value: Locale; label: string }> =
+  SUPPORTED_LOCALES.map((value) => ({
+    value,
+    label: LOCALE_METADATA[value].label,
+  }));
 
 interface LanguageSwitcherProps {
   locale: Locale;
