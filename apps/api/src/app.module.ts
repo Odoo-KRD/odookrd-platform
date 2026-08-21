@@ -9,6 +9,7 @@ import { HealthModule } from './modules/health/health.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
+import { ServicesModule } from './modules/services/services.module';
 import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     CompaniesModule,
     RolesModule,
     UsersModule,
+    ServicesModule,
     SettingsModule,
   ],
 })

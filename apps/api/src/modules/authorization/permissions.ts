@@ -8,6 +8,8 @@ export const PERMISSIONS = {
   ROLES_READ: 'roles.read',
   ROLES_MANAGE: 'roles.manage',
 
+  SERVICES_READ: 'services.read',
+  SERVICES_MANAGE: 'services.manage',
   SETTINGS_READ: 'settings.read',
 
   SETTINGS_MANAGE: 'settings.manage',

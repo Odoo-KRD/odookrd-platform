@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { hasPermission } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { requireSession } from "@/lib/session";
 
@@ -43,6 +44,18 @@ export default async function AdminOverviewPage() {
       href: "/admin/roles",
       title: admin.navigation.roles,
       description: admin.overview.rolesDescription,
+    });
+  }
+
+  if (
+    session.user.accountScope === "PLATFORM" &&
+    hasPermission(session, PERMISSIONS.SERVICES_MANAGE)
+  ) {
+    const services = servicesDictionaries[locale];
+    sections.push({
+      href: "/admin/services",
+      title: services.title,
+      description: services.description,
     });
   }
 

@@ -1,3 +1,4 @@
+import { PERMISSIONS } from "@odookrd/types";
 import { redirect } from "next/navigation";
 
 import {
@@ -6,8 +7,9 @@ import {
 } from "@/components/admin/navigation";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
-import { hasAdminAccess } from "@/lib/authorization";
+import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { getPortalDictionary } from "@/lib/i18n/portal-server";
+import { servicesDictionaries } from "@/lib/i18n/services";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 
@@ -28,6 +30,13 @@ export default async function ProtectedCustomerLayout({
   const navigation: AdminNavigationItem[] = [
     { href: "/dashboard", label: portal.navigation.dashboard },
   ];
+
+  if (hasPermission(session, PERMISSIONS.SERVICES_READ)) {
+    navigation.push({
+      href: "/dashboard/services",
+      label: servicesDictionaries[locale].title,
+    });
+  }
 
   if (hasAdminAccess(session)) {
     navigation.push({

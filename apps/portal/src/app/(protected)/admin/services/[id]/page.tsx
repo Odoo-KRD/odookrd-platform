@@ -1,0 +1,165 @@
+import {
+  PERMISSIONS,
+  type CompanyServiceAssignment,
+  type ManagedService,
+  type PaginatedResult,
+} from "@odookrd/types";
+import { DataTable, EmptyState, PageHeading, Panel } from "@odookrd/ui";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { ServiceForm } from "@/components/services/service-form";
+import {
+  AssignmentStatusBadge,
+  CatalogStatusBadge,
+} from "@/components/services/service-status-badge";
+import { apiRequest } from "@/lib/api";
+import { getAdminApiContext } from "@/lib/authorization";
+import { formatDate } from "@/lib/format";
+import { getServicesDictionary } from "@/lib/i18n/services-server";
+
+import { updateServiceAction } from "../actions";
+
+interface ServiceDetailsPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function ServiceDetailsPage({
+  params,
+}: ServiceDetailsPageProps) {
+  const [{ session, token }, { locale, services }, { id }] = await Promise.all([
+    getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
+    getServicesDictionary(),
+    params,
+  ]);
+
+  if (session.user.accountScope !== "PLATFORM") {
+    redirect("/dashboard");
+  }
+
+  const [service, assignments] = await Promise.all([
+    apiRequest<ManagedService>(`/services/${encodeURIComponent(id)}`, {
+      token,
+    }),
+    apiRequest<PaginatedResult<CompanyServiceAssignment>>(
+      `/service-assignments?serviceId=${encodeURIComponent(id)}&limit=50&offset=0`,
+      { token },
+    ),
+  ]);
+
+  return (
+    <div className="grid gap-7">
+      <PageHeading
+        title={service.name}
+        description={services.editService}
+        actions={
+          <Link
+            href={`/admin/services/assign?serviceId=${encodeURIComponent(service.id)}`}
+            className="inline-flex h-10 items-center rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
+          >
+            {services.assignService}
+          </Link>
+        }
+      />
+
+      <Panel className="p-6 sm:p-8">
+        <div className="grid gap-5 sm:grid-cols-4">
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.status}
+            </p>
+            <div className="mt-2">
+              <CatalogStatusBadge status={service.status} labels={services} />
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.category}
+            </p>
+            <p className="mt-2 text-sm font-medium text-slate-900">
+              {services.categoryLabels[service.category]}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.assignmentCount}
+            </p>
+            <p className="mt-2 text-sm font-medium text-slate-900">
+              {service.assignmentCount}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.created}
+            </p>
+            <p className="mt-2 text-sm font-medium text-slate-900">
+              {formatDate(service.createdAt, locale)}
+            </p>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel className="p-6 sm:p-8">
+        <h2 className="mb-6 text-base font-semibold text-slate-900">
+          {services.editService}
+        </h2>
+        <ServiceForm
+          action={updateServiceAction.bind(null, service.id)}
+          labels={services}
+          initial={service}
+          cancelHref="/admin/services"
+        />
+      </Panel>
+
+      <section className="grid gap-4">
+        <h2 className="text-base font-semibold text-slate-900">
+          {services.assignments}
+        </h2>
+        <Panel>
+          {assignments.items.length === 0 ? (
+            <EmptyState
+              title={services.emptyAssignmentsTitle}
+              description={services.emptyAssignmentsDescription}
+            />
+          ) : (
+            <DataTable
+              headings={[
+                services.company,
+                services.status,
+                services.expiresAt,
+                services.actions,
+              ]}
+            >
+              {assignments.items.map((assignment) => (
+                <tr key={assignment.id} className="hover:bg-slate-50/70">
+                  <td className="border-b border-slate-100 px-5 py-4 font-medium text-slate-900">
+                    {assignment.company.name}
+                  </td>
+                  <td className="border-b border-slate-100 px-5 py-4">
+                    <AssignmentStatusBadge
+                      status={assignment.status}
+                      labels={services}
+                    />
+                  </td>
+                  <td className="border-b border-slate-100 px-5 py-4 text-slate-700">
+                    {assignment.expiresAt
+                      ? formatDate(assignment.expiresAt, locale)
+                      : "—"}
+                  </td>
+                  <td className="border-b border-slate-100 px-5 py-4">
+                    <Link
+                      href={`/admin/services/assignments/${assignment.id}`}
+                      className="text-sm font-medium text-[#714b67] hover:text-[#62405a]"
+                    >
+                      {services.view}
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </DataTable>
+          )}
+        </Panel>
+      </section>
+    </div>
+  );
+}

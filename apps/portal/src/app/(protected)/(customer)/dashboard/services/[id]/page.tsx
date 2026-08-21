@@ -1,0 +1,111 @@
+import { PERMISSIONS, type CompanyServiceAssignment } from "@odookrd/types";
+import { PageHeading, Panel } from "@odookrd/ui";
+import Link from "next/link";
+
+import { AssignmentStatusBadge } from "@/components/services/service-status-badge";
+import { apiRequest } from "@/lib/api";
+import { getCustomerApiContext } from "@/lib/authorization";
+import { formatDate } from "@/lib/format";
+import { getServicesDictionary } from "@/lib/i18n/services-server";
+
+interface CustomerServiceDetailsPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function CustomerServiceDetailsPage({
+  params,
+}: CustomerServiceDetailsPageProps) {
+  const [{ session, token }, { locale, services }, { id }] = await Promise.all([
+    getCustomerApiContext(PERMISSIONS.SERVICES_READ),
+    getServicesDictionary(),
+    params,
+  ]);
+
+  const assignment = await apiRequest<CompanyServiceAssignment>(
+    `/service-assignments/${encodeURIComponent(id)}`,
+    { token },
+  );
+
+  if (assignment.companyId !== session.user.companyId) {
+    throw new Error(
+      "The service response crossed the authenticated company boundary.",
+    );
+  }
+
+  return (
+    <div className="grid gap-7">
+      <PageHeading
+        title={assignment.displayName ?? assignment.service.name}
+        description={services.categoryLabels[assignment.service.category]}
+        actions={
+          <Link
+            href="/dashboard/services"
+            className="inline-flex h-10 items-center rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            {services.back}
+          </Link>
+        }
+      />
+
+      <Panel className="p-6 sm:p-8">
+        <div className="grid gap-6 sm:grid-cols-3">
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.status}
+            </p>
+            <div className="mt-3">
+              <AssignmentStatusBadge
+                status={assignment.status}
+                labels={services}
+              />
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.startsAt}
+            </p>
+            <p className="mt-3 text-sm font-medium text-slate-900">
+              {assignment.startsAt
+                ? formatDate(assignment.startsAt, locale)
+                : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">
+              {services.expiresAt}
+            </p>
+            <p className="mt-3 text-sm font-medium text-slate-900">
+              {assignment.expiresAt
+                ? formatDate(assignment.expiresAt, locale)
+                : "—"}
+            </p>
+          </div>
+        </div>
+
+        {assignment.notes ? (
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <p className="text-xs font-medium text-slate-500">
+              {services.notes}
+            </p>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+              {assignment.notes}
+            </p>
+          </div>
+        ) : null}
+
+        {assignment.serviceUrl ? (
+          <div className="mt-8">
+            <a
+              href={assignment.serviceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-10 items-center rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
+            >
+              {services.openService}
+            </a>
+          </div>
+        ) : null}
+      </Panel>
+    </div>
+  );
+}

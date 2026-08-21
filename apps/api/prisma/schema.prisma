@@ -45,6 +45,34 @@ enum AuthTokenType {
   @@map("auth_token_type")
 }
 
+enum ServiceCategory {
+  ODOO
+  HOSTING
+  DOMAIN
+  SUPPORT
+  TRAINING
+  OTHER
+
+  @@map("service_category")
+}
+
+enum ServiceCatalogStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("service_catalog_status")
+}
+
+enum CompanyServiceStatus {
+  PROVISIONING
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  CANCELLED
+
+  @@map("company_service_status")
+}
+
 enum SettingScope {
   PLATFORM
   COMPANY
@@ -59,8 +87,9 @@ model Company {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  users    User[]
-  settings Setting[]
+  users              User[]
+  settings           Setting[]
+  serviceAssignments CompanyService[]
 
   @@map("companies")
 }
@@ -213,4 +242,43 @@ model Setting {
   @@index([scope, companyId], map: "settings_scope_company_id_idx")
   @@index([category], map: "settings_category_idx")
   @@map("settings")
+}
+
+model Service {
+  id          String               @id @default(uuid()) @db.Uuid
+  key         String               @unique @db.VarChar(100)
+  name        String               @db.VarChar(200)
+  category    ServiceCategory
+  description String?              @db.VarChar(1000)
+  status      ServiceCatalogStatus @default(ACTIVE)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  assignments CompanyService[]
+
+  @@index([category, status], map: "services_category_status_idx")
+  @@map("services")
+}
+
+model CompanyService {
+  id            String               @id @default(uuid()) @db.Uuid
+  companyId     String               @map("company_id") @db.Uuid
+  serviceId     String               @map("service_id") @db.Uuid
+  displayName   String?              @map("display_name") @db.VarChar(200)
+  status        CompanyServiceStatus @default(PROVISIONING)
+  serviceUrl    String?              @map("service_url") @db.VarChar(2048)
+  startsAt      DateTime?            @map("starts_at") @db.Timestamptz(6)
+  expiresAt     DateTime?            @map("expires_at") @db.Timestamptz(6)
+  notes         String?              @db.VarChar(2000)
+  internalNotes String?              @map("internal_notes") @db.VarChar(2000)
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, status], map: "company_services_company_status_idx")
+  @@index([serviceId], map: "company_services_service_id_idx")
+  @@index([expiresAt], map: "company_services_expires_at_idx")
+  @@map("company_services")
 }

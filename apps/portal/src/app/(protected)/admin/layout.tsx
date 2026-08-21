@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { portalDictionaries } from "@/lib/i18n/portal";
+import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
@@ -55,6 +56,16 @@ export default async function ProtectedAdminLayout({
 
   if (hasPermission(session, PERMISSIONS.ROLES_READ)) {
     navigation.push({ href: "/admin/roles", label: admin.navigation.roles });
+  }
+
+  if (
+    session.user.accountScope === "PLATFORM" &&
+    hasPermission(session, PERMISSIONS.SERVICES_MANAGE)
+  ) {
+    navigation.push({
+      href: "/admin/services",
+      label: servicesDictionaries[locale].title,
+    });
   }
 
   if (hasPermission(session, PERMISSIONS.SETTINGS_READ)) {

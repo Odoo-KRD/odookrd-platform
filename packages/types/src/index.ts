@@ -12,6 +12,8 @@ export const PERMISSIONS = {
   USERS_MANAGE: "users.manage",
   ROLES_READ: "roles.read",
   ROLES_MANAGE: "roles.manage",
+  SERVICES_READ: "services.read",
+  SERVICES_MANAGE: "services.manage",
   SETTINGS_READ: "settings.read",
   SETTINGS_MANAGE: "settings.manage",
   AUDIT_LOGS_READ: "audit_logs.read",
@@ -119,4 +121,41 @@ export interface SettingsCollection {
   scope: SettingScope;
   companyId: string | null;
   settings: ManagedSetting[];
+}
+
+export type ServiceCategory =
+  "ODOO" | "HOSTING" | "DOMAIN" | "SUPPORT" | "TRAINING" | "OTHER";
+
+export type ServiceCatalogStatus = "ACTIVE" | "INACTIVE";
+
+export type CompanyServiceStatus =
+  "PROVISIONING" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "CANCELLED";
+
+export interface ManagedService {
+  id: string;
+  key: string;
+  name: string;
+  category: ServiceCategory;
+  description: string | null;
+  status: ServiceCatalogStatus;
+  createdAt: string;
+  updatedAt: string;
+  assignmentCount: number;
+}
+
+export interface CompanyServiceAssignment {
+  id: string;
+  companyId: string;
+  serviceId: string;
+  displayName: string | null;
+  status: CompanyServiceStatus;
+  serviceUrl: string | null;
+  startsAt: string | null;
+  expiresAt: string | null;
+  notes: string | null;
+  internalNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company: Pick<Company, "id" | "name" | "status">;
+  service: Pick<ManagedService, "id" | "key" | "name" | "category" | "status">;
 }

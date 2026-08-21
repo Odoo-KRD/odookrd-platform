@@ -56,6 +56,16 @@ const permissions = [
     description: 'View audit records within the authorized scope.',
   },
   {
+    key: 'services.read',
+    name: 'Read services',
+    description: 'View services assigned within the authorized company scope.',
+  },
+  {
+    key: 'services.manage',
+    name: 'Manage services',
+    description: 'Manage the platform service catalog and company assignments.',
+  },
+  {
     key: 'settings.read',
     name: 'Read settings',
     description:
@@ -85,6 +95,8 @@ const roles = [
       'audit_logs.read',
       'settings.read',
       'settings.manage',
+      'services.read',
+      'services.manage',
     ],
   },
   {
@@ -100,6 +112,7 @@ const roles = [
       'roles.read',
       'settings.read',
       'settings.manage',
+      'services.read',
     ],
   },
   {
@@ -107,7 +120,7 @@ const roles = [
     name: 'Company User',
     description: 'Standard user for a customer company.',
     scope: RoleScope.COMPANY,
-    permissions: ['companies.read'],
+    permissions: ['companies.read', 'services.read'],
   },
 ] as const;
 

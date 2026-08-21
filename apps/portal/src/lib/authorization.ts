@@ -11,6 +11,7 @@ const administrativePermissions = new Set<string>([
   PERMISSIONS.COMPANIES_MANAGE,
   PERMISSIONS.USERS_MANAGE,
   PERMISSIONS.ROLES_MANAGE,
+  PERMISSIONS.SERVICES_MANAGE,
   PERMISSIONS.SETTINGS_READ,
   PERMISSIONS.SETTINGS_MANAGE,
 ]);
@@ -51,6 +52,33 @@ export async function getAdminApiContext(permission: PermissionKey): Promise<{
   token: string;
 }> {
   const session = await requireAdminPermission(permission);
+  const token = await getSessionToken();
+
+  if (!token) {
+    redirect("/login");
+  }
+
+  return { session, token };
+}
+
+export async function getCustomerApiContext(
+  permission: PermissionKey,
+): Promise<{
+  session: CurrentSession;
+  token: string;
+}> {
+  const session = await requireSession();
+
+  if (
+    session.user.accountScope !== "COMPANY" ||
+    !session.user.companyId ||
+    !hasPermission(session, permission)
+  ) {
+    redirect(
+      session.user.accountScope === "PLATFORM" ? "/admin" : "/dashboard",
+    );
+  }
+
   const token = await getSessionToken();
 
   if (!token) {
