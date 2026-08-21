@@ -6,6 +6,7 @@ import { App } from 'supertest/types';
 
 import { configureApplication } from '../../src/app.setup';
 import { AccountScope } from '../../src/generated/prisma/enums';
+import { AuthorizationService } from '../../src/modules/authorization/authorization.service';
 import { AuthController } from '../../src/modules/auth/auth.controller';
 import {
   AuthenticationResult,
@@ -120,6 +121,15 @@ describe('Authentication API (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
+        {
+          provide: AuthorizationService,
+          useValue: {
+            resolveContext: jest.fn().mockResolvedValue({
+              roleKeys: ['platform_admin'],
+              permissions: ['users.read', 'companies.read'],
+            }),
+          },
+        },
         {
           provide: AuthService,
           useValue: authService,
@@ -246,6 +256,10 @@ describe('Authentication API (e2e)', () => {
           email: 'user@example.com',
           accountScope: 'PLATFORM',
           companyId: null,
+        },
+        authorization: {
+          roles: ['platform_admin'],
+          permissions: ['companies.read', 'users.read'],
         },
       });
 

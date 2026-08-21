@@ -1,0 +1,124 @@
+import { PERMISSIONS } from "@odookrd/types";
+
+import { CustomerWorkspace } from "@/components/admin/customer-workspace";
+import {
+  AdminNavigation,
+  type AdminNavigationItem,
+} from "@/components/admin/navigation";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { LanguageSwitcher } from "@/components/preferences/language-switcher";
+import { hasAdminAccess, hasPermission } from "@/lib/authorization";
+import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { requireSession } from "@/lib/session";
+
+export default async function ProtectedAdminLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const [session, { locale, dictionary, admin }] = await Promise.all([
+    requireSession(),
+    getAdminDictionary(),
+  ]);
+
+  if (!hasAdminAccess(session)) {
+    return (
+      <CustomerWorkspace
+        session={session}
+        locale={locale}
+        dictionary={dictionary}
+      />
+    );
+  }
+
+  const navigation: AdminNavigationItem[] = [
+    { href: "/admin", label: admin.navigation.overview },
+  ];
+
+  if (hasPermission(session, PERMISSIONS.COMPANIES_READ)) {
+    navigation.push({
+      href: "/admin/companies",
+      label:
+        session.user.accountScope === "COMPANY"
+          ? admin.navigation.myCompany
+          : admin.navigation.companies,
+    });
+  }
+
+  if (hasPermission(session, PERMISSIONS.USERS_READ)) {
+    navigation.push({ href: "/admin/users", label: admin.navigation.users });
+  }
+
+  if (hasPermission(session, PERMISSIONS.ROLES_READ)) {
+    navigation.push({ href: "/admin/roles", label: admin.navigation.roles });
+  }
+
+  const administrationLabel =
+    session.user.accountScope === "PLATFORM"
+      ? admin.navigation.platformAdministration
+      : admin.navigation.companyAdministration;
+
+  return (
+    <div className="min-h-screen lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-e border-slate-200 bg-white lg:flex">
+        <div className="border-b border-slate-200 px-6 py-6">
+          <p className="text-lg font-semibold tracking-tight text-slate-900">
+            {dictionary.common.brand}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">{administrationLabel}</p>
+        </div>
+
+        <div className="flex-1 px-3 py-5">
+          <AdminNavigation label={admin.navigation.label} items={navigation} />
+        </div>
+
+        <div className="border-t border-slate-200 px-5 py-5">
+          <p className="text-xs text-slate-500">{dictionary.workspace.signedInAs}</p>
+          <p dir="ltr" className="mt-2 truncate text-sm font-medium text-slate-800">
+            {session.user.email}
+          </p>
+        </div>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 lg:hidden">
+                {dictionary.common.brand}
+              </p>
+              <p className="mt-1 text-xs text-slate-500 lg:mt-0">
+                {administrationLabel}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <LanguageSwitcher
+                locale={locale}
+                label={dictionary.common.language}
+              />
+              <LogoutButton
+                label={dictionary.workspace.signOut}
+                pendingLabel={dictionary.workspace.signingOut}
+              />
+            </div>
+          </div>
+
+          <details className="mt-4 border-t border-slate-200 pt-3 lg:hidden">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+              {admin.navigation.label}
+            </summary>
+            <div className="mt-3">
+              <AdminNavigation
+                label={admin.navigation.label}
+                items={navigation}
+              />
+            </div>
+          </details>
+        </header>
+
+        <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 sm:py-10">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}

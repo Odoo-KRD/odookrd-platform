@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 
+import { AuthorizationService } from '../authorization/authorization.service';
 import { AuthService, AuthenticationResult } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { LoginDto } from './dto/login.dto';
@@ -23,6 +24,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly loginThrottle: LoginThrottleService,
+    private readonly authorizationService: AuthorizationService,
   ) {}
 
   @Post('login')
@@ -56,20 +58,31 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthenticatedGuard)
-  me(@CurrentUser() principal: AuthenticatedPrincipal): {
+  async me(@CurrentUser() principal: AuthenticatedPrincipal): Promise<{
     user: {
       id: string;
       email: string;
       accountScope: AuthenticatedPrincipal['accountScope'];
       companyId: string | null;
     };
-  } {
+    authorization: {
+      roles: string[];
+      permissions: string[];
+    };
+  }> {
+    const authorization =
+      await this.authorizationService.resolveContext(principal);
+
     return {
       user: {
         id: principal.userId,
         email: principal.email,
         accountScope: principal.accountScope,
         companyId: principal.companyId,
+      },
+      authorization: {
+        roles: [...authorization.roleKeys].sort(),
+        permissions: [...authorization.permissions].sort(),
       },
     };
   }

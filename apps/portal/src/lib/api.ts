@@ -1,0 +1,95 @@
+export class ApiRequestError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
+interface ApiRequestOptions extends RequestInit {
+  token?: string;
+}
+
+function getErrorMessage(value: unknown, fallback: string): string {
+  if (typeof value !== "object" || value === null || !("message" in value)) {
+    return fallback;
+  }
+
+  const message = value.message;
+
+  if (typeof message === "string") {
+    return message;
+  }
+
+  if (Array.isArray(message) && typeof message[0] === "string") {
+    return message[0];
+  }
+
+  return fallback;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  { token, headers: requestedHeaders, ...options }: ApiRequestOptions = {},
+): Promise<T> {
+  const apiBaseUrl = process.env.ODOOKRD_API_URL;
+
+  if (!apiBaseUrl || !path.startsWith("/")) {
+    throw new ApiRequestError(500, "The portal API is not configured correctly.");
+  }
+
+  const headers = new Headers(requestedHeaders);
+
+  headers.set("Accept", "application/json");
+
+  if (options.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(new URL(`/v1${path}`, apiBaseUrl), {
+      ...options,
+      headers,
+      cache: "no-store",
+      signal: options.signal ?? AbortSignal.timeout(10_000),
+    });
+  } catch {
+    throw new ApiRequestError(502, "The API service is temporarily unavailable.");
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  let body: unknown;
+
+  try {
+    body = await response.json();
+  } catch {
+    if (response.ok) {
+      throw new ApiRequestError(502, "The API returned an invalid response.");
+    }
+  }
+
+  if (!response.ok) {
+    const fallback =
+      response.status >= 500
+        ? "The API service is temporarily unavailable."
+        : "The request could not be completed.";
+
+    throw new ApiRequestError(
+      response.status,
+      response.status >= 500 ? fallback : getErrorMessage(body, fallback),
+    );
+  }
+
+  return body as T;
+}
