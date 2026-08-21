@@ -9,6 +9,8 @@ export const environmentValidationSchema = Joi.object({
 
   DATABASE_URL: Joi.string().uri().required(),
 
+  SETTINGS_ENCRYPTION_KEY: Joi.string().length(44).base64().required(),
+
   AUTH_SESSION_IDLE_TTL_SECONDS: Joi.number()
     .integer()
     .min(60)

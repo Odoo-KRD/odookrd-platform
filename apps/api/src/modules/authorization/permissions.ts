@@ -8,6 +8,10 @@ export const PERMISSIONS = {
   ROLES_READ: 'roles.read',
   ROLES_MANAGE: 'roles.manage',
 
+  SETTINGS_READ: 'settings.read',
+
+  SETTINGS_MANAGE: 'settings.manage',
+
   AUDIT_LOGS_READ: 'audit_logs.read',
 } as const;
 

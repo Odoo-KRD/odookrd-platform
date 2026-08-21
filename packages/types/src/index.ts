@@ -12,11 +12,12 @@ export const PERMISSIONS = {
   USERS_MANAGE: "users.manage",
   ROLES_READ: "roles.read",
   ROLES_MANAGE: "roles.manage",
+  SETTINGS_READ: "settings.read",
+  SETTINGS_MANAGE: "settings.manage",
   AUDIT_LOGS_READ: "audit_logs.read",
 } as const;
 
-export type PermissionKey =
-  (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 export interface AuthenticatedUser {
   id: string;
@@ -89,4 +90,33 @@ export interface UserInvitation {
   token: string;
   expiresAt: string;
   user: ManagedUser;
+}
+
+export type SettingScope = "PLATFORM" | "COMPANY";
+export type SettingValueType = "STRING" | "NUMBER" | "BOOLEAN" | "SECRET";
+export type SettingSource = "DEFAULT" | "PLATFORM" | "COMPANY";
+export type SettingCategory =
+  | "general"
+  | "theme"
+  | "companies"
+  | "notifications"
+  | "helpdesk"
+  | "trainings";
+export type SettingPrimitive = string | number | boolean;
+
+export interface ManagedSetting {
+  key: string;
+  category: SettingCategory;
+  valueType: SettingValueType;
+  value: SettingPrimitive | null;
+  source: SettingSource;
+  isSecret: boolean;
+  configured: boolean;
+  editable: boolean;
+}
+
+export interface SettingsCollection {
+  scope: SettingScope;
+  companyId: string | null;
+  settings: ManagedSetting[];
 }

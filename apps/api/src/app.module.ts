@@ -9,6 +9,7 @@ import { HealthModule } from './modules/health/health.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UsersModule } from './modules/users/users.module';
     CompaniesModule,
     RolesModule,
     UsersModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

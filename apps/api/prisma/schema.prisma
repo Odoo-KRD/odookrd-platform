@@ -45,6 +45,13 @@ enum AuthTokenType {
   @@map("auth_token_type")
 }
 
+enum SettingScope {
+  PLATFORM
+  COMPANY
+
+  @@map("setting_scope")
+}
+
 model Company {
   id        String        @id @default(uuid()) @db.Uuid
   name      String        @db.VarChar(200)
@@ -52,7 +59,8 @@ model Company {
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  users User[]
+  users    User[]
+  settings Setting[]
 
   @@map("companies")
 }
@@ -184,4 +192,25 @@ model AuditLog {
   @@index([createdAt])
   @@index([companyId, createdAt])
   @@map("audit_logs")
+}
+
+model Setting {
+  id             String       @id @default(uuid()) @db.Uuid
+  key            String       @db.VarChar(150)
+  category       String       @db.VarChar(80)
+  valueType      String       @map("value_type") @db.VarChar(32)
+  scope          SettingScope
+  scopeKey       String       @map("scope_key") @db.VarChar(80)
+  companyId      String?      @map("company_id") @db.Uuid
+  value          Json?        @db.JsonB
+  encryptedValue String?      @map("encrypted_value") @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([scopeKey, key], map: "settings_scope_key_key_unique")
+  @@index([scope, companyId], map: "settings_scope_company_id_idx")
+  @@index([category], map: "settings_category_idx")
+  @@map("settings")
 }

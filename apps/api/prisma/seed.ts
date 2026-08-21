@@ -2,10 +2,7 @@ import 'dotenv/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import {
-  PrismaClient,
-  RoleScope,
-} from '../src/generated/prisma/client';
+import { PrismaClient, RoleScope } from '../src/generated/prisma/client';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -30,7 +27,8 @@ const permissions = [
   {
     key: 'companies.manage',
     name: 'Manage companies',
-    description: 'Create or update company information within the authorized scope.',
+    description:
+      'Create or update company information within the authorized scope.',
   },
   {
     key: 'users.read',
@@ -57,6 +55,18 @@ const permissions = [
     name: 'Read audit logs',
     description: 'View audit records within the authorized scope.',
   },
+  {
+    key: 'settings.read',
+    name: 'Read settings',
+    description:
+      'View settings within the authorized platform or company scope.',
+  },
+  {
+    key: 'settings.manage',
+    name: 'Manage settings',
+    description:
+      'Change permitted settings within the authorized platform or company scope.',
+  },
 ] as const;
 
 const roles = [
@@ -73,6 +83,8 @@ const roles = [
       'roles.read',
       'roles.manage',
       'audit_logs.read',
+      'settings.read',
+      'settings.manage',
     ],
   },
   {
@@ -86,6 +98,8 @@ const roles = [
       'users.read',
       'users.manage',
       'roles.read',
+      'settings.read',
+      'settings.manage',
     ],
   },
   {
