@@ -67,6 +67,12 @@ export const SETTINGS_REGISTRY: readonly SettingDefinition[] = [
     companyWritable: true,
     allowEmpty: false,
     maxLength: 150,
+    allowedValues: [
+      'Noto Kufi Arabic',
+      'Noto Sans Arabic',
+      'Arial',
+      'system-ui',
+    ],
   },
   {
     key: 'companies.max_users_per_company',

@@ -11,6 +11,8 @@ const administrativePermissions = new Set<string>([
   PERMISSIONS.COMPANIES_MANAGE,
   PERMISSIONS.USERS_MANAGE,
   PERMISSIONS.ROLES_MANAGE,
+  PERMISSIONS.SETTINGS_READ,
+  PERMISSIONS.SETTINGS_MANAGE,
 ]);
 
 export function hasPermission(

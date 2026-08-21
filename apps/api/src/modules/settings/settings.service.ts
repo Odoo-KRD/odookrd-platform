@@ -33,6 +33,11 @@ export interface ManagedSetting {
   editable: boolean;
 }
 
+export interface PublicSettings {
+  siteTitle: string;
+  defaultLocale: string;
+  defaultFont: string;
+}
 export interface SettingsCollection {
   scope: SettingScope;
   companyId: string | null;
@@ -47,6 +52,25 @@ export class SettingsService {
     private readonly authorization: AuthorizationService,
   ) {}
 
+  async listPublic(): Promise<PublicSettings> {
+    const [siteTitle, defaultLocale, defaultFont] = await Promise.all([
+      this.resolveValue('general.site_title'),
+      this.resolveValue('general.default_locale'),
+      this.resolveValue('theme.default_font'),
+    ]);
+
+    if (
+      typeof siteTitle !== 'string' ||
+      typeof defaultLocale !== 'string' ||
+      typeof defaultFont !== 'string'
+    ) {
+      throw new InternalServerErrorException(
+        'Public settings contain an invalid value type.',
+      );
+    }
+
+    return { siteTitle, defaultLocale, defaultFont };
+  }
   async listPlatform(
     principal: AuthenticatedPrincipal,
   ): Promise<SettingsCollection> {

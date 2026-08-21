@@ -1,4 +1,5 @@
 import {
+  InternalServerErrorException,
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -28,6 +29,7 @@ import type {
   UserResponse,
 } from './interfaces/user-response.interface';
 import { UserInvitationService } from './user-invitation.service';
+import { SETTINGS_BY_KEY } from '../settings/settings.registry';
 
 const USER_SELECT = {
   id: true,
@@ -146,6 +148,10 @@ export class UsersService {
     dto: InviteUserDto,
   ): Promise<UserInvitationResult> {
     const target = this.resolveInvitationTarget(principal, dto);
+
+    if (target.companyId) {
+      await this.assertCompanyUserCapacity(target.companyId);
+    }
 
     const email = dto.email.trim();
     const normalizedEmail = email.toLowerCase();
@@ -435,6 +441,47 @@ export class UsersService {
 
       return this.toResponse(user);
     });
+  }
+  private async assertCompanyUserCapacity(companyId: string): Promise<void> {
+    const key = 'companies.max_users_per_company';
+    const companyScopeKey = 'company:' + companyId;
+    const [records, currentUsers] = await Promise.all([
+      this.prisma.setting.findMany({
+        where: {
+          key,
+          scopeKey: { in: [companyScopeKey, 'platform'] },
+        },
+        select: { scopeKey: true, value: true },
+      }),
+      this.prisma.user.count({ where: { companyId } }),
+    ]);
+    const companySetting = records.find(
+      (record) => record.scopeKey === companyScopeKey,
+    );
+    const platformSetting = records.find(
+      (record) => record.scopeKey === 'platform',
+    );
+    const definition = SETTINGS_BY_KEY.get(key);
+    const maximumUsers =
+      companySetting?.value ??
+      platformSetting?.value ??
+      definition?.defaultValue;
+
+    if (
+      typeof maximumUsers !== 'number' ||
+      !Number.isSafeInteger(maximumUsers) ||
+      maximumUsers < 1
+    ) {
+      throw new InternalServerErrorException(
+        'The company user limit is configured incorrectly.',
+      );
+    }
+
+    if (currentUsers >= maximumUsers) {
+      throw new ConflictException(
+        'This company has reached its maximum number of users.',
+      );
+    }
   }
 
   private resolveInvitationTarget(

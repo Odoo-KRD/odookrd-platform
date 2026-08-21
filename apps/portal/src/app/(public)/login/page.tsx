@@ -5,6 +5,7 @@ import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { getDefaultAuthenticatedPath } from "@/lib/authorization";
 import { getDictionary } from "@/lib/i18n/server";
 import { usersDictionaries } from "@/lib/i18n/users";
+import { getPublicSettings } from "@/lib/public-settings";
 import { getSession } from "@/lib/session";
 
 interface LoginPageProps {
@@ -31,10 +32,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(getDefaultAuthenticatedPath(session));
   }
 
-  const [{ locale, dictionary }, parameters] = await Promise.all([
-    getDictionary(),
-    searchParams,
-  ]);
+  const [{ locale, dictionary }, parameters, publicSettings] =
+    await Promise.all([getDictionary(), searchParams, getPublicSettings()]);
 
   const accountActivated = parameters.invitation === "accepted";
 
@@ -42,12 +41,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="flex min-h-screen items-center justify-center px-5 py-10">
       <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-7 sm:p-9">
         <div className="mb-9 flex justify-end">
-          <LanguageSwitcher locale={locale} label={dictionary.common.language} />
+          <LanguageSwitcher
+            locale={locale}
+            label={dictionary.common.language}
+          />
         </div>
 
         <div className="border-b border-slate-200 pb-7">
           <p className="text-lg font-semibold tracking-tight text-slate-900">
-            {dictionary.common.brand}
+            {publicSettings.siteTitle}
           </p>
           <p className="mt-1 text-sm text-slate-500">
             {dictionary.common.platform}

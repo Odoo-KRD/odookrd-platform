@@ -4,15 +4,17 @@ import Link from "next/link";
 
 import { hasPermission } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { settingsDictionaries } from "@/lib/i18n/settings";
 import { requireSession } from "@/lib/session";
 
 export default async function AdminOverviewPage() {
-  const [session, { admin }] = await Promise.all([
+  const [session, { locale, admin }] = await Promise.all([
     requireSession(),
     getAdminDictionary(),
   ]);
 
-  const sections: Array<{ href: string; title: string; description: string }> = [];
+  const sections: Array<{ href: string; title: string; description: string }> =
+    [];
 
   if (hasPermission(session, PERMISSIONS.COMPANIES_READ)) {
     sections.push({
@@ -41,6 +43,15 @@ export default async function AdminOverviewPage() {
       href: "/admin/roles",
       title: admin.navigation.roles,
       description: admin.overview.rolesDescription,
+    });
+  }
+
+  if (hasPermission(session, PERMISSIONS.SETTINGS_READ)) {
+    const settings = settingsDictionaries[locale];
+    sections.push({
+      href: "/admin/settings",
+      title: settings.title,
+      description: settings.description,
     });
   }
 

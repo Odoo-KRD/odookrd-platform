@@ -10,15 +10,19 @@ import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { portalDictionaries } from "@/lib/i18n/portal";
+import { settingsDictionaries } from "@/lib/i18n/settings";
+import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 
 export default async function ProtectedAdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [session, { locale, dictionary, admin }] = await Promise.all([
-    requireSession(),
-    getAdminDictionary(),
-  ]);
+  const [session, { locale, dictionary, admin }, publicSettings] =
+    await Promise.all([
+      requireSession(),
+      getAdminDictionary(),
+      getPublicSettings(),
+    ]);
 
   if (!hasAdminAccess(session)) {
     redirect("/dashboard");
@@ -53,6 +57,13 @@ export default async function ProtectedAdminLayout({
     navigation.push({ href: "/admin/roles", label: admin.navigation.roles });
   }
 
+  if (hasPermission(session, PERMISSIONS.SETTINGS_READ)) {
+    navigation.push({
+      href: "/admin/settings",
+      label: settingsDictionaries[locale].title,
+    });
+  }
+
   const administrationLabel =
     session.user.accountScope === "PLATFORM"
       ? admin.navigation.platformAdministration
@@ -63,7 +74,7 @@ export default async function ProtectedAdminLayout({
       <aside className="hidden w-64 shrink-0 flex-col border-e border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-200 px-6 py-6">
           <p className="text-lg font-semibold tracking-tight text-slate-900">
-            {dictionary.common.brand}
+            {publicSettings.siteTitle}
           </p>
           <p className="mt-1 text-xs text-slate-500">{administrationLabel}</p>
         </div>
@@ -90,7 +101,7 @@ export default async function ProtectedAdminLayout({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 lg:hidden">
-                {dictionary.common.brand}
+                {publicSettings.siteTitle}
               </p>
               <p className="mt-1 text-xs text-slate-500 lg:mt-0">
                 {administrationLabel}

@@ -8,15 +8,18 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { hasAdminAccess } from "@/lib/authorization";
 import { getPortalDictionary } from "@/lib/i18n/portal-server";
+import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 
 export default async function ProtectedCustomerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [session, { locale, dictionary, portal }] = await Promise.all([
-    requireSession(),
-    getPortalDictionary(),
-  ]);
+  const [session, { locale, dictionary, portal }, publicSettings] =
+    await Promise.all([
+      requireSession(),
+      getPortalDictionary(),
+      getPublicSettings(),
+    ]);
 
   if (session.user.accountScope !== "COMPANY") {
     redirect("/admin");
@@ -38,7 +41,7 @@ export default async function ProtectedCustomerLayout({
       <aside className="hidden w-64 shrink-0 flex-col border-e border-slate-200 bg-white lg:flex">
         <div className="border-b border-slate-200 px-6 py-6">
           <p className="text-lg font-semibold tracking-tight text-slate-900">
-            {dictionary.common.brand}
+            {publicSettings.siteTitle}
           </p>
           <p className="mt-1 text-xs text-slate-500">
             {portal.navigation.portal}
@@ -67,7 +70,7 @@ export default async function ProtectedCustomerLayout({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 lg:hidden">
-                {dictionary.common.brand}
+                {publicSettings.siteTitle}
               </p>
               <p className="mt-1 text-xs text-slate-500 lg:mt-0">
                 {portal.navigation.portal}
