@@ -1,0 +1,27 @@
+[Unit]
+Description=OdooKRD production API
+After=network-online.target postgresql.service
+Wants=network-online.target
+ConditionPathExists=/opt/odookrd-platform/apps/api/dist/src/main.js
+ConditionPathExists=/opt/odookrd-platform/apps/api/.env
+
+[Service]
+Type=simple
+User=odookrd
+Group=odookrd
+WorkingDirectory=/opt/odookrd-platform/apps/api
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/lib/nodejs/node-v24.19.0-linux-x64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/local/lib/nodejs/node-v24.19.0-linux-x64/bin/node /opt/odookrd-platform/apps/api/dist/src/main.js
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+UMask=0077
+SyslogIdentifier=odookrd-api
+
+[Install]
+WantedBy=multi-user.target

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/auth/login-form";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
+import { getDefaultAuthenticatedPath } from "@/lib/authorization";
 import { getDictionary } from "@/lib/i18n/server";
 import { usersDictionaries } from "@/lib/i18n/users";
 import { getSession } from "@/lib/session";
@@ -15,7 +16,10 @@ function safeRedirect(value: string | string[] | undefined): string {
     return "/admin";
   }
 
-  return value === "/admin" || value.startsWith("/admin/")
+  return value === "/admin" ||
+    value.startsWith("/admin/") ||
+    value === "/dashboard" ||
+    value.startsWith("/dashboard/")
     ? value
     : "/admin";
 }
@@ -24,7 +28,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await getSession();
 
   if (session) {
-    redirect("/admin");
+    redirect(getDefaultAuthenticatedPath(session));
   }
 
   const [{ locale, dictionary }, parameters] = await Promise.all([
@@ -69,7 +73,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <LoginForm
             messages={dictionary.login}
-            redirectTo={safeRedirect(parameters.next)}
+            redirectTo={
+              typeof parameters.next === "string"
+                ? safeRedirect(parameters.next)
+                : "/"
+            }
           />
 
           <p className="mt-7 text-center text-xs text-slate-400">

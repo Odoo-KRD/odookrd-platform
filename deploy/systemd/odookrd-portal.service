@@ -1,0 +1,28 @@
+[Unit]
+Description=OdooKRD production customer portal
+After=network-online.target odookrd-api.service
+Wants=network-online.target odookrd-api.service
+ConditionPathExists=/opt/odookrd-platform/apps/portal/.next/BUILD_ID
+ConditionPathExists=/opt/odookrd-platform/apps/portal/.env.local
+
+[Service]
+Type=simple
+User=odookrd
+Group=odookrd
+WorkingDirectory=/opt/odookrd-platform/apps/portal
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=PATH=/usr/local/lib/nodejs/node-v24.19.0-linux-x64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/local/lib/nodejs/node-v24.19.0-linux-x64/bin/node /opt/odookrd-platform/apps/portal/node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port 3000
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+UMask=0077
+SyslogIdentifier=odookrd-portal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,3 @@
-import { PERMISSIONS } from "@odookrd/types";
 import { redirect } from "next/navigation";
 
 import {
@@ -7,56 +6,32 @@ import {
 } from "@/components/admin/navigation";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
-import { hasAdminAccess, hasPermission } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { portalDictionaries } from "@/lib/i18n/portal";
+import { hasAdminAccess } from "@/lib/authorization";
+import { getPortalDictionary } from "@/lib/i18n/portal-server";
 import { requireSession } from "@/lib/session";
 
-export default async function ProtectedAdminLayout({
+export default async function ProtectedCustomerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [session, { locale, dictionary, admin }] = await Promise.all([
+  const [session, { locale, dictionary, portal }] = await Promise.all([
     requireSession(),
-    getAdminDictionary(),
+    getPortalDictionary(),
   ]);
 
-  if (!hasAdminAccess(session)) {
-    redirect("/dashboard");
+  if (session.user.accountScope !== "COMPANY") {
+    redirect("/admin");
   }
 
   const navigation: AdminNavigationItem[] = [
-    { href: "/admin", label: admin.navigation.overview },
+    { href: "/dashboard", label: portal.navigation.dashboard },
   ];
 
-  if (session.user.accountScope === "COMPANY") {
-    navigation.unshift({
-      href: "/dashboard",
-      label: portalDictionaries[locale].navigation.dashboard,
-    });
-  }
-
-  if (hasPermission(session, PERMISSIONS.COMPANIES_READ)) {
+  if (hasAdminAccess(session)) {
     navigation.push({
-      href: "/admin/companies",
-      label:
-        session.user.accountScope === "COMPANY"
-          ? admin.navigation.myCompany
-          : admin.navigation.companies,
+      href: "/admin",
+      label: portal.navigation.administration,
     });
   }
-
-  if (hasPermission(session, PERMISSIONS.USERS_READ)) {
-    navigation.push({ href: "/admin/users", label: admin.navigation.users });
-  }
-
-  if (hasPermission(session, PERMISSIONS.ROLES_READ)) {
-    navigation.push({ href: "/admin/roles", label: admin.navigation.roles });
-  }
-
-  const administrationLabel =
-    session.user.accountScope === "PLATFORM"
-      ? admin.navigation.platformAdministration
-      : admin.navigation.companyAdministration;
 
   return (
     <div className="min-h-screen lg:flex">
@@ -65,11 +40,13 @@ export default async function ProtectedAdminLayout({
           <p className="text-lg font-semibold tracking-tight text-slate-900">
             {dictionary.common.brand}
           </p>
-          <p className="mt-1 text-xs text-slate-500">{administrationLabel}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {portal.navigation.portal}
+          </p>
         </div>
 
         <div className="flex-1 px-3 py-5">
-          <AdminNavigation label={admin.navigation.label} items={navigation} />
+          <AdminNavigation label={portal.navigation.label} items={navigation} />
         </div>
 
         <div className="border-t border-slate-200 px-5 py-5">
@@ -93,7 +70,7 @@ export default async function ProtectedAdminLayout({
                 {dictionary.common.brand}
               </p>
               <p className="mt-1 text-xs text-slate-500 lg:mt-0">
-                {administrationLabel}
+                {portal.navigation.portal}
               </p>
             </div>
 
@@ -111,11 +88,11 @@ export default async function ProtectedAdminLayout({
 
           <details className="mt-4 border-t border-slate-200 pt-3 lg:hidden">
             <summary className="cursor-pointer text-sm font-medium text-slate-700">
-              {admin.navigation.label}
+              {portal.navigation.label}
             </summary>
             <div className="mt-3">
               <AdminNavigation
-                label={admin.navigation.label}
+                label={portal.navigation.label}
                 items={navigation}
               />
             </div>

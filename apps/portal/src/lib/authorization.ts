@@ -26,6 +26,12 @@ export function hasAdminAccess(session: CurrentSession): boolean {
   );
 }
 
+export function getDefaultAuthenticatedPath(
+  session: CurrentSession,
+): "/admin" | "/dashboard" {
+  return session.user.accountScope === "PLATFORM" ? "/admin" : "/dashboard";
+}
+
 export async function requireAdminPermission(
   permission: PermissionKey,
 ): Promise<CurrentSession> {

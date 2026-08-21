@@ -125,7 +125,7 @@ test("redirects, permissions, and company scope remain server constrained", asyn
   assert.match(authorization, /requireSession\(\)/);
   assert.match(authorization, /session\.authorization\.permissions\.includes\(permission\)/);
   assert.match(adminLayout, /if\s*\(!hasAdminAccess\(session\)\)/);
-  assert.match(adminLayout, /<CustomerWorkspace/);
+  assert.match(adminLayout, /redirect\(["']\/dashboard["']\)/);
   assert.match(userActions, /getAdminApiContext\(PERMISSIONS\.USERS_MANAGE\)/);
   assert.match(userActions, /session\.user\.accountScope\s*===\s*["']COMPANY["']/);
   assert.match(userActions, /selectedCompanyId\s*!==\s*session\.user\.companyId/);

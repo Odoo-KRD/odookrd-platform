@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 
+import { getDefaultAuthenticatedPath } from "@/lib/authorization";
 import { getSession } from "@/lib/session";
 
 export default async function HomePage() {
   const session = await getSession();
 
-  redirect(session ? "/admin" : "/login");
+  if (!session) {
+    redirect("/login");
+  }
+
+  redirect(getDefaultAuthenticatedPath(session));
 }
