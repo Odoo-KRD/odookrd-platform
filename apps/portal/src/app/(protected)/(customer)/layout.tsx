@@ -38,6 +38,17 @@ export default async function ProtectedCustomerLayout({
     });
   }
 
+  navigation.push(
+    {
+      href: "/dashboard/company",
+      label: frontendTranslations[locale].workspace.navigation.company,
+    },
+    {
+      href: "/dashboard/profile",
+      label: frontendTranslations[locale].workspace.navigation.profile,
+    },
+  );
+
   if (hasAdminAccess(session)) {
     navigation.push({
       href: "/admin",

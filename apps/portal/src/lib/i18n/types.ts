@@ -330,8 +330,83 @@ export interface AdminTranslations {
   content: ContentEditorDictionary;
 }
 
+export interface CustomerWorkspaceDictionary {
+  navigation: {
+    company: string;
+    profile: string;
+  };
+  dashboard: {
+    serviceOverview: string;
+    totalServices: string;
+    activeServices: string;
+    provisioningServices: string;
+    attentionServices: string;
+    expiringSoon: string;
+    nextThirtyDays: string;
+    recentServices: string;
+    recentActivity: string;
+    noRecentServices: string;
+    noRecentActivity: string;
+    viewAllServices: string;
+    companyOverview: string;
+    teamMembers: string;
+    companyStatus: string;
+    memberSince: string;
+    openCompany: string;
+    openProfile: string;
+  };
+  company: {
+    title: string;
+    description: string;
+    companyName: string;
+    status: string;
+    created: string;
+    updated: string;
+    teamMembers: string;
+    editTitle: string;
+    editDescription: string;
+    readOnly: string;
+    save: string;
+    saving: string;
+    cancel: string;
+    statusLabels: Record<"ACTIVE" | "SUSPENDED" | "ARCHIVED", string>;
+  };
+  profile: {
+    title: string;
+    description: string;
+    email: string;
+    company: string;
+    role: string;
+    accountStatus: string;
+    emailVerification: string;
+    verified: string;
+    notVerified: string;
+    joined: string;
+    lastActivity: string;
+    companyAdministrator: string;
+    companyUser: string;
+    statusLabels: Record<"INVITED" | "ACTIVE" | "SUSPENDED", string>;
+  };
+  activity: {
+    labels: Record<
+      | "company.created"
+      | "company.updated"
+      | "company.status.updated"
+      | "service.assignment.created"
+      | "service.assignment.updated"
+      | "user.invited"
+      | "user.created"
+      | "user.status.updated"
+      | "user.roles.updated",
+      string
+    >;
+  };
+}
+
 export interface FrontendTranslations {
   portal: PortalDictionary;
   services: FrontendServicesDictionary;
   invitations: InvitationDictionary;
+  workspace: CustomerWorkspaceDictionary;
+  content: ContentEditorDictionary;
 }

@@ -12,6 +12,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ServicesModule } from './modules/services/services.module';
 import { SettingsModule } from './modules/settings/settings.module';
 
+import { WorkspaceModule } from './modules/workspace/workspace.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +30,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     UsersModule,
     ServicesModule,
     SettingsModule,
+    WorkspaceModule,
   ],
 })
 export class AppModule {}

@@ -174,3 +174,66 @@ export interface CompanyServiceAssignment {
     | "status"
   >;
 }
+
+export type CustomerActivityAction =
+  | "company.created"
+  | "company.updated"
+  | "company.status.updated"
+  | "service.assignment.created"
+  | "service.assignment.updated"
+  | "user.invited"
+  | "user.created"
+  | "user.status.updated"
+  | "user.roles.updated";
+
+export interface CustomerServiceSummary {
+  total: number;
+  active: number;
+  provisioning: number;
+  suspended: number;
+  expired: number;
+  cancelled: number;
+  expiringSoon: number;
+}
+
+export interface CustomerRecentService {
+  id: string;
+  companyId: string;
+  displayName: string | null;
+  displayNameTranslations: LocalizedText;
+  status: CompanyServiceStatus;
+  expiresAt: string | null;
+  serviceUrl: string | null;
+  service: Pick<
+    ManagedService,
+    "id" | "name" | "nameTranslations" | "category"
+  >;
+}
+
+export interface CustomerActivity {
+  id: string;
+  action: CustomerActivityAction;
+  targetType: string | null;
+  createdAt: string;
+}
+
+export interface CustomerWorkspaceOverview {
+  company: Company;
+  summary: CustomerServiceSummary;
+  teamMembers: number;
+  recentServices: CustomerRecentService[];
+  recentActivity: CustomerActivity[];
+}
+
+export interface CustomerAccountProfile {
+  id: string;
+  email: string;
+  companyId: string;
+  status: UserStatus;
+  emailVerifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company: Company;
+  roles: string[];
+  lastSeenAt: string | null;
+}

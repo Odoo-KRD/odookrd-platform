@@ -12,5 +12,7 @@ export async function getFrontendDictionary() {
     portal: frontend.portal,
     services: frontend.services,
     invitations: frontend.invitations,
+    workspace: frontend.workspace,
+    content: frontend.content,
   };
 }
