@@ -1,4 +1,7 @@
+"use client";
+
 import type { LocalizedText } from "@odookrd/types";
+import { useState } from "react";
 
 import {
   DEFAULT_LOCALE,
@@ -31,6 +34,22 @@ export function LocalizedTextFields({
   required = false,
   multiline = false,
 }: LocalizedTextFieldsProps) {
+  const [values, setValues] = useState<LocalizedText>(() => {
+    const initialValues: LocalizedText = {};
+
+    for (const locale of SUPPORTED_LOCALES) {
+      initialValues[locale] =
+        translations?.[locale] ??
+        (locale === DEFAULT_LOCALE ? (fallback ?? "") : "");
+    }
+
+    return initialValues;
+  });
+
+  function updateValue(locale: keyof LocalizedText, value: string): void {
+    setValues((previous) => ({ ...previous, [locale]: value }));
+  }
+
   return (
     <fieldset className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
       <legend className="px-2 text-sm font-semibold text-slate-800">
@@ -39,9 +58,7 @@ export function LocalizedTextFields({
 
       {SUPPORTED_LOCALES.map((locale) => {
         const id = `${field}-${locale}`;
-        const value =
-          translations?.[locale] ??
-          (locale === DEFAULT_LOCALE ? (fallback ?? "") : "");
+        const value = values[locale] ?? "";
         const isDefault = locale === DEFAULT_LOCALE;
 
         return (
@@ -61,7 +78,10 @@ export function LocalizedTextFields({
                 id={id}
                 name={`${field}.${locale}`}
                 dir={getTextDirection(locale)}
-                defaultValue={value}
+                value={value}
+                onChange={(event) =>
+                  updateValue(locale, event.currentTarget.value)
+                }
                 maxLength={maxLength}
                 rows={3}
                 required={required && isDefault}
@@ -73,7 +93,10 @@ export function LocalizedTextFields({
                 name={`${field}.${locale}`}
                 type="text"
                 dir={getTextDirection(locale)}
-                defaultValue={value}
+                value={value}
+                onChange={(event) =>
+                  updateValue(locale, event.currentTarget.value)
+                }
                 maxLength={maxLength}
                 required={required && isDefault}
                 className={`${controlClassName} h-11`}

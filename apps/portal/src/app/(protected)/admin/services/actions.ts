@@ -226,9 +226,11 @@ export async function updateServiceAction(
         token,
         body: JSON.stringify({
           name,
+          nameTranslations,
           category,
           status,
           description: description || null,
+          descriptionTranslations,
         }),
       },
     );
