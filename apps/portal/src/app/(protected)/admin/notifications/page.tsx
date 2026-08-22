@@ -138,26 +138,60 @@ export default async function NotificationAdministrationPage({
               <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   [labels.emailProvider, providerStatus.email.provider ?? "—"],
+                  [
+                    labels.transport,
+                    providerStatus.email.transport === "smtp"
+                      ? "SES SMTP"
+                      : "SES API",
+                  ],
                   [labels.region, providerStatus.email.region ?? "—"],
                   [labels.senderEmail, providerStatus.email.senderEmail ?? "—"],
                   [labels.senderName, providerStatus.email.senderName ?? "—"],
                   [labels.replyTo, providerStatus.email.replyTo ?? "—"],
-                  [
-                    labels.accessKeyId,
-                    providerStatus.email.accessKeyId.masked ??
-                      labels.notConfigured,
-                  ],
-                  [
-                    labels.secretAccessKey,
-                    providerStatus.email.secretAccessKey.masked ??
-                      labels.notConfigured,
-                  ],
-                  [
-                    labels.sessionToken,
-                    providerStatus.email.sessionToken.configured
-                      ? providerStatus.email.sessionToken.masked
-                      : labels.notConfigured,
-                  ],
+                  ...(providerStatus.email.transport === "smtp"
+                    ? [
+                        [
+                          labels.smtpHost,
+                          providerStatus.email.smtp.host ?? "—",
+                        ],
+                        [
+                          labels.smtpPort,
+                          providerStatus.email.smtp.port?.toString() ?? "—",
+                        ],
+                        [
+                          labels.smtpSecurity,
+                          providerStatus.email.smtp.security?.toUpperCase() ??
+                            "—",
+                        ],
+                        [
+                          labels.smtpUsername,
+                          providerStatus.email.smtp.username.masked ??
+                            labels.notConfigured,
+                        ],
+                        [
+                          labels.smtpPassword,
+                          providerStatus.email.smtp.password.masked ??
+                            labels.notConfigured,
+                        ],
+                      ]
+                    : [
+                        [
+                          labels.accessKeyId,
+                          providerStatus.email.accessKeyId.masked ??
+                            labels.notConfigured,
+                        ],
+                        [
+                          labels.secretAccessKey,
+                          providerStatus.email.secretAccessKey.masked ??
+                            labels.notConfigured,
+                        ],
+                        [
+                          labels.sessionToken,
+                          providerStatus.email.sessionToken.configured
+                            ? providerStatus.email.sessionToken.masked
+                            : labels.notConfigured,
+                        ],
+                      ]),
                 ].map(([label, value]) => (
                   <div
                     key={label}

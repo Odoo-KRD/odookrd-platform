@@ -52,6 +52,20 @@ function selectOptions(setting: ManagedSetting, labels: SettingsDictionary) {
     return [["amazon_ses", "Amazon SES"]];
   }
 
+  if (setting.key === "notifications.email.amazon_ses.transport") {
+    return [
+      ["api", "SES API"],
+      ["smtp", "SES SMTP"],
+    ];
+  }
+
+  if (setting.key === "notifications.email.amazon_ses.smtp_security") {
+    return [
+      ["starttls", "STARTTLS"],
+      ["tls", "TLS"],
+    ];
+  }
+
   return null;
 }
 

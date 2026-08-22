@@ -210,6 +210,26 @@ export const adminAr = {
         label: "منطقة Amazon SES",
         description: "مثال: eu-west-1.",
       },
+      "notifications.email.amazon_ses.transport": {
+        label: "طريقة إرسال SES",
+        description: "اختر بين SES API وSES SMTP.",
+      },
+      "notifications.email.amazon_ses.smtp_port": {
+        label: "منفذ SES SMTP",
+        description: "عادةً 587 مع STARTTLS.",
+      },
+      "notifications.email.amazon_ses.smtp_security": {
+        label: "أمان SES SMTP",
+        description: "STARTTLS للمنفذ 587 أو TLS للمنفذ 465.",
+      },
+      "notifications.email.amazon_ses.smtp_username": {
+        label: "اسم مستخدم SES SMTP",
+        description: "اسم مستخدم SMTP محفوظ بشكل مشفر.",
+      },
+      "notifications.email.amazon_ses.smtp_password": {
+        label: "كلمة مرور SES SMTP",
+        description: "كلمة مرور SMTP مشفرة ولن يتم عرضها مرة أخرى.",
+      },
       "notifications.email.amazon_ses.access_key_id": {
         label: "SES Access Key ID",
         description: "معرّف مفتاح AWS IAM.",

@@ -215,6 +215,27 @@ export const adminEn = {
         label: "Amazon SES region",
         description: "For example, eu-west-1.",
       },
+      "notifications.email.amazon_ses.transport": {
+        label: "SES transport",
+        description: "Choose between the SES API and SES SMTP.",
+      },
+      "notifications.email.amazon_ses.smtp_port": {
+        label: "SES SMTP port",
+        description: "Usually 587 with STARTTLS.",
+      },
+      "notifications.email.amazon_ses.smtp_security": {
+        label: "SES SMTP security",
+        description: "STARTTLS for port 587 or TLS for port 465.",
+      },
+      "notifications.email.amazon_ses.smtp_username": {
+        label: "SES SMTP username",
+        description: "SMTP username stored as an encrypted platform secret.",
+      },
+      "notifications.email.amazon_ses.smtp_password": {
+        label: "SES SMTP password",
+        description:
+          "SMTP password stored encrypted and never displayed again.",
+      },
       "notifications.email.amazon_ses.access_key_id": {
         label: "SES Access Key ID",
         description: "AWS IAM access-key identifier.",

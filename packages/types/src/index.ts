@@ -323,9 +323,13 @@ export interface NotificationProviderSecretStatus {
   masked: string | null;
 }
 
+export type AmazonSesTransport = "api" | "smtp";
+export type AmazonSesSmtpSecurity = "starttls" | "tls";
+
 export interface EmailProviderAdministrationStatus {
   enabled: boolean;
   provider: string | null;
+  transport: AmazonSesTransport;
   ready: boolean;
   region: string | null;
   senderEmail: string | null;
@@ -334,6 +338,13 @@ export interface EmailProviderAdministrationStatus {
   accessKeyId: NotificationProviderSecretStatus;
   secretAccessKey: NotificationProviderSecretStatus;
   sessionToken: NotificationProviderSecretStatus;
+  smtp: {
+    host: string | null;
+    port: number | null;
+    security: AmazonSesSmtpSecurity | null;
+    username: NotificationProviderSecretStatus;
+    password: NotificationProviderSecretStatus;
+  };
 }
 
 export interface WhatsAppProviderAdministrationStatus {

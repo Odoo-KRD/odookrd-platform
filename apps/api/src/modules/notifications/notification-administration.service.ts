@@ -62,13 +62,18 @@ export class NotificationAdministrationService {
     const [
       emailEnabledValue,
       emailProviderValue,
+      transportValue,
       regionValue,
+      smtpPortValue,
+      smtpSecurityValue,
       senderEmailValue,
       senderNameValue,
       replyToValue,
       accessKeyId,
       secretAccessKey,
       sessionToken,
+      smtpUsername,
+      smtpPassword,
       whatsappEnabledValue,
       whatsappApiUrlValue,
       whatsappPhoneNumberIdValue,
@@ -76,7 +81,19 @@ export class NotificationAdministrationService {
     ] = await Promise.all([
       this.settings.resolveValue('notifications.email.enabled', null),
       this.settings.resolveValue('notifications.email.provider', null),
+      this.settings.resolveValue(
+        'notifications.email.amazon_ses.transport',
+        null,
+      ),
       this.settings.resolveValue('notifications.email.amazon_ses.region', null),
+      this.settings.resolveValue(
+        'notifications.email.amazon_ses.smtp_port',
+        null,
+      ),
+      this.settings.resolveValue(
+        'notifications.email.amazon_ses.smtp_security',
+        null,
+      ),
       this.settings.resolveValue('notifications.email.sender_email', null),
       this.settings.resolveValue('notifications.email.sender_name', null),
       this.settings.resolveValue('notifications.email.reply_to', null),
@@ -92,6 +109,14 @@ export class NotificationAdministrationService {
         'notifications.email.amazon_ses.session_token',
         null,
       ),
+      this.settings.resolveSecret(
+        'notifications.email.amazon_ses.smtp_username',
+        null,
+      ),
+      this.settings.resolveSecret(
+        'notifications.email.amazon_ses.smtp_password',
+        null,
+      ),
       this.settings.resolveValue('notifications.whatsapp.enabled', null),
       this.settings.resolveValue('notifications.whatsapp.api_url', null),
       this.settings.resolveValue(
@@ -103,7 +128,19 @@ export class NotificationAdministrationService {
 
     const enabled = emailEnabledValue === true;
     const provider = this.stringValue(emailProviderValue);
+    const transport = transportValue === 'smtp' ? 'smtp' : 'api';
     const region = this.stringValue(regionValue);
+    const smtpPort =
+      typeof smtpPortValue === 'number' &&
+      Number.isSafeInteger(smtpPortValue) &&
+      smtpPortValue >= 1 &&
+      smtpPortValue <= 65535
+        ? smtpPortValue
+        : null;
+    const smtpSecurity =
+      smtpSecurityValue === 'starttls' || smtpSecurityValue === 'tls'
+        ? smtpSecurityValue
+        : null;
     const senderEmail = this.stringValue(senderEmailValue);
     const senderName = this.stringValue(senderNameValue);
     const replyTo = this.stringValue(replyToValue);
@@ -112,14 +149,27 @@ export class NotificationAdministrationService {
     const whatsappApiUrl = this.stringValue(whatsappApiUrlValue);
     const whatsappPhoneNumberId = this.stringValue(whatsappPhoneNumberIdValue);
 
+    const apiReady = Boolean(
+      region && senderEmail && accessKeyId && secretAccessKey,
+    );
+    const smtpReady = Boolean(
+      region &&
+      senderEmail &&
+      smtpPort !== null &&
+      smtpSecurity &&
+      smtpUsername &&
+      smtpPassword,
+    );
+
     return {
       email: {
         enabled,
         provider,
+        transport,
         ready:
           enabled &&
           provider === 'amazon_ses' &&
-          Boolean(region && senderEmail && accessKeyId && secretAccessKey),
+          (transport === 'smtp' ? smtpReady : apiReady),
         region,
         senderEmail,
         senderName,
@@ -127,6 +177,13 @@ export class NotificationAdministrationService {
         accessKeyId: this.maskedSecret(accessKeyId, true),
         secretAccessKey: this.maskedSecret(secretAccessKey, false),
         sessionToken: this.maskedSecret(sessionToken, false),
+        smtp: {
+          host: region ? `email-smtp.${region}.amazonaws.com` : null,
+          port: smtpPort,
+          security: smtpSecurity,
+          username: this.maskedSecret(smtpUsername, true),
+          password: this.maskedSecret(smtpPassword, false),
+        },
       },
       whatsapp: {
         enabled: whatsappEnabled,

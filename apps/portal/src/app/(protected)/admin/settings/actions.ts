@@ -28,6 +28,11 @@ const SETTING_KEYS_BY_CATEGORY: Record<SettingCategory, readonly string[]> = {
     "notifications.email.enabled",
     "notifications.email.provider",
     "notifications.email.amazon_ses.region",
+    "notifications.email.amazon_ses.transport",
+    "notifications.email.amazon_ses.smtp_port",
+    "notifications.email.amazon_ses.smtp_security",
+    "notifications.email.amazon_ses.smtp_username",
+    "notifications.email.amazon_ses.smtp_password",
     "notifications.email.amazon_ses.access_key_id",
     "notifications.email.amazon_ses.secret_access_key",
     "notifications.email.amazon_ses.session_token",
@@ -51,12 +56,17 @@ const booleanKeys = new Set([
   "notifications.whatsapp.enabled",
 ]);
 
-const numberKeys = new Set(["companies.max_users_per_company"]);
+const numberKeys = new Set([
+  "companies.max_users_per_company",
+  "notifications.email.amazon_ses.smtp_port",
+]);
 
 const secretKeys = new Set([
   "notifications.email.amazon_ses.access_key_id",
   "notifications.email.amazon_ses.secret_access_key",
   "notifications.email.amazon_ses.session_token",
+  "notifications.email.amazon_ses.smtp_username",
+  "notifications.email.amazon_ses.smtp_password",
   "notifications.whatsapp.access_token",
   "notifications.whatsapp.webhook_verify_token",
 ]);

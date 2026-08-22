@@ -18,6 +18,12 @@ export interface NotificationAdministrationDictionary {
   enabled: string;
   disabled: string;
   emailProvider: string;
+  transport: string;
+  smtpHost: string;
+  smtpPort: string;
+  smtpSecurity: string;
+  smtpUsername: string;
+  smtpPassword: string;
   region: string;
   senderEmail: string;
   senderName: string;
@@ -73,6 +79,12 @@ export const notificationAdministrationDictionaries: Record<
     enabled: "چالاک",
     disabled: "ناچالاک",
     emailProvider: "دابینکەری ئیمەیڵ",
+    transport: "شێوازی گەیاندن",
+    smtpHost: "سێرڤەری SES SMTP",
+    smtpPort: "پۆرتی SMTP",
+    smtpSecurity: "پاراستنی SMTP",
+    smtpUsername: "ناوی بەکارهێنەری SMTP",
+    smtpPassword: "وشەی نهێنی SMTP",
     region: "ناوچە",
     senderEmail: "ئیمەیڵی نێرەر",
     senderName: "ناوی نێرەر",
@@ -140,6 +152,12 @@ export const notificationAdministrationDictionaries: Record<
     enabled: "مفعّل",
     disabled: "معطّل",
     emailProvider: "مزود البريد",
+    transport: "طريقة الإرسال",
+    smtpHost: "خادم SES SMTP",
+    smtpPort: "منفذ SMTP",
+    smtpSecurity: "أمان SMTP",
+    smtpUsername: "اسم مستخدم SMTP",
+    smtpPassword: "كلمة مرور SMTP",
     region: "المنطقة",
     senderEmail: "بريد المرسل",
     senderName: "اسم المرسل",
@@ -206,6 +224,12 @@ export const notificationAdministrationDictionaries: Record<
     enabled: "Enabled",
     disabled: "Disabled",
     emailProvider: "Email provider",
+    transport: "SES transport",
+    smtpHost: "SES SMTP server",
+    smtpPort: "SMTP port",
+    smtpSecurity: "SMTP security",
+    smtpUsername: "SMTP username",
+    smtpPassword: "SMTP password",
     region: "Region",
     senderEmail: "Sender email",
     senderName: "Sender name",

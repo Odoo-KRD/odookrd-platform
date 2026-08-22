@@ -213,6 +213,26 @@ export const adminKu = {
         label: "ناوچەی Amazon SES",
         description: "نموونە: eu-west-1.",
       },
+      "notifications.email.amazon_ses.transport": {
+        label: "شێوازی گەیاندنی SES",
+        description: "هەڵبژێرە لە نێوان SES API و SES SMTP.",
+      },
+      "notifications.email.amazon_ses.smtp_port": {
+        label: "پۆرتی SES SMTP",
+        description: "بۆ STARTTLS بە شێوەی ئاسایی 587.",
+      },
+      "notifications.email.amazon_ses.smtp_security": {
+        label: "پاراستنی SES SMTP",
+        description: "STARTTLS بۆ پۆرتی 587 یان TLS بۆ پۆرتی 465.",
+      },
+      "notifications.email.amazon_ses.smtp_username": {
+        label: "ناوی بەکارهێنەری SES SMTP",
+        description: "ناوی بەکارهێنەری SMTP؛ بە نهێنی پارێزراوە.",
+      },
+      "notifications.email.amazon_ses.smtp_password": {
+        label: "وشەی نهێنی SES SMTP",
+        description: "وشەی نهێنی SMTP؛ دووبارە پیشان نادرێتەوە.",
+      },
       "notifications.email.amazon_ses.access_key_id": {
         label: "SES Access Key ID",
         description: "کلیلی دەستگەیشتنی AWS IAM.",
