@@ -170,4 +170,30 @@ export const frontendEn = {
       en: "English",
     },
   },
+  notifications: {
+    navigation: "Notifications",
+    title: "Notifications",
+    description: "Review the latest account and company service notifications.",
+    unread: "Unread",
+    unreadCount: "Unread notifications",
+    markRead: "Mark as read",
+    markAllRead: "Mark all as read",
+    emptyTitle: "No notifications",
+    emptyDescription:
+      "New notifications will appear here when they are available.",
+    previous: "Previous",
+    next: "Next",
+    channels: {
+      IN_APP: "In app",
+      EMAIL: "Email",
+      WHATSAPP: "WhatsApp",
+    },
+    deliveryStatuses: {
+      PENDING: "Pending",
+      PROCESSING: "Processing",
+      SENT: "Sent",
+      FAILED: "Failed",
+      SKIPPED: "Skipped",
+    },
+  },
 } satisfies FrontendTranslations;

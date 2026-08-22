@@ -10,6 +10,7 @@ export const PERMISSIONS = {
 
   SERVICES_READ: 'services.read',
   SERVICES_MANAGE: 'services.manage',
+  NOTIFICATIONS_READ: 'notifications.read',
   SETTINGS_READ: 'settings.read',
 
   SETTINGS_MANAGE: 'settings.manage',

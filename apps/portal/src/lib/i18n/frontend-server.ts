@@ -13,6 +13,7 @@ export async function getFrontendDictionary() {
     services: frontend.services,
     invitations: frontend.invitations,
     workspace: frontend.workspace,
+    notifications: frontend.notifications,
     content: frontend.content,
   };
 }

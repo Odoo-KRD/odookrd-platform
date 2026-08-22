@@ -49,6 +49,13 @@ export default async function ProtectedCustomerLayout({
     },
   );
 
+  if (hasPermission(session, PERMISSIONS.NOTIFICATIONS_READ)) {
+    navigation.push({
+      href: "/dashboard/notifications",
+      label: frontendTranslations[locale].notifications.navigation,
+    });
+  }
+
   if (hasAdminAccess(session)) {
     navigation.push({
       href: "/admin",

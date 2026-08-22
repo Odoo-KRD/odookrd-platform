@@ -80,6 +80,24 @@ enum SettingScope {
   @@map("setting_scope")
 }
 
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  WHATSAPP
+
+  @@map("notification_channel")
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  SKIPPED
+
+  @@map("notification_delivery_status")
+}
+
 model Company {
   id               String        @id @default(uuid()) @db.Uuid
   name             String        @db.VarChar(200)
@@ -88,9 +106,11 @@ model Company {
   createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  users              User[]
-  settings           Setting[]
-  serviceAssignments CompanyService[]
+  users                  User[]
+  settings               Setting[]
+  serviceAssignments     CompanyService[]
+  notifications          Notification[]
+  notificationRecipients NotificationRecipient[]
 
   @@map("companies")
 }
@@ -107,10 +127,11 @@ model User {
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company    Company?    @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  userRoles  UserRole[]
-  sessions   Session[]
-  authTokens AuthToken[]
+  company                Company?                @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  userRoles              UserRole[]
+  sessions               Session[]
+  authTokens             AuthToken[]
+  notificationRecipients NotificationRecipient[]
 
   @@index([companyId])
   @@index([status])
@@ -285,4 +306,66 @@ model CompanyService {
   @@index([serviceId], map: "company_services_service_id_idx")
   @@index([expiresAt], map: "company_services_expires_at_idx")
   @@map("company_services")
+}
+
+model Notification {
+  id             String   @id @default(uuid()) @db.Uuid
+  companyId      String   @map("company_id") @db.Uuid
+  templateKey    String   @map("template_key") @db.VarChar(150)
+  idempotencyKey String   @map("idempotency_key") @db.VarChar(200)
+  actionUrl      String?  @map("action_url") @db.VarChar(500)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company    Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  recipients NotificationRecipient[]
+
+  @@unique([companyId, idempotencyKey], map: "notifications_company_idempotency_unique")
+  @@index([companyId, createdAt], map: "notifications_company_created_at_idx")
+  @@map("notifications")
+}
+
+model NotificationRecipient {
+  id             String    @id @default(uuid()) @db.Uuid
+  notificationId String    @map("notification_id") @db.Uuid
+  companyId      String    @map("company_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  locale         String    @db.VarChar(10)
+  title          String    @db.VarChar(300)
+  body           String    @db.VarChar(4000)
+  readAt         DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  notification Notification           @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  company      Company                @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  deliveries   NotificationDelivery[]
+
+  @@unique([notificationId, userId], map: "notification_recipients_notification_user_unique")
+  @@index([companyId, userId, readAt, createdAt], map: "notification_recipients_inbox_idx")
+  @@map("notification_recipients")
+}
+
+model NotificationDelivery {
+  id                String                     @id @default(uuid()) @db.Uuid
+  recipientId       String                     @map("recipient_id") @db.Uuid
+  channel           NotificationChannel
+  status            NotificationDeliveryStatus @default(PENDING)
+  destination       String?                    @db.VarChar(320)
+  attemptCount      Int                        @default(0) @map("attempt_count")
+  maxAttempts       Int                        @default(3) @map("max_attempts")
+  providerMessageId String?                    @map("provider_message_id") @db.VarChar(255)
+  failureCode       String?                    @map("failure_code") @db.VarChar(80)
+  failureMessage    String?                    @map("failure_message") @db.VarChar(255)
+  lastAttemptAt     DateTime?                  @map("last_attempt_at") @db.Timestamptz(6)
+  nextAttemptAt     DateTime?                  @map("next_attempt_at") @db.Timestamptz(6)
+  sentAt            DateTime?                  @map("sent_at") @db.Timestamptz(6)
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  recipient NotificationRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@unique([recipientId, channel], map: "notification_deliveries_recipient_channel_unique")
+  @@index([status, nextAttemptAt], map: "notification_deliveries_retry_idx")
+  @@map("notification_deliveries")
 }

@@ -403,10 +403,37 @@ export interface CustomerWorkspaceDictionary {
   };
 }
 
+export interface NotificationCenterDictionary {
+  navigation: string;
+  title: string;
+  description: string;
+  unread: string;
+  unreadCount: string;
+  markRead: string;
+  markAllRead: string;
+  emptyTitle: string;
+  emptyDescription: string;
+  previous: string;
+  next: string;
+  channels: {
+    IN_APP: string;
+    EMAIL: string;
+    WHATSAPP: string;
+  };
+  deliveryStatuses: {
+    PENDING: string;
+    PROCESSING: string;
+    SENT: string;
+    FAILED: string;
+    SKIPPED: string;
+  };
+}
+
 export interface FrontendTranslations {
   portal: PortalDictionary;
   services: FrontendServicesDictionary;
   invitations: InvitationDictionary;
   workspace: CustomerWorkspaceDictionary;
   content: ContentEditorDictionary;
+  notifications: NotificationCenterDictionary;
 }

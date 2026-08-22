@@ -66,6 +66,12 @@ const permissions = [
     description: 'Manage the platform service catalog and company assignments.',
   },
   {
+    key: 'notifications.read',
+    name: 'Read own notifications',
+    description:
+      'View and update only notifications addressed to the authenticated user.',
+  },
+  {
     key: 'settings.read',
     name: 'Read settings',
     description:
@@ -97,6 +103,7 @@ const roles = [
       'settings.manage',
       'services.read',
       'services.manage',
+      'notifications.read',
     ],
   },
   {
@@ -113,6 +120,7 @@ const roles = [
       'settings.read',
       'settings.manage',
       'services.read',
+      'notifications.read',
     ],
   },
   {
@@ -120,7 +128,7 @@ const roles = [
     name: 'Company User',
     description: 'Standard user for a customer company.',
     scope: RoleScope.COMPANY,
-    permissions: ['companies.read', 'services.read'],
+    permissions: ['companies.read', 'services.read', 'notifications.read'],
   },
 ] as const;
 

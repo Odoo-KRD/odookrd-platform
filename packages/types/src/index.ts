@@ -15,6 +15,7 @@ export const PERMISSIONS = {
   ROLES_MANAGE: "roles.manage",
   SERVICES_READ: "services.read",
   SERVICES_MANAGE: "services.manage",
+  NOTIFICATIONS_READ: "notifications.read",
   SETTINGS_READ: "settings.read",
   SETTINGS_MANAGE: "settings.manage",
   AUDIT_LOGS_READ: "audit_logs.read",
@@ -236,4 +237,40 @@ export interface CustomerAccountProfile {
   company: Company;
   roles: string[];
   lastSeenAt: string | null;
+}
+
+export type NotificationChannel = "IN_APP" | "EMAIL" | "WHATSAPP";
+
+export type NotificationDeliveryStatus =
+  "PENDING" | "PROCESSING" | "SENT" | "FAILED" | "SKIPPED";
+
+export interface CustomerNotificationDelivery {
+  channel: NotificationChannel;
+  status: NotificationDeliveryStatus;
+  attemptCount: number;
+  sentAt: string | null;
+}
+
+export interface CustomerNotification {
+  id: string;
+  templateKey: string;
+  title: string;
+  body: string;
+  actionUrl: string | null;
+  readAt: string | null;
+  createdAt: string;
+  deliveries: CustomerNotificationDelivery[];
+}
+
+export interface CustomerNotificationPage {
+  items: CustomerNotification[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
+}
+
+export interface NotificationUnreadCount {
+  unread: number;
 }
