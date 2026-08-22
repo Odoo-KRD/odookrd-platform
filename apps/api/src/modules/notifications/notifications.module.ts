@@ -5,11 +5,13 @@ import { AuthModule } from '../auth/auth.module';
 import { AuthorizationModule } from '../authorization/authorization.module';
 import { SettingsModule } from '../settings/settings.module';
 import { NotificationAdministrationService } from './notification-administration.service';
+import { NotificationBroadcastService } from './notification-broadcast.service';
 import { NotificationDispatcherService } from './notification-dispatcher.service';
 import { NotificationAdministrationTemplateService } from './notification-administration-template.service';
 import { NotificationTemplateService } from './notification-template.service';
 import { NotificationWorkerService } from './notification-worker.service';
 import { NotificationAdministrationController } from './notification-administration.controller';
+import { NotificationBroadcastController } from './notification-broadcast.controller';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { EmailProviderService } from './providers/email-provider.service';
@@ -17,7 +19,11 @@ import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
 
 @Module({
   imports: [DatabaseModule, AuthModule, AuthorizationModule, SettingsModule],
-  controllers: [NotificationsController, NotificationAdministrationController],
+  controllers: [
+    NotificationsController,
+    NotificationAdministrationController,
+    NotificationBroadcastController,
+  ],
   providers: [
     NotificationAdministrationTemplateService,
     NotificationAdministrationService,
@@ -27,6 +33,7 @@ import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
     NotificationWorkerService,
     EmailProviderService,
     WhatsAppProviderService,
+    NotificationBroadcastService,
   ],
   exports: [
     NotificationsService,

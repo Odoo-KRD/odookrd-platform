@@ -402,3 +402,39 @@ export interface NotificationProviderTestResult {
   failureCode: string | null;
   sentAt: string | null;
 }
+
+export type NotificationBroadcastAudience = "ALL_CUSTOMERS" | "COMPANY";
+
+export interface NotificationBroadcastAudienceSummary {
+  companyCount: number;
+  recipientCount: number;
+  emailCount: number;
+  whatsappCount: number;
+  overLimit: boolean;
+}
+
+export interface NotificationBroadcastCompanySummary {
+  id: string;
+  name: string;
+  recipientCount: number;
+  emailCount: number;
+  whatsappCount: number;
+  overLimit: boolean;
+}
+
+export interface NotificationBroadcastOptions {
+  isPlatform: boolean;
+  maxRecipients: number;
+  allCustomers: NotificationBroadcastAudienceSummary | null;
+  companies: NotificationBroadcastCompanySummary[];
+}
+
+export interface NotificationBroadcastResult {
+  requestId: string;
+  created: boolean;
+  companyCount: number;
+  recipientCount: number;
+  notificationCount: number;
+  channels: NotificationChannel[];
+  externalDeliveryQueued: boolean;
+}

@@ -10,6 +10,10 @@ export interface NotificationTemplateVariablesByKey {
   'security.notice': {
     message: string;
   };
+  'admin.broadcast': {
+    title: string;
+    body: string;
+  };
 }
 
 export type NotificationTemplateKey = keyof NotificationTemplateVariablesByKey;
@@ -33,6 +37,7 @@ export class NotificationTemplateService {
         const input =
           variables as NotificationTemplateVariablesByKey['service.assigned'];
         const serviceName = input.serviceName?.trim();
+
         return {
           title: copy.serviceAssignedSubject,
           body: serviceName
@@ -40,18 +45,37 @@ export class NotificationTemplateService {
             : copy.serviceAssignedBody,
         };
       }
+
       case 'security.notice': {
         const input =
           variables as NotificationTemplateVariablesByKey['security.notice'];
         const message = input.message.trim();
+
         if (!message || message.length > 3500) {
           throw new BadRequestException('Notification message is invalid.');
         }
+
         return {
           title: copy.securityNoticeSubject,
           body: message,
         };
       }
+
+      case 'admin.broadcast': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.broadcast'];
+        const title = input.title.trim();
+        const body = input.body.trim();
+
+        if (!title || title.length > 300 || !body || body.length > 3500) {
+          throw new BadRequestException(
+            'Broadcast notification content is invalid.',
+          );
+        }
+
+        return { title, body };
+      }
+
       default:
         throw new BadRequestException(
           `Unsupported notification template: ${String(key)}`,

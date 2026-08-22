@@ -15,6 +15,7 @@ import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
+import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
 
 import { sendNotificationTestEmailAction } from "./actions";
 
@@ -62,6 +63,7 @@ export default async function NotificationAdministrationPage({
   ]);
 
   const labels = notificationAdministrationDictionaries[locale];
+  const broadcastLabels = notificationBroadcastDictionaries[locale];
   const selectedOffset = offset(one(rawParameters.offset));
   const kind = one(rawParameters.kind) as
     NotificationAdministrationKind | undefined;
@@ -112,6 +114,15 @@ export default async function NotificationAdministrationPage({
   return (
     <div className="grid gap-7">
       <PageHeading title={labels.title} description={labels.description} />
+
+      <div className="flex justify-end">
+        <Link
+          href="/admin/notifications/new"
+          className="inline-flex h-10 items-center rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
+        >
+          {broadcastLabels.openComposer}
+        </Link>
+      </div>
 
       {providerStatus ? (
         <>
@@ -366,7 +377,11 @@ export default async function NotificationAdministrationPage({
                         {item.recipient}
                       </td>
                       <td className="px-3 py-4">
-                        <Badge>{labels.kinds[item.kind]}</Badge>
+                        <Badge>
+                          {item.templateKey === "admin.broadcast"
+                            ? broadcastLabels.logType
+                            : labels.kinds[item.kind]}
+                        </Badge>
                       </td>
                       <td className="px-3 py-4">
                         <Badge>{labels.channels[item.channel]}</Badge>

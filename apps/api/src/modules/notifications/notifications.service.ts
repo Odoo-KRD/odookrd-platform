@@ -61,6 +61,8 @@ export interface PublishNotificationInput<K extends NotificationTemplateKey> {
   recipients: readonly PublishRecipient[];
   channels?: readonly NotificationChannel[];
   actionUrl?: string | null;
+  actorUserId?: string;
+  dispatchImmediately?: boolean;
 }
 
 export interface PublishNotificationResult {
@@ -254,7 +256,9 @@ export class NotificationsService {
     });
 
     if (existing) {
-      await this.dispatcher.dispatchNotification(existing.id);
+      if (input.dispatchImmediately !== false) {
+        await this.dispatcher.dispatchNotification(existing.id);
+      }
       return { id: existing.id, created: false };
     }
 
@@ -335,6 +339,7 @@ export class NotificationsService {
 
         await transaction.auditLog.create({
           data: {
+            actorUserId: input.actorUserId,
             companyId: input.companyId,
             action: 'notification.created',
             targetType: 'notification',
@@ -365,7 +370,9 @@ export class NotificationsService {
         });
 
         if (concurrent) {
-          await this.dispatcher.dispatchNotification(concurrent.id);
+          if (input.dispatchImmediately !== false) {
+            await this.dispatcher.dispatchNotification(concurrent.id);
+          }
           return { id: concurrent.id, created: false };
         }
       }
@@ -373,7 +380,9 @@ export class NotificationsService {
       throw error;
     }
 
-    await this.dispatcher.dispatchNotification(createdId);
+    if (input.dispatchImmediately !== false) {
+      await this.dispatcher.dispatchNotification(createdId);
+    }
     return { id: createdId, created: true };
   }
 
