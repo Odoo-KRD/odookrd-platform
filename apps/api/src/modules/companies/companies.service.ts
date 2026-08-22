@@ -59,6 +59,7 @@ export class CompaniesService {
         select: {
           id: true,
           name: true,
+          nameTranslations: true,
           status: true,
           createdAt: true,
           updatedAt: true,
@@ -94,6 +95,7 @@ export class CompaniesService {
       select: {
         id: true,
         name: true,
+        nameTranslations: true,
         status: true,
         createdAt: true,
         updatedAt: true,
