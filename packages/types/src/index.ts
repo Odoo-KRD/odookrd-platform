@@ -16,6 +16,7 @@ export const PERMISSIONS = {
   SERVICES_READ: "services.read",
   SERVICES_MANAGE: "services.manage",
   NOTIFICATIONS_READ: "notifications.read",
+  NOTIFICATIONS_MANAGE: "notifications.manage",
   SETTINGS_READ: "settings.read",
   SETTINGS_MANAGE: "settings.manage",
   AUDIT_LOGS_READ: "audit_logs.read",
@@ -312,4 +313,81 @@ export interface InvitationDeliveryOperation {
 export interface InvitationRegeneration {
   token: string;
   expiresAt: string;
+}
+
+export type NotificationAdministrationKind =
+  "NOTIFICATION" | "INVITATION" | "TEST";
+
+export interface NotificationProviderSecretStatus {
+  configured: boolean;
+  masked: string | null;
+}
+
+export interface EmailProviderAdministrationStatus {
+  enabled: boolean;
+  provider: string | null;
+  ready: boolean;
+  region: string | null;
+  senderEmail: string | null;
+  senderName: string | null;
+  replyTo: string | null;
+  accessKeyId: NotificationProviderSecretStatus;
+  secretAccessKey: NotificationProviderSecretStatus;
+  sessionToken: NotificationProviderSecretStatus;
+}
+
+export interface WhatsAppProviderAdministrationStatus {
+  enabled: boolean;
+  ready: boolean;
+  apiUrl: string | null;
+  phoneNumberId: string | null;
+  accessToken: NotificationProviderSecretStatus;
+}
+
+export interface NotificationProviderAdministrationStatus {
+  email: EmailProviderAdministrationStatus;
+  whatsapp: WhatsAppProviderAdministrationStatus;
+}
+
+export interface NotificationAdministrationDelivery {
+  id: string;
+  kind: NotificationAdministrationKind;
+  companyId: string | null;
+  companyName: string | null;
+  userId: string | null;
+  recipient: string;
+  templateKey: string;
+  channel: NotificationChannel;
+  status: NotificationDeliveryStatus;
+  attemptCount: number;
+  providerMessageId: string | null;
+  failureCode: string | null;
+  createdAt: string;
+  lastAttemptAt: string | null;
+  sentAt: string | null;
+}
+
+export interface NotificationAdministrationCompanyFilter {
+  id: string;
+  name: string;
+}
+
+export interface NotificationAdministrationDeliveryPage {
+  items: NotificationAdministrationDelivery[];
+  companies: NotificationAdministrationCompanyFilter[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+  };
+}
+
+export interface NotificationProviderTestResult {
+  id: string;
+  channel: "EMAIL";
+  recipient: string;
+  status: NotificationDeliveryStatus;
+  providerMessageId: string | null;
+  failureCode: string | null;
+  sentAt: string | null;
 }

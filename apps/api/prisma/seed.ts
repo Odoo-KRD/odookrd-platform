@@ -72,6 +72,12 @@ const permissions = [
       'View and update only notifications addressed to the authenticated user.',
   },
   {
+    key: 'notifications.manage',
+    name: 'Manage notification delivery',
+    description:
+      'Review scoped notification delivery logs; platform administrators can also test platform providers.',
+  },
+  {
     key: 'settings.read',
     name: 'Read settings',
     description:
@@ -104,6 +110,8 @@ const roles = [
       'services.read',
       'services.manage',
       'notifications.read',
+
+      'notifications.manage',
     ],
   },
   {
@@ -121,6 +129,8 @@ const roles = [
       'settings.manage',
       'services.read',
       'notifications.read',
+
+      'notifications.manage',
     ],
   },
   {

@@ -11,6 +11,7 @@ import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { portalDictionaries } from "@/lib/i18n/portal";
 import { servicesDictionaries } from "@/lib/i18n/services";
+import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
@@ -65,6 +66,13 @@ export default async function ProtectedAdminLayout({
     navigation.push({
       href: "/admin/services",
       label: servicesDictionaries[locale].title,
+    });
+  }
+
+  if (hasPermission(session, PERMISSIONS.NOTIFICATIONS_MANAGE)) {
+    navigation.push({
+      href: "/admin/notifications",
+      label: notificationAdministrationDictionaries[locale].navigation,
     });
   }
 

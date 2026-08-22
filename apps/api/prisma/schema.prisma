@@ -129,12 +129,13 @@ model User {
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company                Company?                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  userRoles              UserRole[]
-  sessions               Session[]
-  authTokens             AuthToken[]
-  notificationRecipients NotificationRecipient[]
-  invitationDispatches   UserInvitationDispatch[]
+  company                   Company?                   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  userRoles                 UserRole[]
+  sessions                  Session[]
+  authTokens                AuthToken[]
+  notificationRecipients    NotificationRecipient[]
+  invitationDispatches      UserInvitationDispatch[]
+  notificationProviderTests NotificationProviderTest[]
 
   @@index([companyId])
   @@index([status])
@@ -407,4 +408,25 @@ model UserInvitationDelivery {
   @@unique([dispatchId, channel], map: "user_invitation_deliveries_dispatch_channel_unique")
   @@index([status, createdAt], map: "user_invitation_deliveries_status_created_idx")
   @@map("user_invitation_deliveries")
+}
+
+model NotificationProviderTest {
+  id                String                     @id @default(uuid()) @db.Uuid
+  actorUserId       String                     @map("actor_user_id") @db.Uuid
+  channel           NotificationChannel
+  destination       String                     @db.VarChar(320)
+  status            NotificationDeliveryStatus @default(PENDING)
+  attemptCount      Int                        @default(1) @map("attempt_count")
+  providerMessageId String?                    @map("provider_message_id") @db.VarChar(255)
+  failureCode       String?                    @map("failure_code") @db.VarChar(80)
+  lastAttemptAt     DateTime                   @default(now()) @map("last_attempt_at") @db.Timestamptz(6)
+  sentAt            DateTime?                  @map("sent_at") @db.Timestamptz(6)
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  actor User @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([actorUserId, createdAt], map: "notification_provider_tests_actor_created_idx")
+  @@index([status, createdAt], map: "notification_provider_tests_status_created_idx")
+  @@map("notification_provider_tests")
 }
