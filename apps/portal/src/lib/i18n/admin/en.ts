@@ -335,7 +335,10 @@ export const adminEn = {
     retry: "Try again",
   },
   content: {
+    locale: "en",
     translations: "Translations",
+    saveTranslations: "Save translations",
+    discardTranslations: "Discard",
     defaultLanguage: "Primary language",
     optionalLanguage: "Optional",
     languages: {

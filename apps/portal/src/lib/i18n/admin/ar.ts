@@ -329,7 +329,10 @@ export const adminAr = {
     retry: "إعادة المحاولة",
   },
   content: {
+    locale: "ar",
     translations: "الترجمات",
+    saveTranslations: "حفظ الترجمات",
+    discardTranslations: "إلغاء",
     defaultLanguage: "اللغة الأساسية",
     optionalLanguage: "اختياري",
     languages: {

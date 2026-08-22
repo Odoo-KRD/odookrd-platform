@@ -145,8 +145,18 @@ test("multilingual editors stay controlled when React resets a completed form ac
   assert.match(editor, /^["']use client["'];/);
   assert.match(editor, /useState<LocalizedText>/);
   assert.match(editor, /setValues\(/);
-  assert.equal((editor.match(/value=\{value\}/g) ?? []).length, 2);
-  assert.equal((editor.match(/onChange=\{/g) ?? []).length, 2);
+  const controlledFields = (editor.match(/value=\{value\}/g) ?? []).length;
+  const changeHandlers = (editor.match(/onChange=\{/g) ?? []).length;
+
+  assert.ok(
+    controlledFields >= 2,
+    "The visible multilingual input and textarea must remain controlled.",
+  );
+  assert.equal(
+    changeHandlers,
+    controlledFields,
+    "Every controlled visible or popup field must have a matching change handler.",
+  );
   assert.doesNotMatch(editor, /defaultValue=\{value\}/);
 });
 

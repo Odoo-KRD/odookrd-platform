@@ -334,7 +334,10 @@ export const adminKu = {
     retry: "دووبارە هەوڵدانەوە",
   },
   content: {
+    locale: "ku",
     translations: "وەرگێڕانەکان",
+    saveTranslations: "پاشەکەوتکردنی وەرگێڕانەکان",
+    discardTranslations: "پاشگەزبوونەوە",
     defaultLanguage: "زمانی سەرەکی",
     optionalLanguage: "ئارەزوومەندانە",
     languages: {

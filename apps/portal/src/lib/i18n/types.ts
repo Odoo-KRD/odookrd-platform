@@ -312,7 +312,10 @@ export interface AdminErrorDictionary {
 }
 
 export interface ContentEditorDictionary {
+  locale: Locale;
   translations: string;
+  saveTranslations: string;
+  discardTranslations: string;
   defaultLanguage: string;
   optionalLanguage: string;
   languages: Record<Locale, string>;
