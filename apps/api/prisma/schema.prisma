@@ -111,6 +111,7 @@ model Company {
   serviceAssignments     CompanyService[]
   notifications          Notification[]
   notificationRecipients NotificationRecipient[]
+  invitationDispatches   UserInvitationDispatch[]
 
   @@map("companies")
 }
@@ -120,6 +121,7 @@ model User {
   companyId       String?      @map("company_id") @db.Uuid
   accountScope    AccountScope @map("account_scope")
   email           String       @db.VarChar(320)
+  whatsappNumber  String?      @map("whatsapp_number") @db.VarChar(16)
   normalizedEmail String       @unique @map("normalized_email") @db.VarChar(320)
   passwordHash    String?      @map("password_hash") @db.VarChar(255)
   status          UserStatus   @default(INVITED)
@@ -127,11 +129,12 @@ model User {
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company                Company?                @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  company                Company?                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
   userRoles              UserRole[]
   sessions               Session[]
   authTokens             AuthToken[]
   notificationRecipients NotificationRecipient[]
+  invitationDispatches   UserInvitationDispatch[]
 
   @@index([companyId])
   @@index([status])
@@ -368,4 +371,40 @@ model NotificationDelivery {
   @@unique([recipientId, channel], map: "notification_deliveries_recipient_channel_unique")
   @@index([status, nextAttemptAt], map: "notification_deliveries_retry_idx")
   @@map("notification_deliveries")
+}
+
+model UserInvitationDispatch {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  companyId String?  @map("company_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User                     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  company    Company?                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  deliveries UserInvitationDelivery[]
+
+  @@index([userId, createdAt], map: "user_invitation_dispatches_user_created_idx")
+  @@index([companyId, createdAt], map: "user_invitation_dispatches_company_created_idx")
+  @@map("user_invitation_dispatches")
+}
+
+model UserInvitationDelivery {
+  id                String                     @id @default(uuid()) @db.Uuid
+  dispatchId        String                     @map("dispatch_id") @db.Uuid
+  channel           NotificationChannel
+  status            NotificationDeliveryStatus @default(PENDING)
+  attemptCount      Int                        @default(0) @map("attempt_count")
+  providerMessageId String?                    @map("provider_message_id") @db.VarChar(255)
+  failureCode       String?                    @map("failure_code") @db.VarChar(80)
+  lastAttemptAt     DateTime?                  @map("last_attempt_at") @db.Timestamptz(6)
+  sentAt            DateTime?                  @map("sent_at") @db.Timestamptz(6)
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  dispatch UserInvitationDispatch @relation(fields: [dispatchId], references: [id], onDelete: Cascade)
+
+  @@unique([dispatchId, channel], map: "user_invitation_deliveries_dispatch_channel_unique")
+  @@index([status, createdAt], map: "user_invitation_deliveries_status_created_idx")
+  @@map("user_invitation_deliveries")
 }

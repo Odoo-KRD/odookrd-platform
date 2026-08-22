@@ -14,8 +14,10 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 
 import { WorkspaceModule } from './modules/workspace/workspace.module';
+import { UserAdministrationModule } from './modules/user-administration/user-administration.module';
 @Module({
   imports: [
+    UserAdministrationModule,
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,

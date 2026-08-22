@@ -19,7 +19,7 @@ export class EmailProviderService {
   constructor(private readonly settings: SettingsService) {}
 
   async send(
-    companyId: string,
+    companyId: string | null,
     destination: string,
     subject: string,
     body: string,

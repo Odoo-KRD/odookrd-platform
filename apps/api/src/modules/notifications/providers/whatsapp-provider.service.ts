@@ -12,7 +12,7 @@ export class WhatsAppProviderService {
   constructor(private readonly settings: SettingsService) {}
 
   async send(
-    companyId: string,
+    companyId: string | null,
     destination: string,
     body: string,
   ): Promise<string | null> {

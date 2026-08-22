@@ -75,7 +75,9 @@ export async function inviteUserAction(
 
   if (session.user.accountScope === "COMPANY") {
     if (accountScope !== "COMPANY" || !session.user.companyId) {
-      return invitationFailure("Company administrators can invite only company users.");
+      return invitationFailure(
+        "Company administrators can invite only company users.",
+      );
     }
 
     if (
@@ -100,7 +102,9 @@ export async function inviteUserAction(
     typeof selectedCompanyId === "string" &&
     selectedCompanyId.length > 0
   ) {
-    return invitationFailure("Platform accounts cannot be assigned to a company.");
+    return invitationFailure(
+      "Platform accounts cannot be assigned to a company.",
+    );
   }
 
   let invitation: UserInvitation;
@@ -117,7 +121,9 @@ export async function inviteUserAction(
       }),
     });
   } catch (error: unknown) {
-    return invitationFailure(failure(error).message ?? "The invitation failed.");
+    return invitationFailure(
+      failure(error).message ?? "The invitation failed.",
+    );
   }
 
   revalidatePath("/admin/users");
@@ -175,11 +181,14 @@ export async function updateUserRolesAction(
   }
 
   try {
-    await apiRequest<ManagedUser>(`/users/${encodeURIComponent(userId)}/roles`, {
-      method: "PUT",
-      token,
-      body: JSON.stringify({ roleKeys }),
-    });
+    await apiRequest<ManagedUser>(
+      `/users/${encodeURIComponent(userId)}/administration/roles`,
+      {
+        method: "PUT",
+        token,
+        body: JSON.stringify({ roleKeys }),
+      },
+    );
   } catch (error: unknown) {
     return failure(error);
   }

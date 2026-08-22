@@ -23,6 +23,10 @@ import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
     EmailProviderService,
     WhatsAppProviderService,
   ],
-  exports: [NotificationsService],
+  exports: [
+    NotificationsService,
+    EmailProviderService,
+    WhatsAppProviderService,
+  ],
 })
 export class NotificationsModule {}

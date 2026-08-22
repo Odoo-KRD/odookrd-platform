@@ -274,3 +274,42 @@ export interface CustomerNotificationPage {
 export interface NotificationUnreadCount {
   unread: number;
 }
+
+export type InvitationDeliveryChannel = "EMAIL" | "WHATSAPP";
+
+export interface InvitationDeliverySummary {
+  channel: InvitationDeliveryChannel;
+  status: NotificationDeliveryStatus;
+  attemptCount: number;
+  failureCode: string | null;
+  lastAttemptAt: string | null;
+  sentAt: string | null;
+}
+
+export interface InvitationDispatchSummary {
+  id: string;
+  expiresAt: string;
+  createdAt: string;
+  deliveries: InvitationDeliverySummary[];
+}
+
+export interface UserAdministrationDetails {
+  userId: string;
+  whatsappNumber: string | null;
+  canRemoveAdminRole: boolean;
+  invitation: {
+    active: boolean;
+    expiresAt: string;
+    lastDispatch: InvitationDispatchSummary | null;
+  } | null;
+}
+
+export interface InvitationDeliveryOperation {
+  expiresAt: string;
+  dispatch: InvitationDispatchSummary;
+}
+
+export interface InvitationRegeneration {
+  token: string;
+  expiresAt: string;
+}

@@ -6,12 +6,13 @@ import {
 } from "@odookrd/types";
 import { PageHeading, Panel } from "@odookrd/ui";
 
-import { InviteUserForm } from "@/components/users/invite-user-form";
+import { InviteAndDeliverUserForm } from "@/components/users/invite-and-deliver-user-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { getUsersDictionary } from "@/lib/i18n/users-server";
+import { userInvitationAdminDictionaries } from "@/lib/i18n/user-invitations";
 
-import { inviteUserAction } from "../actions";
+import { inviteAndDeliverUserAction } from "../invitation-actions";
 
 export default async function InviteUserPage() {
   const [{ session, token }, { locale, admin, users }] = await Promise.all([
@@ -37,12 +38,12 @@ export default async function InviteUserPage() {
     <div className="grid gap-7">
       <PageHeading
         title={users.inviteTitle}
-        description={users.inviteDescription}
+        description={userInvitationAdminDictionaries[locale].inviteDescription}
       />
 
       <Panel className="p-6 sm:p-8">
-        <InviteUserForm
-          action={inviteUserAction}
+        <InviteAndDeliverUserForm
+          action={inviteAndDeliverUserAction}
           labels={users}
           roleLabels={admin.roles}
           roles={roles}
