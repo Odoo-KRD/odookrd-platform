@@ -54,7 +54,7 @@ export default async function ProtectedAdminLayout({
       : admin.navigation.companyAdministration;
 
   return (
-    <div className="min-h-screen bg-surface-page lg:flex">
+    <div className="min-h-screen bg-surface-page lg:flex lg:h-screen lg:overflow-hidden">
       <AdminSidebar
         siteTitle={publicSettings.siteTitle}
         administrationLabel={administrationLabel}
@@ -67,8 +67,8 @@ export default async function ProtectedAdminLayout({
         expandLabel={admin.navigation.expandSidebar}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-line bg-surface-panel px-5 py-4 sm:px-8">
+      <div className="flex min-w-0 flex-1 flex-col lg:h-screen lg:overflow-hidden">
+        <header className="shrink-0 border-b border-line bg-surface-panel px-5 py-4 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-content lg:hidden">
@@ -104,7 +104,7 @@ export default async function ProtectedAdminLayout({
           </details>
         </header>
 
-        <main className="w-full min-w-0 flex-1 px-5 py-8 sm:px-8 sm:py-10">
+        <main className="w-full min-w-0 flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
           {children}
         </main>
       </div>

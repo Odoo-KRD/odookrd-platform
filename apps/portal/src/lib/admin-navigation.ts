@@ -58,7 +58,6 @@ export function buildAdminNavigation(
       kind: "item",
       href: "/admin/users",
       label: labels.manageUsers,
-      icon: "users",
     });
   }
 
@@ -67,7 +66,6 @@ export function buildAdminNavigation(
       kind: "item",
       href: "/admin/roles",
       label: labels.manageRoles,
-      icon: "roles",
     });
   }
 
@@ -104,7 +102,6 @@ export function buildAdminNavigation(
           kind: "item",
           href: "/admin/notifications",
           label: labels.manageNotifications,
-          icon: "notifications",
         },
       ],
     });

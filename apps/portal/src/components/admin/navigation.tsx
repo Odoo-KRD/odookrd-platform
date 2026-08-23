@@ -37,6 +37,11 @@ interface AdminNavigationProps {
   collapsed?: boolean;
 }
 
+interface AccordionState {
+  pathname: string;
+  openGroupByDepth: Record<number, string>;
+}
+
 function isItemActive(pathname: string, href: string): boolean {
   return href === "/admin"
     ? pathname === href
@@ -52,6 +57,25 @@ function entryContainsActive(
   }
 
   return entry.children.some((child) => entryContainsActive(pathname, child));
+}
+
+function getActiveGroupPath(
+  pathname: string,
+  entries: AdminNavigationEntry[],
+  depth = 0,
+  result: Record<number, string> = {},
+): Record<number, string> {
+  for (const entry of entries) {
+    if (entry.kind !== "group" || !entryContainsActive(pathname, entry)) {
+      continue;
+    }
+
+    result[depth] = entry.id;
+    getActiveGroupPath(pathname, entry.children, depth + 1, result);
+    break;
+  }
+
+  return result;
 }
 
 function firstItem(entry: AdminNavigationEntry): AdminNavigationItem | null {
@@ -96,6 +120,10 @@ function NavigationIcon({
   name?: AdminNavigationIconName;
   className?: string;
 }) {
+  if (!name) {
+    return null;
+  }
+
   const common = {
     fill: "none",
     viewBox: "0 0 24 24",
@@ -153,7 +181,6 @@ function NavigationIcon({
         </svg>
       );
     case "overview":
-    default:
       return (
         <svg {...common}>
           <path d="M4 5h16M4 12h10M4 19h16" />
@@ -185,20 +212,43 @@ export function AdminNavigation({
   collapsed = false,
 }: AdminNavigationProps) {
   const pathname = usePathname();
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
+  const activeGroupPath = getActiveGroupPath(pathname, entries);
+  const [accordion, setAccordion] = useState<AccordionState>(() => ({
+    pathname,
+    openGroupByDepth: activeGroupPath,
+  }));
 
-    const visit = (entry: AdminNavigationEntry): void => {
-      if (entry.kind === "group") {
-        initial[entry.id] = entryContainsActive(pathname, entry);
-        entry.children.forEach(visit);
+  const openGroupByDepth =
+    accordion.pathname === pathname
+      ? accordion.openGroupByDepth
+      : activeGroupPath;
+
+  function toggleGroup(groupId: string, depth: number): void {
+    setAccordion((current) => {
+      const currentGroups =
+        current.pathname === pathname
+          ? current.openGroupByDepth
+          : activeGroupPath;
+      const nextGroups: Record<number, string> = {};
+
+      for (const [level, id] of Object.entries(currentGroups)) {
+        const numericLevel = Number(level);
+
+        if (numericLevel < depth) {
+          nextGroups[numericLevel] = id;
+        }
       }
-    };
 
-    entries.forEach(visit);
+      if (currentGroups[depth] !== groupId) {
+        nextGroups[depth] = groupId;
+      }
 
-    return initial;
-  });
+      return {
+        pathname,
+        openGroupByDepth: nextGroups,
+      };
+    });
+  }
 
   function renderEntry(
     entry: AdminNavigationEntry,
@@ -206,30 +256,33 @@ export function AdminNavigation({
   ): React.ReactNode {
     if (entry.kind === "item") {
       const active = isItemActive(pathname, entry.href);
+      const showIcon = depth === 0 && Boolean(entry.icon);
 
       return (
         <Link
           key={entry.href}
           href={entry.href}
-          title={collapsed ? entry.label : undefined}
+          title={entry.label}
           aria-label={collapsed ? entry.label : undefined}
           aria-current={active ? "page" : undefined}
-          className={`flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+          className={`flex min-h-10 min-w-0 items-center gap-3 overflow-hidden rounded-md px-3 py-2 text-sm font-medium transition-colors ${
             active
               ? "bg-brand-soft text-brand"
               : "text-muted hover:bg-surface-subtle hover:text-content"
           } ${collapsed ? "justify-center" : ""}`}
         >
-          <NavigationIcon name={entry.icon} />
+          {showIcon ? <NavigationIcon name={entry.icon} /> : null}
           {collapsed ? null : (
-            <span className="min-w-0 truncate">{entry.label}</span>
+            <span className="min-w-0 flex-1 truncate text-start">
+              {entry.label}
+            </span>
           )}
         </Link>
       );
     }
 
     const containsActive = entryContainsActive(pathname, entry);
-    const open = openGroups[entry.id] ?? containsActive;
+    const open = openGroupByDepth[depth] === entry.id;
 
     if (collapsed) {
       const destination = activeItem(pathname, entry) ?? firstItem(entry);
@@ -243,6 +296,7 @@ export function AdminNavigation({
           key={entry.id}
           href={destination.href}
           title={entry.label}
+          aria-label={entry.label}
           aria-current={containsActive ? "page" : undefined}
           className={`flex min-h-10 items-center justify-center rounded-md px-3 py-2 transition-colors ${
             containsActive
@@ -256,24 +310,22 @@ export function AdminNavigation({
       );
     }
 
+    const showIcon = depth === 0 && Boolean(entry.icon);
+
     return (
-      <div key={entry.id} className={depth === 0 ? "grid gap-1" : "grid gap-1"}>
+      <div key={entry.id} className="grid min-w-0 gap-1">
         <button
           type="button"
+          title={entry.label}
           aria-expanded={open}
-          onClick={() =>
-            setOpenGroups((current) => ({
-              ...current,
-              [entry.id]: !open,
-            }))
-          }
-          className={`flex min-h-10 w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+          onClick={() => toggleGroup(entry.id, depth)}
+          className={`flex min-h-10 w-full min-w-0 items-center gap-3 overflow-hidden rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
             containsActive
               ? "text-brand"
               : "text-muted hover:bg-surface-subtle hover:text-content"
           }`}
         >
-          <NavigationIcon name={entry.icon} />
+          {showIcon ? <NavigationIcon name={entry.icon} /> : null}
           <span className="min-w-0 flex-1 truncate text-start">
             {entry.label}
           </span>
@@ -281,7 +333,7 @@ export function AdminNavigation({
         </button>
 
         {open ? (
-          <div className="ms-4 grid gap-1 border-s border-line ps-2">
+          <div className="ms-4 grid min-w-0 gap-1 border-s border-line ps-2">
             {entry.children.map((child) => renderEntry(child, depth + 1))}
           </div>
         ) : null}
@@ -290,7 +342,7 @@ export function AdminNavigation({
   }
 
   return (
-    <nav aria-label={label} className="grid gap-1.5">
+    <nav aria-label={label} className="grid min-w-0 gap-1.5">
       {entries.map((entry) => renderEntry(entry))}
     </nav>
   );
