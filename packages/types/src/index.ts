@@ -41,6 +41,16 @@ export interface CurrentSession {
   authorization: AuthorizationContext;
 }
 
+export interface UserUiPreferences {
+  sidebarCollapsed: boolean;
+  dashboardPreferences: Record<string, unknown>;
+  updatedAt: string | null;
+}
+
+export interface UpdateUserUiPreferencesRequest {
+  sidebarCollapsed: boolean;
+}
+
 export interface ApiLoginResponse {
   token: string;
   session: {

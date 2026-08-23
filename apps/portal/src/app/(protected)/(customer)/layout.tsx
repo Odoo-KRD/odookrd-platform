@@ -28,11 +28,12 @@ export default async function ProtectedCustomerLayout({
   }
 
   const navigation: AdminNavigationItem[] = [
-    { href: "/dashboard", label: portal.navigation.dashboard },
+    { kind: "item", href: "/dashboard", label: portal.navigation.dashboard },
   ];
 
   if (hasPermission(session, PERMISSIONS.SERVICES_READ)) {
     navigation.push({
+      kind: "item",
       href: "/dashboard/services",
       label: frontendTranslations[locale].services.title,
     });
@@ -40,10 +41,12 @@ export default async function ProtectedCustomerLayout({
 
   navigation.push(
     {
+      kind: "item",
       href: "/dashboard/company",
       label: frontendTranslations[locale].workspace.navigation.company,
     },
     {
+      kind: "item",
       href: "/dashboard/profile",
       label: frontendTranslations[locale].workspace.navigation.profile,
     },
@@ -51,6 +54,7 @@ export default async function ProtectedCustomerLayout({
 
   if (hasPermission(session, PERMISSIONS.NOTIFICATIONS_READ)) {
     navigation.push({
+      kind: "item",
       href: "/dashboard/notifications",
       label: frontendTranslations[locale].notifications.navigation,
     });
@@ -58,6 +62,7 @@ export default async function ProtectedCustomerLayout({
 
   if (hasAdminAccess(session)) {
     navigation.push({
+      kind: "item",
       href: "/admin",
       label: portal.navigation.administration,
     });
@@ -76,7 +81,10 @@ export default async function ProtectedCustomerLayout({
         </div>
 
         <div className="flex-1 px-3 py-5">
-          <AdminNavigation label={portal.navigation.label} items={navigation} />
+          <AdminNavigation
+            label={portal.navigation.label}
+            entries={navigation}
+          />
         </div>
 
         <div className="border-t border-slate-200 px-5 py-5">
@@ -123,7 +131,7 @@ export default async function ProtectedCustomerLayout({
             <div className="mt-3">
               <AdminNavigation
                 label={portal.navigation.label}
-                items={navigation}
+                entries={navigation}
               />
             </div>
           </details>

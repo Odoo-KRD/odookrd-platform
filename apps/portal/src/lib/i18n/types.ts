@@ -45,6 +45,11 @@ export interface AdminDictionary {
     myCompany: string;
     users: string;
     roles: string;
+    manageUsers: string;
+    manageRoles: string;
+    manageNotifications: string;
+    collapseSidebar: string;
+    expandSidebar: string;
     platformAdministration: string;
     companyAdministration: string;
   };

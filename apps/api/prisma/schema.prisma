@@ -136,10 +136,23 @@ model User {
   notificationRecipients    NotificationRecipient[]
   invitationDispatches      UserInvitationDispatch[]
   notificationProviderTests NotificationProviderTest[]
+  uiPreference              UserUiPreference?
 
   @@index([companyId])
   @@index([status])
   @@map("users")
+}
+
+model UserUiPreference {
+  userId               String   @id @map("user_id") @db.Uuid
+  sidebarCollapsed     Boolean  @default(false) @map("sidebar_collapsed")
+  dashboardPreferences Json     @default("{}") @map("dashboard_preferences") @db.JsonB
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_ui_preferences")
 }
 
 model Role {
