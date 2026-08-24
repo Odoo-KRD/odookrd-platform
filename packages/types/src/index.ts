@@ -41,14 +41,24 @@ export interface CurrentSession {
   authorization: AuthorizationContext;
 }
 
+export type DashboardSectionKey =
+  "companies" | "users" | "roles" | "services" | "notifications" | "settings";
+
+export interface DashboardUiPreferences {
+  order: DashboardSectionKey[];
+  hidden: DashboardSectionKey[];
+  collapsed: DashboardSectionKey[];
+}
+
 export interface UserUiPreferences {
   sidebarCollapsed: boolean;
-  dashboardPreferences: Record<string, unknown>;
+  dashboardPreferences: DashboardUiPreferences;
   updatedAt: string | null;
 }
 
 export interface UpdateUserUiPreferencesRequest {
-  sidebarCollapsed: boolean;
+  sidebarCollapsed?: boolean;
+  dashboardPreferences?: DashboardUiPreferences;
 }
 
 export interface ApiLoginResponse {

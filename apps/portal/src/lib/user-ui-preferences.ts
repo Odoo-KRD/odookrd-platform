@@ -5,7 +5,18 @@ import { getSessionToken } from "@/lib/session";
 
 export const DEFAULT_USER_UI_PREFERENCES: UserUiPreferences = {
   sidebarCollapsed: false,
-  dashboardPreferences: {},
+  dashboardPreferences: {
+    order: [
+      "companies",
+      "users",
+      "roles",
+      "services",
+      "notifications",
+      "settings",
+    ],
+    hidden: [],
+    collapsed: [],
+  },
   updatedAt: null,
 };
 

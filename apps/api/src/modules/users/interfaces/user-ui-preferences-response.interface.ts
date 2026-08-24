@@ -1,5 +1,11 @@
+export interface DashboardPreferencesResponse {
+  order: string[];
+  hidden: string[];
+  collapsed: string[];
+}
+
 export interface UserUiPreferencesResponse {
   sidebarCollapsed: boolean;
-  dashboardPreferences: Record<string, unknown>;
+  dashboardPreferences: DashboardPreferencesResponse;
   updatedAt: string | null;
 }

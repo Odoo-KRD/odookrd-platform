@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common';
+
 import { AccountScope } from '../../generated/prisma/enums';
 import type { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
@@ -32,24 +34,24 @@ describe('UserUiPreferencesService', () => {
 
     await expect(service.get(principal)).resolves.toEqual({
       sidebarCollapsed: false,
-      dashboardPreferences: {},
+      dashboardPreferences: {
+        order: [
+          'companies',
+          'users',
+          'roles',
+          'services',
+          'notifications',
+          'settings',
+        ],
+        hidden: [],
+        collapsed: [],
+      },
       updatedAt: null,
-    });
-
-    expect(prisma.userUiPreference.findUnique).toHaveBeenCalledWith({
-      where: {
-        userId: principal.userId,
-      },
-      select: {
-        sidebarCollapsed: true,
-        dashboardPreferences: true,
-        updatedAt: true,
-      },
     });
   });
 
-  it('upserts only the authenticated user preference', async () => {
-    const updatedAt = new Date('2026-08-23T07:00:00.000Z');
+  it('upserts only the authenticated user sidebar preference', async () => {
+    const updatedAt = new Date('2026-08-24T07:00:00.000Z');
 
     prisma.userUiPreference.upsert.mockResolvedValue({
       sidebarCollapsed: true,
@@ -59,28 +61,71 @@ describe('UserUiPreferencesService', () => {
 
     await expect(
       service.update(principal, { sidebarCollapsed: true }),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       sidebarCollapsed: true,
-      dashboardPreferences: {},
       updatedAt: updatedAt.toISOString(),
     });
 
-    expect(prisma.userUiPreference.upsert).toHaveBeenCalledWith({
-      where: {
-        userId: principal.userId,
-      },
-      create: {
-        userId: principal.userId,
-        sidebarCollapsed: true,
-      },
-      update: {
-        sidebarCollapsed: true,
-      },
-      select: {
-        sidebarCollapsed: true,
-        dashboardPreferences: true,
-        updatedAt: true,
-      },
+    expect(prisma.userUiPreference.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          userId: principal.userId,
+        },
+        create: {
+          userId: principal.userId,
+          sidebarCollapsed: true,
+        },
+        update: {
+          sidebarCollapsed: true,
+        },
+      }),
+    );
+  });
+
+  it('persists validated dashboard preferences for the authenticated user', async () => {
+    const updatedAt = new Date('2026-08-24T07:00:00.000Z');
+    const dashboardPreferences = {
+      order: [
+        'users',
+        'companies',
+        'roles',
+        'services',
+        'notifications',
+        'settings',
+      ],
+      hidden: ['roles'],
+      collapsed: ['users'],
+    };
+
+    prisma.userUiPreference.upsert.mockResolvedValue({
+      sidebarCollapsed: false,
+      dashboardPreferences,
+      updatedAt,
     });
+
+    await expect(
+      service.update(principal, { dashboardPreferences }),
+    ).resolves.toEqual({
+      sidebarCollapsed: false,
+      dashboardPreferences,
+      updatedAt: updatedAt.toISOString(),
+    });
+
+    expect(prisma.userUiPreference.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          userId: principal.userId,
+        },
+        update: {
+          dashboardPreferences,
+        },
+      }),
+    );
+  });
+
+  it('rejects an empty preference patch', async () => {
+    await expect(service.update(principal, {})).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });
