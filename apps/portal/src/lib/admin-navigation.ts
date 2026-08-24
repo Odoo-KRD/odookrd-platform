@@ -13,7 +13,10 @@ export interface AdminNavigationLabels {
   manageRoles: string;
   services: string;
   notifications: string;
-  manageNotifications: string;
+  deliveryLog: string;
+  providerStatus: string;
+  testEmail: string;
+  broadcasts: string;
   settings: string;
 }
 
@@ -92,18 +95,41 @@ export function buildAdminNavigation(
   }
 
   if (hasPermission(session, PERMISSIONS.NOTIFICATIONS_MANAGE)) {
+    const notificationChildren: AdminNavigationEntry[] = [
+      {
+        kind: "item",
+        href: "/admin/notifications/deliveries",
+        label: labels.deliveryLog,
+      },
+    ];
+
+    if (session.user.accountScope === "PLATFORM") {
+      notificationChildren.push(
+        {
+          kind: "item",
+          href: "/admin/notifications/providers",
+          label: labels.providerStatus,
+        },
+        {
+          kind: "item",
+          href: "/admin/notifications/test-email",
+          label: labels.testEmail,
+        },
+      );
+    }
+
+    notificationChildren.push({
+      kind: "item",
+      href: "/admin/notifications/broadcasts",
+      label: labels.broadcasts,
+    });
+
     entries.push({
       kind: "group",
       id: "notifications",
       label: labels.notifications,
       icon: "notifications",
-      children: [
-        {
-          kind: "item",
-          href: "/admin/notifications",
-          label: labels.manageNotifications,
-        },
-      ],
+      children: notificationChildren,
     });
   }
 

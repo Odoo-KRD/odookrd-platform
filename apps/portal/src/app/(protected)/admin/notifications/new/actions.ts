@@ -79,7 +79,9 @@ export async function sendNotificationBroadcastAction(
     );
 
     revalidatePath("/admin/notifications");
-    revalidatePath("/admin/notifications/new");
+    revalidatePath("/admin/notifications/deliveries");
+    revalidatePath("/admin/notifications/broadcasts");
+    revalidatePath("/admin/notifications/broadcasts/new");
 
     return { message: null, result };
   } catch (error: unknown) {

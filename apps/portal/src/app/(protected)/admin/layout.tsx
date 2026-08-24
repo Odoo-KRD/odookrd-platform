@@ -8,6 +8,7 @@ import { buildAdminNavigation } from "@/lib/admin-navigation";
 import { hasAdminAccess } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
+import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
 import { portalDictionaries } from "@/lib/i18n/portal";
 import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
@@ -34,6 +35,9 @@ export default async function ProtectedAdminLayout({
     redirect("/dashboard");
   }
 
+  const notificationLabels = notificationAdministrationDictionaries[locale];
+  const broadcastLabels = notificationBroadcastDictionaries[locale];
+
   const navigation = buildAdminNavigation(session, {
     dashboard: portalDictionaries[locale].navigation.dashboard,
     overview: admin.navigation.overview,
@@ -43,8 +47,11 @@ export default async function ProtectedAdminLayout({
     manageUsers: admin.navigation.manageUsers,
     manageRoles: admin.navigation.manageRoles,
     services: servicesDictionaries[locale].title,
-    notifications: notificationAdministrationDictionaries[locale].navigation,
-    manageNotifications: admin.navigation.manageNotifications,
+    notifications: notificationLabels.navigation,
+    deliveryLog: notificationLabels.deliveryLog,
+    providerStatus: notificationLabels.providerStatus,
+    testEmail: notificationLabels.testEmail,
+    broadcasts: broadcastLabels.logType,
     settings: settingsDictionaries[locale].title,
   });
 
