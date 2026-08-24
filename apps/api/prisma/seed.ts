@@ -97,6 +97,7 @@ const roles = [
     name: 'Platform Admin',
     description: 'OdooKRD platform administrator.',
     scope: RoleScope.PLATFORM,
+    isSystem: true,
     permissions: [
       'companies.read',
       'companies.manage',
@@ -119,6 +120,7 @@ const roles = [
     name: 'Company Admin',
     description: 'Administrator for a customer company.',
     scope: RoleScope.COMPANY,
+    isSystem: true,
     permissions: [
       'companies.read',
       'companies.manage',
@@ -138,6 +140,7 @@ const roles = [
     name: 'Company User',
     description: 'Standard user for a customer company.',
     scope: RoleScope.COMPANY,
+    isSystem: true,
     permissions: ['companies.read', 'services.read', 'notifications.read'],
   },
 ] as const;
@@ -170,12 +173,14 @@ async function main(): Promise<void> {
           name: role.name,
           description: role.description,
           scope: role.scope,
+          isSystem: role.isSystem,
         },
         create: {
           key: role.key,
           name: role.name,
           description: role.description,
           scope: role.scope,
+          isSystem: role.isSystem,
         },
       });
 

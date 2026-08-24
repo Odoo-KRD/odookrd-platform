@@ -7,6 +7,10 @@ export const AUDIT_ACTIONS = {
   USER_STATUS_CHANGED: 'user.status_changed',
   USER_ROLES_CHANGED: 'user.roles_changed',
 
+  ROLE_CREATED: 'role.created',
+  ROLE_UPDATED: 'role.updated',
+  ROLE_DELETED: 'role.deleted',
+
   AUTH_INVITATION_ACCEPTED: 'auth.invitation.accepted',
 } as const;
 

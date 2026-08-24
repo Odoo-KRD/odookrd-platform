@@ -88,7 +88,16 @@ export interface Role {
   name: string;
   description: string | null;
   scope: RoleScope;
+  isSystem: boolean;
+  assignmentCount: number;
   permissions: string[];
+}
+
+export interface PermissionDefinition {
+  key: string;
+  name: string;
+  description: string | null;
+  allowedForCompany: boolean;
 }
 
 export interface Pagination {

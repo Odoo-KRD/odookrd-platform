@@ -1,15 +1,17 @@
 import { PERMISSIONS, type Role } from "@odookrd/types";
 import { EmptyState, PageHeading } from "@odookrd/ui";
+import Link from "next/link";
 
 import {
   AdminDataTable,
   type AdminDataTableRow,
 } from "@/components/admin/admin-data-table";
 import { apiRequest } from "@/lib/api";
-import { getAdminApiContext } from "@/lib/authorization";
+import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import type { AdminDictionary } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
+import { roleAdministrationDictionaries } from "@/lib/i18n/role-administration";
 
 function translatedRole(role: Role, dictionary: AdminDictionary): string {
   if (role.key === "platform_admin") return dictionary.roles.platformAdmin;
@@ -19,39 +21,61 @@ function translatedRole(role: Role, dictionary: AdminDictionary): string {
 }
 
 export default async function RolesPage() {
-  const [{ token }, { locale, admin }] = await Promise.all([
+  const [{ session, token }, { locale, admin }] = await Promise.all([
     getAdminApiContext(PERMISSIONS.ROLES_READ),
     getAdminDictionary(),
   ]);
 
   const roles = await apiRequest<Role[]>("/roles", { token });
+  const labels = roleAdministrationDictionaries[locale];
   const tableLabels = adminTableDictionaries[locale];
+  const canManage =
+    session.user.accountScope === "PLATFORM" &&
+    hasPermission(session, PERMISSIONS.ROLES_MANAGE);
+
+  const createAction = canManage ? (
+    <Link
+      href="/admin/roles/new"
+      className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
+    >
+      {labels.create}
+    </Link>
+  ) : undefined;
 
   const rows: AdminDataTableRow[] = roles.map((role): AdminDataTableRow => ({
     id: role.id,
-    searchText: `${translatedRole(role, admin)} ${role.key} ${role.scope} ${role.permissions.join(" ")}`,
+    searchText: `${translatedRole(role, admin)} ${role.key} ${role.scope} ${
+      role.isSystem ? labels.system : labels.custom
+    } ${role.permissions.join(" ")}`,
     cells: {
       name: {
-        type: "text",
-        value: translatedRole(role, admin),
-        emphasis: true,
+        type: "link",
+        label: translatedRole(role, admin),
+        href: `/admin/roles/${role.id}`,
       },
       key: { type: "text", value: role.key, dir: "ltr", muted: true },
       scope: {
         type: "badge",
-        label:
-          role.scope === "PLATFORM"
-            ? admin.roles.platform
-            : admin.roles.company,
+        label: role.scope === "PLATFORM" ? labels.platform : labels.company,
         tone: role.scope === "PLATFORM" ? "accent" : "neutral",
       },
+      type: {
+        type: "badge",
+        label: role.isSystem ? labels.system : labels.custom,
+        tone: role.isSystem ? "neutral" : "success",
+      },
       permissions: {
-        type: "badges",
-        items: role.permissions.map((permission) => ({
-          key: permission,
-          label: permission,
-          dir: "ltr" as const,
-        })),
+        type: "text",
+        value: String(role.permissions.length),
+      },
+      assigned: {
+        type: "text",
+        value: String(role.assignmentCount),
+      },
+      actions: {
+        type: "link",
+        label: labels.view,
+        href: `/admin/roles/${role.id}`,
       },
     },
   }));
@@ -61,29 +85,29 @@ export default async function RolesPage() {
       <PageHeading
         title={admin.roles.title}
         description={admin.roles.description}
+        actions={createAction}
       />
-
-      <div className="rounded-md border border-line bg-surface-panel px-4 py-3 text-sm text-muted">
-        {admin.roles.readOnly}
-      </div>
 
       <AdminDataTable
         columns={[
-          { key: "name", label: admin.roles.name },
-          { key: "key", label: "Key" },
-          { key: "scope", label: admin.roles.scope },
-          { key: "permissions", label: admin.roles.permissions },
+          { key: "name", label: labels.name },
+          { key: "key", label: labels.key },
+          { key: "scope", label: labels.scope },
+          { key: "type", label: labels.type },
+          { key: "permissions", label: labels.permissions },
+          { key: "assigned", label: labels.assignedUsers },
+          { key: "actions", label: admin.companies.actions },
         ]}
         rows={rows}
         labels={tableLabels}
-        selectable
         empty={
           <EmptyState
             title={admin.roles.emptyTitle}
             description={admin.roles.emptyDescription}
+            action={createAction}
           />
         }
-        minWidthClassName="min-w-[860px]"
+        minWidthClassName="min-w-[980px]"
       />
     </div>
   );

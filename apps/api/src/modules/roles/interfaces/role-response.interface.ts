@@ -6,5 +6,7 @@ export interface RoleResponse {
   name: string;
   description: string | null;
   scope: RoleScope;
+  isSystem: boolean;
+  assignmentCount: number;
   permissions: string[];
 }

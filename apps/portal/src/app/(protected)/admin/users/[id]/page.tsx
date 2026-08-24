@@ -15,6 +15,7 @@ import { UserStatusForm } from "@/components/users/user-status-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
+import { roleAdministrationDictionaries } from "@/lib/i18n/role-administration";
 import { getUsersDictionary } from "@/lib/i18n/users-server";
 import { userInvitationAdminDictionaries } from "@/lib/i18n/user-invitations";
 
@@ -67,6 +68,7 @@ export default async function UserDetailsPage({
 
   const allowedRoles = roles.filter((role) => role.scope === user.accountScope);
   const invitationLabels = userInvitationAdminDictionaries[locale];
+  const roleAdministrationLabels = roleAdministrationDictionaries[locale];
   const roleLabels: Record<string, string> = {
     platform_admin: admin.roles.platformAdmin,
     company_admin: admin.roles.companyAdmin,
@@ -81,7 +83,7 @@ export default async function UserDetailsPage({
         actions={
           <Link
             href="/admin/users"
-            className="inline-flex h-10 items-center rounded-md border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="inline-flex h-10 items-center rounded-md border border-line px-4 text-sm font-medium text-content hover:bg-slate-50"
           >
             {users.cancel}
           </Link>
@@ -91,17 +93,17 @@ export default async function UserDetailsPage({
       <Panel className="p-6 sm:p-8">
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <div>
-            <p className="text-xs font-medium text-slate-500">{users.status}</p>
+            <p className="text-xs font-medium text-muted">{users.status}</p>
             <div className="mt-3">
               <UserStatusBadge status={user.status} labels={users} />
             </div>
           </div>
 
           <div>
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-muted">
               {users.accountScope}
             </p>
-            <p className="mt-3 text-sm font-medium text-slate-800">
+            <p className="mt-3 text-sm font-medium text-content">
               {user.accountScope === "PLATFORM"
                 ? users.platformAccount
                 : users.companyAccount}
@@ -109,26 +111,22 @@ export default async function UserDetailsPage({
           </div>
 
           <div>
-            <p className="text-xs font-medium text-slate-500">
-              {users.company}
-            </p>
-            <p className="mt-3 text-sm font-medium text-slate-800">
+            <p className="text-xs font-medium text-muted">{users.company}</p>
+            <p className="mt-3 text-sm font-medium text-content">
               {company?.name ?? users.platform}
             </p>
           </div>
 
           <div>
-            <p className="text-xs font-medium text-slate-500">
-              {users.created}
-            </p>
-            <p className="mt-3 text-sm font-medium text-slate-800">
+            <p className="text-xs font-medium text-muted">{users.created}</p>
+            <p className="mt-3 text-sm font-medium text-content">
               {formatDate(user.createdAt, locale)}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 border-t border-slate-200 pt-6">
-          <p className="text-xs font-medium text-slate-500">{users.roles}</p>
+        <div className="mt-6 border-t border-line pt-6">
+          <p className="text-xs font-medium text-muted">{users.roles}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {user.roles.map((role) => (
               <Badge key={role}>{roleLabels[role] ?? role}</Badge>
@@ -138,7 +136,7 @@ export default async function UserDetailsPage({
       </Panel>
 
       {user.status === "INVITED" ? (
-        <div className="rounded-md border border-[#714b67]/20 bg-[#714b67]/5 px-4 py-3 text-sm text-[#714b67]">
+        <div className="rounded-md border border-brand/20 bg-brand-soft px-4 py-3 text-sm text-brand">
           {users.invitationPending}
         </div>
       ) : null}
@@ -156,7 +154,7 @@ export default async function UserDetailsPage({
 
       {canManage && allowedRoles.length > 0 ? (
         <Panel className="p-6 sm:p-8">
-          <h2 className="mb-6 text-base font-semibold text-slate-900">
+          <h2 className="mb-6 text-base font-semibold text-content">
             {users.roles}
           </h2>
           <UserRolesForm
@@ -165,6 +163,7 @@ export default async function UserDetailsPage({
             assignedRoles={user.roles}
             labels={users}
             roleLabels={admin.roles}
+            administrationLabels={roleAdministrationLabels}
             lockedRoleKeys={
               administration && !administration.canRemoveAdminRole
                 ? user.roles.includes("company_admin")
@@ -185,7 +184,7 @@ export default async function UserDetailsPage({
 
       {canManage && user.status !== "INVITED" ? (
         <Panel className="p-6 sm:p-8">
-          <h2 className="mb-6 text-base font-semibold text-slate-900">
+          <h2 className="mb-6 text-base font-semibold text-content">
             {users.updateStatus}
           </h2>
           <UserStatusForm
