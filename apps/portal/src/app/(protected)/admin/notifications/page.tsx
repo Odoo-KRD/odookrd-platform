@@ -9,11 +9,17 @@ import {
 import { Badge, PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
+import {
+  AdminDataTable,
+  type AdminDataTableRow,
+  type AdminTableTone,
+} from "@/components/admin/admin-data-table";
 import { ProviderTestEmailForm } from "@/components/notifications/provider-test-email-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
 import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
 
@@ -44,9 +50,7 @@ function queryString(parameters: Record<string, string | undefined>): string {
   return query.toString();
 }
 
-function statusTone(
-  status: NotificationDeliveryStatus,
-): "neutral" | "accent" | "success" | "danger" {
+function statusTone(status: NotificationDeliveryStatus): AdminTableTone {
   if (status === "SENT") return "success";
   if (status === "FAILED") return "danger";
   if (status === "PROCESSING" || status === "PENDING") return "accent";
@@ -64,6 +68,7 @@ export default async function NotificationAdministrationPage({
 
   const labels = notificationAdministrationDictionaries[locale];
   const broadcastLabels = notificationBroadcastDictionaries[locale];
+  const tableLabels = adminTableDictionaries[locale];
   const selectedOffset = offset(one(rawParameters.offset));
   const kind = one(rawParameters.kind) as
     NotificationAdministrationKind | undefined;
@@ -111,6 +116,170 @@ export default async function NotificationAdministrationPage({
     companyId,
   };
 
+  const rows: AdminDataTableRow[] = deliveries.items.map(
+    (item): AdminDataTableRow => ({
+      id: `${item.kind}-${item.id}`,
+      searchText: [
+        item.companyName ?? "",
+        item.recipient,
+        labels.kinds[item.kind],
+        labels.channels[item.channel],
+        labels.statuses[item.status],
+        item.failureCode ?? "",
+      ].join(" "),
+      cells: {
+        created: {
+          type: "text",
+          value: formatDate(item.createdAt, locale),
+          muted: true,
+        },
+        company: {
+          type: "text",
+          value: item.companyName ?? "—",
+        },
+        recipient: {
+          type: "text",
+          value: item.recipient,
+          dir: "ltr",
+          className: "max-w-[260px] break-all",
+        },
+        type: {
+          type: "badge",
+          label:
+            item.templateKey === "admin.broadcast"
+              ? broadcastLabels.logType
+              : labels.kinds[item.kind],
+        },
+        channel: {
+          type: "badge",
+          label: labels.channels[item.channel],
+        },
+        status: {
+          type: "badge",
+          label: labels.statuses[item.status],
+          tone: statusTone(item.status),
+        },
+        attempts: {
+          type: "text",
+          value: String(item.attemptCount),
+        },
+        failureCode: {
+          type: "text",
+          value: item.failureCode ?? "—",
+          dir: "ltr",
+          muted: true,
+          className: "max-w-[220px] break-all text-xs",
+        },
+      },
+    }),
+  );
+
+  const filters = (
+    <form method="get" className="flex flex-wrap items-center gap-2">
+      {session.user.accountScope === "PLATFORM" ? (
+        <select
+          name="companyId"
+          defaultValue={companyId ?? ""}
+          className="h-10 rounded-md border border-line bg-white px-3 text-sm"
+        >
+          <option value="">
+            {labels.company}: {labels.all}
+          </option>
+          {deliveries.companies.map((company) => (
+            <option key={company.id} value={company.id}>
+              {company.name}
+            </option>
+          ))}
+        </select>
+      ) : null}
+
+      <select
+        name="kind"
+        defaultValue={kind ?? ""}
+        className="h-10 rounded-md border border-line bg-white px-3 text-sm"
+      >
+        <option value="">
+          {labels.type}: {labels.all}
+        </option>
+        {(["NOTIFICATION", "INVITATION", "TEST"] as const).map((value) => (
+          <option key={value} value={value}>
+            {labels.kinds[value]}
+          </option>
+        ))}
+      </select>
+
+      <select
+        name="channel"
+        defaultValue={channel ?? ""}
+        className="h-10 rounded-md border border-line bg-white px-3 text-sm"
+      >
+        <option value="">
+          {labels.channel}: {labels.all}
+        </option>
+        {(["IN_APP", "EMAIL", "WHATSAPP"] as const).map((value) => (
+          <option key={value} value={value}>
+            {labels.channels[value]}
+          </option>
+        ))}
+      </select>
+
+      <select
+        name="status"
+        defaultValue={status ?? ""}
+        className="h-10 rounded-md border border-line bg-white px-3 text-sm"
+      >
+        <option value="">
+          {labels.status}: {labels.all}
+        </option>
+        {(["PENDING", "PROCESSING", "SENT", "FAILED", "SKIPPED"] as const).map(
+          (value) => (
+            <option key={value} value={value}>
+              {labels.statuses[value]}
+            </option>
+          ),
+        )}
+      </select>
+
+      <button
+        type="submit"
+        className="h-10 rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
+      >
+        {labels.deliveryLog}
+      </button>
+    </form>
+  );
+
+  const footer =
+    hasPrevious || hasNext ? (
+      <nav className="flex items-center justify-between gap-3">
+        {hasPrevious ? (
+          <Link
+            href={`/admin/notifications?${queryString({
+              ...baseFilters,
+              offset: String(previousOffset),
+            })}`}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content"
+          >
+            {labels.previous}
+          </Link>
+        ) : (
+          <span />
+        )}
+
+        {hasNext ? (
+          <Link
+            href={`/admin/notifications?${queryString({
+              ...baseFilters,
+              offset: String(nextOffset),
+            })}`}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content"
+          >
+            {labels.next}
+          </Link>
+        ) : null}
+      </nav>
+    ) : undefined;
+
   return (
     <div className="grid gap-7">
       <PageHeading title={labels.title} description={labels.description} />
@@ -118,7 +287,7 @@ export default async function NotificationAdministrationPage({
       <div className="flex justify-end">
         <Link
           href="/admin/notifications/new"
-          className="inline-flex h-10 items-center rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
+          className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
         >
           {broadcastLabels.openComposer}
         </Link>
@@ -130,7 +299,7 @@ export default async function NotificationAdministrationPage({
             <div className="grid gap-5">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-base font-semibold text-slate-900">
+                  <h2 className="text-base font-semibold text-content">
                     {labels.providerStatus}
                   </h2>
                   <Badge
@@ -141,7 +310,7 @@ export default async function NotificationAdministrationPage({
                       : labels.notReady}
                   </Badge>
                 </div>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <p className="mt-1 text-sm leading-6 text-muted">
                   {labels.providerStatusDescription}
                 </p>
               </div>
@@ -206,14 +375,12 @@ export default async function NotificationAdministrationPage({
                 ].map(([label, value]) => (
                   <div
                     key={label}
-                    className="rounded-md border border-slate-200 bg-slate-50 p-4"
+                    className="rounded-md border border-line bg-slate-50 p-4"
                   >
-                    <dt className="text-xs font-medium text-slate-500">
-                      {label}
-                    </dt>
+                    <dt className="text-xs font-medium text-muted">{label}</dt>
                     <dd
                       dir="ltr"
-                      className="mt-2 break-all text-sm font-medium text-slate-900"
+                      className="mt-2 break-all text-sm font-medium text-content"
                     >
                       {value}
                     </dd>
@@ -221,7 +388,7 @@ export default async function NotificationAdministrationPage({
                 ))}
               </dl>
 
-              <p className="text-xs leading-5 text-slate-500">
+              <p className="text-xs leading-5 text-muted">
                 {labels.secretNotice}
               </p>
             </div>
@@ -230,10 +397,10 @@ export default async function NotificationAdministrationPage({
           <Panel className="p-5 sm:p-6">
             <div className="grid gap-5">
               <div>
-                <h2 className="text-base font-semibold text-slate-900">
+                <h2 className="text-base font-semibold text-content">
                   {labels.testEmail}
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <p className="mt-1 text-sm leading-6 text-muted">
                   {labels.testEmailDescription}
                 </p>
               </div>
@@ -248,196 +415,37 @@ export default async function NotificationAdministrationPage({
         </>
       ) : null}
 
-      <Panel className="p-5 sm:p-6">
-        <div className="grid gap-5">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900">
-              {labels.deliveryLog}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-500">
-              {labels.deliveryLogDescription}
-            </p>
-          </div>
-
-          <form
-            method="get"
-            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
-          >
-            {session.user.accountScope === "PLATFORM" ? (
-              <select
-                name="companyId"
-                defaultValue={companyId ?? ""}
-                className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-              >
-                <option value="">
-                  {labels.company}: {labels.all}
-                </option>
-                {deliveries.companies.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.name}
-                  </option>
-                ))}
-              </select>
-            ) : null}
-
-            <select
-              name="kind"
-              defaultValue={kind ?? ""}
-              className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-            >
-              <option value="">
-                {labels.type}: {labels.all}
-              </option>
-              {(["NOTIFICATION", "INVITATION", "TEST"] as const).map(
-                (value) => (
-                  <option key={value} value={value}>
-                    {labels.kinds[value]}
-                  </option>
-                ),
-              )}
-            </select>
-
-            <select
-              name="channel"
-              defaultValue={channel ?? ""}
-              className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-            >
-              <option value="">
-                {labels.channel}: {labels.all}
-              </option>
-              {(["IN_APP", "EMAIL", "WHATSAPP"] as const).map((value) => (
-                <option key={value} value={value}>
-                  {labels.channels[value]}
-                </option>
-              ))}
-            </select>
-
-            <select
-              name="status"
-              defaultValue={status ?? ""}
-              className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-            >
-              <option value="">
-                {labels.status}: {labels.all}
-              </option>
-              {(
-                ["PENDING", "PROCESSING", "SENT", "FAILED", "SKIPPED"] as const
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {labels.statuses[value]}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="submit"
-              className="h-10 rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
-            >
-              {labels.deliveryLog}
-            </button>
-          </form>
-
-          {deliveries.items.length === 0 ? (
-            <p className="rounded-md border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
-              {labels.emptyLog}
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-start text-xs text-slate-500">
-                    <th className="px-3 py-3 text-start">{labels.created}</th>
-                    <th className="px-3 py-3 text-start">{labels.company}</th>
-                    <th className="px-3 py-3 text-start">{labels.recipient}</th>
-                    <th className="px-3 py-3 text-start">{labels.type}</th>
-                    <th className="px-3 py-3 text-start">{labels.channel}</th>
-                    <th className="px-3 py-3 text-start">{labels.status}</th>
-                    <th className="px-3 py-3 text-start">{labels.attempts}</th>
-                    <th className="px-3 py-3 text-start">
-                      {labels.failureCode}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deliveries.items.map((item) => (
-                    <tr
-                      key={`${item.kind}-${item.id}`}
-                      className="border-b border-slate-100 align-top"
-                    >
-                      <td className="whitespace-nowrap px-3 py-4 text-slate-600">
-                        {formatDate(item.createdAt, locale)}
-                      </td>
-                      <td className="px-3 py-4 text-slate-700">
-                        {item.companyName ?? "—"}
-                      </td>
-                      <td
-                        dir="ltr"
-                        className="max-w-[260px] break-all px-3 py-4 text-slate-700"
-                      >
-                        {item.recipient}
-                      </td>
-                      <td className="px-3 py-4">
-                        <Badge>
-                          {item.templateKey === "admin.broadcast"
-                            ? broadcastLabels.logType
-                            : labels.kinds[item.kind]}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-4">
-                        <Badge>{labels.channels[item.channel]}</Badge>
-                      </td>
-                      <td className="px-3 py-4">
-                        <Badge tone={statusTone(item.status)}>
-                          {labels.statuses[item.status]}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-4 text-slate-700">
-                        {item.attemptCount}
-                      </td>
-                      <td
-                        dir="ltr"
-                        className="max-w-[220px] break-all px-3 py-4 text-xs text-slate-600"
-                      >
-                        {item.failureCode ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {hasPrevious || hasNext ? (
-            <nav className="flex items-center justify-between gap-3">
-              {hasPrevious ? (
-                <Link
-                  href={`/admin/notifications?${queryString({
-                    ...baseFilters,
-                    offset: String(previousOffset),
-                  })}`}
-                  className="inline-flex h-10 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700"
-                >
-                  {labels.previous}
-                </Link>
-              ) : (
-                <span />
-              )}
-
-              {hasNext ? (
-                <Link
-                  href={`/admin/notifications?${queryString({
-                    ...baseFilters,
-                    offset: String(nextOffset),
-                  })}`}
-                  className="inline-flex h-10 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700"
-                >
-                  {labels.next}
-                </Link>
-              ) : null}
-            </nav>
-          ) : null}
+      <div className="grid gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-content">
+            {labels.deliveryLog}
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            {labels.deliveryLogDescription}
+          </p>
         </div>
-      </Panel>
+
+        <AdminDataTable
+          columns={[
+            { key: "created", label: labels.created },
+            { key: "company", label: labels.company },
+            { key: "recipient", label: labels.recipient },
+            { key: "type", label: labels.type },
+            { key: "channel", label: labels.channel },
+            { key: "status", label: labels.status },
+            { key: "attempts", label: labels.attempts },
+            { key: "failureCode", label: labels.failureCode },
+          ]}
+          rows={rows}
+          labels={tableLabels}
+          toolbar={filters}
+          footer={footer}
+          empty={
+            <p className="text-center text-sm text-muted">{labels.emptyLog}</p>
+          }
+          minWidthClassName="min-w-[1100px]"
+        />
+      </div>
     </div>
   );
 }
