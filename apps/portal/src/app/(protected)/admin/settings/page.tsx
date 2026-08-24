@@ -9,6 +9,7 @@ import { PageHeading, Panel } from "@odookrd/ui";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
+import { settingsNavigationDictionaries } from "@/lib/i18n/settings-navigation";
 import { getSettingsDictionary } from "@/lib/i18n/settings-server";
 
 import { updateSettingsAction } from "./actions";
@@ -23,11 +24,13 @@ const uuidPattern =
 export default async function SettingsPage({
   searchParams,
 }: SettingsPageProps) {
-  const [{ session, token }, { settings: labels }, query] = await Promise.all([
-    getAdminApiContext(PERMISSIONS.SETTINGS_READ),
-    getSettingsDictionary(),
-    searchParams,
-  ]);
+  const [{ session, token }, { locale, settings: labels }, query] =
+    await Promise.all([
+      getAdminApiContext(PERMISSIONS.SETTINGS_READ),
+      getSettingsDictionary(),
+      searchParams,
+    ]);
+
   const isPlatform = session.user.accountScope === "PLATFORM";
   const requestedCompanyId =
     typeof query.companyId === "string" && uuidPattern.test(query.companyId)
@@ -45,16 +48,19 @@ export default async function SettingsPage({
         { token },
       )
     : null;
+
   const companies = companiesResult?.items ?? [];
   const selectedCompany = selectedCompanyId
     ? companies.find((company) => company.id === selectedCompanyId)
     : null;
+
   const collection = selectedCompanyId
     ? await apiRequest<SettingsCollection>(
         `/settings/company/${encodeURIComponent(selectedCompanyId)}`,
         { token },
       )
     : await apiRequest<SettingsCollection>("/settings/platform", { token });
+
   const canManage = hasPermission(session, PERMISSIONS.SETTINGS_MANAGE);
   const title = selectedCompanyId
     ? `${labels.companyScope}${selectedCompany ? ` — ${selectedCompany.name}` : ""}`
@@ -69,7 +75,7 @@ export default async function SettingsPage({
           <form method="get" className="grid gap-2 sm:max-w-lg">
             <label
               htmlFor="settings-company"
-              className="text-sm font-medium text-slate-700"
+              className="text-sm font-medium text-content"
             >
               {labels.selectScope}
             </label>
@@ -77,7 +83,7 @@ export default async function SettingsPage({
               id="settings-company"
               name="companyId"
               defaultValue={selectedCompanyId ?? ""}
-              className="h-11 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900"
+              className="h-11 rounded-md border border-line bg-white px-3 text-sm text-content"
             >
               <option value="">{labels.platformDefaults}</option>
               {companies.map((company) => (
@@ -88,7 +94,7 @@ export default async function SettingsPage({
             </select>
             <button
               type="submit"
-              className="mt-1 w-fit text-sm font-medium text-[#714b67] hover:text-[#62405a]"
+              className="mt-1 w-fit text-sm font-medium text-brand hover:text-brand-hover"
             >
               {labels.selectScope}
             </button>
@@ -96,10 +102,10 @@ export default async function SettingsPage({
         </Panel>
       ) : null}
 
-      <Panel className="p-6 sm:p-8">
-        <div className="mb-7 border-b border-slate-200 pb-5">
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <p className="mt-1 text-sm text-slate-500">
+      <Panel className="p-5 sm:p-7">
+        <div className="mb-7 border-b border-line pb-5">
+          <h2 className="text-lg font-semibold text-content">{title}</h2>
+          <p className="mt-1 text-sm text-muted">
             {selectedCompanyId
               ? labels.companyDescription
               : labels.platformDescription}
@@ -113,6 +119,7 @@ export default async function SettingsPage({
           scope={collection.scope}
           companyId={collection.companyId}
           labels={labels}
+          navigationLabels={settingsNavigationDictionaries[locale]}
           canManage={canManage}
         />
       </Panel>
