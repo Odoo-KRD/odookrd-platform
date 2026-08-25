@@ -8,6 +8,9 @@ export interface AdminTableDictionary {
   clearSelection: string;
   batchAction: string;
   apply: string;
+  confirmBatch: string;
+  completed: string;
+  failed: string;
 }
 
 export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
@@ -19,6 +22,9 @@ export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
     clearSelection: "پاککردنەوەی هەڵبژاردن",
     batchAction: "کرداری کۆمەڵەیی",
     apply: "جێبەجێکردن",
+    confirmBatch: "دڵنیایت لە جێبەجێکردنی {action} بۆ {count} ڕیز؟",
+    completed: "کردارەکە بە سەرکەوتوویی تەواو بوو.",
+    failed: "کردارەکە تەواو نەبوو.",
   },
   ar: {
     search: "بحث في هذه الصفحة",
@@ -28,6 +34,9 @@ export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
     clearSelection: "مسح التحديد",
     batchAction: "إجراء جماعي",
     apply: "تطبيق",
+    confirmBatch: "هل تريد تنفيذ {action} على {count} صفوف؟",
+    completed: "اكتمل الإجراء بنجاح.",
+    failed: "تعذر إكمال الإجراء.",
   },
   en: {
     search: "Search this page",
@@ -37,5 +46,8 @@ export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
     clearSelection: "Clear selection",
     batchAction: "Batch action",
     apply: "Apply",
+    confirmBatch: "Apply {action} to {count} selected rows?",
+    completed: "The action completed successfully.",
+    failed: "The action could not be completed.",
   },
 };

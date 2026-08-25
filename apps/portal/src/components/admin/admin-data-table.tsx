@@ -1,7 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 
 export type AdminTableTone =
   "neutral" | "accent" | "success" | "warning" | "danger";
@@ -64,6 +73,14 @@ export interface AdminDataTableLabels {
   clearSelection: string;
   batchAction: string;
   apply: string;
+  confirmBatch: string;
+  completed: string;
+  failed: string;
+}
+
+export interface AdminDataTableActionResult {
+  ok: boolean;
+  message?: string | null;
 }
 
 interface AdminDataTableProps {
@@ -76,7 +93,8 @@ interface AdminDataTableProps {
   footer?: ReactNode;
   empty?: ReactNode;
   batchActions?: readonly AdminDataTableBatchAction[];
-  batchAction?: (formData: FormData) => void | Promise<void>;
+  batchAction?: (formData: FormData) => Promise<AdminDataTableActionResult>;
+  batchFields?: ReactNode;
   minWidthClassName?: string;
 }
 
@@ -148,17 +166,26 @@ export function AdminDataTable({
   columns,
   rows,
   labels,
-  selectable = true,
+  selectable = false,
   searchEnabled = true,
   toolbar,
   footer,
   empty,
   batchActions = [],
   batchAction,
+  batchFields,
   minWidthClassName = "min-w-[760px]",
 }: AdminDataTableProps) {
   const [query, setQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [selection, setSelection] = useState<{
+    scope: string;
+    ids: Set<string>;
+  }>(() => ({ scope: "", ids: new Set() }));
+  const [selectedAction, setSelectedAction] = useState("");
+  const [result, setResult] = useState<AdminDataTableActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const batchActionId = useId();
 
   const visibleRows = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
@@ -185,8 +212,38 @@ export function AdminDataTable({
   }, [query, rows]);
 
   const visibleIds = visibleRows.map((row) => row.id);
+  const selectionScope = visibleIds.join("\u0000");
+  const currentIds = new Set(visibleIds);
+  const selectedIds =
+    selection.scope === selectionScope
+      ? new Set(Array.from(selection.ids).filter((id) => currentIds.has(id)))
+      : new Set<string>();
   const allVisibleSelected =
     visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
+  const canSelect =
+    selectable && Boolean(batchAction) && batchActions.length > 0;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        someVisibleSelected && !allVisibleSelected;
+    }
+  }, [allVisibleSelected, someVisibleSelected]);
+
+  function setSelectedIds(
+    value: Set<string> | ((current: Set<string>) => Set<string>),
+  ): void {
+    setSelection((current) => {
+      const scoped =
+        current.scope === selectionScope ? current.ids : new Set<string>();
+
+      return {
+        scope: selectionScope,
+        ids: typeof value === "function" ? value(scoped) : value,
+      };
+    });
+  }
 
   function toggleRow(id: string): void {
     setSelectedIds((current) => {
@@ -216,30 +273,67 @@ export function AdminDataTable({
 
   function clearSelection(): void {
     setSelectedIds(new Set());
+    setSelectedAction("");
   }
 
   function onBatchSubmit(event: FormEvent<HTMLFormElement>): void {
-    if (selectedIds.size === 0) {
-      event.preventDefault();
+    event.preventDefault();
+
+    if (
+      !batchAction ||
+      selectedIds.size === 0 ||
+      !selectedAction ||
+      isPending
+    ) {
+      return;
     }
+
+    const action = batchActions.find((item) => item.value === selectedAction);
+    const confirmation = labels.confirmBatch
+      .replace("{action}", action?.label ?? selectedAction)
+      .replace("{count}", String(selectedIds.size));
+
+    if (!window.confirm(confirmation)) {
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    setResult(null);
+
+    startTransition(async () => {
+      try {
+        const response = await batchAction(formData);
+        setResult(response);
+
+        if (response.ok) {
+          clearSelection();
+        }
+      } catch {
+        setResult({ ok: false, message: labels.failed });
+      }
+    });
   }
 
   const batchEnabled =
-    Boolean(batchAction) && batchActions.length > 0 && selectedIds.size > 0;
+    Boolean(batchAction) &&
+    batchActions.length > 0 &&
+    selectedIds.size > 0 &&
+    Boolean(selectedAction) &&
+    !isPending;
 
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-surface-panel">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2.5 border-b border-line px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
           {searchEnabled ? (
-            <label className="relative min-w-[220px] max-w-sm flex-1">
+            <label className="relative min-w-[180px] max-w-72 flex-1">
               <span className="sr-only">{labels.search}</span>
               <input
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={labels.search}
-                className="h-10 w-full rounded-md border border-line bg-white px-3 text-sm text-content outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                className="h-9 w-full rounded-md border border-line bg-white px-3 text-sm text-content outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </label>
           ) : null}
@@ -247,63 +341,61 @@ export function AdminDataTable({
           {toolbar}
         </div>
 
-        {selectable && selectedIds.size > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted">
+        {canSelect && selectedIds.size > 0 ? (
+          <form
+            onSubmit={onBatchSubmit}
+            className="flex flex-wrap items-center gap-2"
+          >
+            {Array.from(selectedIds).map((id) => (
+              <input key={id} type="hidden" name="selectedIds" value={id} />
+            ))}
+            <span className="whitespace-nowrap text-xs font-medium text-muted">
               {selectedIds.size} {labels.selected}
             </span>
+            <label className="sr-only" htmlFor={batchActionId}>
+              {labels.batchAction}
+            </label>
+            <select
+              id={batchActionId}
+              name="batchAction"
+              value={selectedAction}
+              onChange={(event) => setSelectedAction(event.target.value)}
+              className="h-9 rounded-md border border-line bg-white px-3 text-xs text-content"
+              required
+            >
+              <option value="" disabled>
+                {labels.batchAction}
+              </option>
+              {batchActions.map((action) => (
+                <option key={action.value} value={action.value}>
+                  {action.label}
+                </option>
+              ))}
+            </select>
+            {batchFields}
+            <button
+              type="submit"
+              disabled={!batchEnabled}
+              className="h-9 rounded-md bg-brand px-3 text-xs font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPending ? `${labels.apply}…` : labels.apply}
+            </button>
             <button
               type="button"
               onClick={clearSelection}
-              className="text-xs font-medium text-brand hover:text-brand-hover"
+              className="whitespace-nowrap text-xs font-medium text-brand hover:text-brand-hover"
             >
               {labels.clearSelection}
             </button>
-          </div>
+          </form>
+        ) : null}
+
+        {result?.message ? (
+          <span className="text-xs" aria-live="polite">
+            {result.message}
+          </span>
         ) : null}
       </div>
-
-      {batchAction && batchActions.length > 0 ? (
-        <form
-          action={batchAction}
-          onSubmit={onBatchSubmit}
-          className={`flex flex-wrap items-center gap-2 border-b border-line bg-surface-subtle px-4 py-2 transition ${
-            selectedIds.size > 0
-              ? "opacity-100"
-              : "pointer-events-none opacity-50"
-          }`}
-        >
-          {Array.from(selectedIds).map((id) => (
-            <input key={id} type="hidden" name="selectedIds" value={id} />
-          ))}
-          <label className="sr-only" htmlFor="admin-table-batch-action">
-            {labels.batchAction}
-          </label>
-          <select
-            id="admin-table-batch-action"
-            name="batchAction"
-            defaultValue=""
-            className="h-9 rounded-md border border-line bg-white px-3 text-xs text-content"
-            required
-          >
-            <option value="" disabled>
-              {labels.batchAction}
-            </option>
-            {batchActions.map((action) => (
-              <option key={action.value} value={action.value}>
-                {action.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            disabled={!batchEnabled}
-            className="h-9 rounded-md bg-brand px-3 text-xs font-medium text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {labels.apply}
-          </button>
-        </form>
-      ) : null}
 
       {visibleRows.length === 0 ? (
         <div className="px-6 py-14">{empty}</div>
@@ -314,12 +406,13 @@ export function AdminDataTable({
           >
             <thead className="sticky top-0 z-10 bg-slate-50">
               <tr>
-                {selectable ? (
+                {canSelect ? (
                   <th
                     scope="col"
                     className="w-12 border-b border-line px-4 py-3 text-center"
                   >
                     <input
+                      ref={selectAllRef}
                       type="checkbox"
                       checked={allVisibleSelected}
                       onChange={toggleAllVisible}
@@ -359,7 +452,7 @@ export function AdminDataTable({
                       selected ? "bg-brand-soft/70" : "hover:bg-slate-50/70"
                     }`}
                   >
-                    {selectable ? (
+                    {canSelect ? (
                       <td className="border-b border-slate-100 px-4 py-4 text-center">
                         <input
                           type="checkbox"

@@ -43,6 +43,14 @@ interface AccordionState {
 }
 
 function isItemActive(pathname: string, href: string): boolean {
+  if (
+    href === "/admin/services" &&
+    (pathname === "/admin/services/features" ||
+      pathname.startsWith("/admin/services/features/"))
+  ) {
+    return false;
+  }
+
   return href === "/admin"
     ? pathname === href
     : pathname === href || pathname.startsWith(`${href}/`);

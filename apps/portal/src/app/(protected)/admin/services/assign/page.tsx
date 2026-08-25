@@ -12,7 +12,13 @@ import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { getServicesDictionary } from "@/lib/i18n/services-server";
 
-import { createAssignmentAction } from "../actions";
+import {
+  createAssignmentAction,
+  createCompanyAssignmentAction,
+} from "../actions";
+
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface AssignServicePageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -47,6 +53,13 @@ export default async function AssignServicePage({
     ),
   ]);
 
+  const selectedCompanyId =
+    typeof parameters.companyId === "string" &&
+    uuidPattern.test(parameters.companyId) &&
+    companies.items.some((company) => company.id === parameters.companyId)
+      ? parameters.companyId
+      : undefined;
+
   return (
     <div className="grid gap-7">
       <PageHeading
@@ -55,11 +68,16 @@ export default async function AssignServicePage({
       />
       <Panel className="p-6 sm:p-8">
         <ServiceAssignmentForm
-          action={createAssignmentAction}
+          action={
+            selectedCompanyId
+              ? createCompanyAssignmentAction.bind(null, selectedCompanyId)
+              : createAssignmentAction
+          }
           labels={services}
           content={content}
           companies={companies.items}
           services={catalog.items}
+          selectedCompanyId={selectedCompanyId}
           selectedServiceId={
             typeof parameters.serviceId === "string"
               ? parameters.serviceId

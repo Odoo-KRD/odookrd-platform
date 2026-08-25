@@ -1,4 +1,9 @@
-import { PERMISSIONS, type CompanyServiceAssignment } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  type CompanyServiceAssignment,
+  type CompanyServiceFeature,
+  type PaginatedResult,
+} from "@odookrd/types";
 import { PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
@@ -7,6 +12,7 @@ import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
+import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
 
 interface CustomerServiceDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -31,6 +37,12 @@ export default async function CustomerServiceDetailsPage({
       "The service response crossed the authenticated company boundary.",
     );
   }
+
+  const features = await apiRequest<PaginatedResult<CompanyServiceFeature>>(
+    `/service-assignments/${encodeURIComponent(id)}/features?limit=100&offset=0`,
+    { token },
+  );
+  const featureLabels = serviceFeatureDictionaries[locale];
 
   return (
     <div className="grid gap-7">
@@ -117,6 +129,48 @@ export default async function CustomerServiceDetailsPage({
           </div>
         ) : null}
       </Panel>
+
+      {features.items.length > 0 ? (
+        <Panel className="p-6 sm:p-8">
+          <h2 className="text-base font-semibold text-slate-900">
+            {featureLabels.features}
+          </h2>
+          <dl className="mt-5 grid gap-5 sm:grid-cols-2">
+            {features.items.map((feature) => {
+              const value =
+                feature.feature.valueType === "BOOLEAN"
+                  ? feature.value
+                    ? featureLabels.yes
+                    : featureLabels.no
+                  : feature.feature.valueType === "TEXT"
+                    ? (feature.valueTranslations[locale] ??
+                      String(feature.value))
+                    : `${String(feature.value)}${
+                        feature.feature.unit ? ` ${feature.feature.unit}` : ""
+                      }`;
+
+              return (
+                <div
+                  key={feature.id}
+                  className="rounded-md border border-slate-200 p-4"
+                >
+                  <dt className="text-xs font-medium text-slate-500">
+                    {feature.feature.name}
+                  </dt>
+                  <dd className="mt-2 text-sm font-semibold text-slate-900">
+                    {value}
+                  </dd>
+                  {feature.feature.description ? (
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      {feature.feature.description}
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </dl>
+        </Panel>
+      ) : null}
     </div>
   );
 }

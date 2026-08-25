@@ -26,6 +26,27 @@ export class ListServiceAssignmentsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(CompanyServiceStatus)
   status?: CompanyServiceStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  search?: string;
+
+  @IsOptional()
+  @IsDateString()
+  startsFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  startsTo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  expiresFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  expiresTo?: string;
 }
 
 export class CreateServiceAssignmentDto {
@@ -87,6 +108,11 @@ export class UpdateServiceAssignmentDto {
   @IsOptional()
   @IsEnum(CompanyServiceStatus)
   status?: CompanyServiceStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  reason?: string;
 
   @IsOptional()
   @IsUrl({ protocols: ['https'], require_protocol: true })

@@ -16,6 +16,10 @@ import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-pr
 import { RequirePermissions } from '../authorization/decorators/require-permissions.decorator';
 import { AuthorizationGuard } from '../authorization/guards/authorization.guard';
 import { PERMISSIONS } from '../authorization/permissions';
+import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
+import { BatchAssignmentTransitionDto } from './dto/service-batch.dto';
+import { UpdateCompanyServiceFeatureDto } from './dto/service-feature.dto';
+import { CreateServiceTransitionDto } from './dto/service-lifecycle.dto';
 import {
   CreateServiceAssignmentDto,
   ListServiceAssignmentsQueryDto,
@@ -53,6 +57,70 @@ export class ServiceAssignmentsController {
     @Body() input: CreateServiceAssignmentDto,
   ) {
     return this.services.createAssignment(principal, input);
+  }
+
+  @Post('batch-transition')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  batchTransition(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() input: BatchAssignmentTransitionDto,
+  ) {
+    return this.services.transitionAssignments(principal, input);
+  }
+
+  @Get(':id/features')
+  @RequirePermissions(PERMISSIONS.SERVICES_READ)
+  listFeatures(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) assignmentId: string,
+    @Query() query: PaginationQueryDto,
+  ) {
+    return this.services.listAssignmentFeatures(principal, assignmentId, query);
+  }
+
+  @Patch(':id/features/:featureId')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  updateFeature(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) assignmentId: string,
+    @Param('featureId', ParseUUIDPipe) featureId: string,
+    @Body() input: UpdateCompanyServiceFeatureDto,
+  ) {
+    return this.services.updateAssignmentFeature(
+      principal,
+      assignmentId,
+      featureId,
+      input,
+    );
+  }
+
+  @Post(':id/features/sync')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  syncFeatures(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) assignmentId: string,
+  ) {
+    return this.services.syncAssignmentFeatures(principal, assignmentId);
+  }
+
+  @Get(':id/history')
+  @RequirePermissions(PERMISSIONS.SERVICES_READ)
+  history(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) assignmentId: string,
+    @Query() query: PaginationQueryDto,
+  ) {
+    return this.services.listAssignmentHistory(principal, assignmentId, query);
+  }
+
+  @Post(':id/transitions')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  transition(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) assignmentId: string,
+    @Body() input: CreateServiceTransitionDto,
+  ) {
+    return this.services.transitionAssignment(principal, assignmentId, input);
   }
 
   @Patch(':id')

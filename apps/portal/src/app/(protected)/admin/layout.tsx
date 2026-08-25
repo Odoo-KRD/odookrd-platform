@@ -10,6 +10,7 @@ import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
 import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
 import { portalDictionaries } from "@/lib/i18n/portal";
+import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
 import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { getPublicSettings } from "@/lib/public-settings";
@@ -47,6 +48,8 @@ export default async function ProtectedAdminLayout({
     manageUsers: admin.navigation.manageUsers,
     manageRoles: admin.navigation.manageRoles,
     services: servicesDictionaries[locale].title,
+    manageServices: serviceFeatureDictionaries[locale].manageServices,
+    featureDefinitions: serviceFeatureDictionaries[locale].featureDefinitions,
     notifications: notificationLabels.navigation,
     deliveryLog: notificationLabels.deliveryLog,
     providerStatus: notificationLabels.providerStatus,

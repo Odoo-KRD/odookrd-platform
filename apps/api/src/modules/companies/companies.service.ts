@@ -6,12 +6,18 @@ import {
 } from '@nestjs/common';
 
 import type { PaginatedResult } from '../../common/pagination/paginated-result.interface';
+import {
+  batchMutationResult,
+  type BatchMutationItem,
+  type BatchMutationResult,
+} from '../../common/batch/batch-mutation.dto';
 import { AccountScope } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { AUDIT_ACTIONS } from '../audit/audit.actions';
 import { AuditService } from '../audit/audit.service';
 import type { CreateCompanyDto } from './dto/create-company.dto';
+import type { BatchCompanyStatusDto } from './dto/batch-company-status.dto';
 import type { ListCompaniesQueryDto } from './dto/list-companies-query.dto';
 import type { UpdateCompanyStatusDto } from './dto/update-company-status.dto';
 import type { UpdateCompanyDto } from './dto/update-company.dto';
@@ -302,6 +308,74 @@ export class CompaniesService {
       );
 
       return company;
+    });
+  }
+
+  async updateStatuses(
+    principal: AuthenticatedPrincipal,
+    dto: BatchCompanyStatusDto,
+  ): Promise<BatchMutationResult> {
+    this.assertPlatformScope(principal);
+
+    return this.prisma.$transaction(async (tx) => {
+      const companies = await tx.company.findMany({
+        where: { id: { in: dto.ids } },
+        select: { id: true, status: true, updatedAt: true },
+      });
+
+      if (companies.length !== dto.ids.length) {
+        throw new NotFoundException(
+          'One or more selected companies could not be found.',
+        );
+      }
+
+      const selected = new Map(
+        companies.map((company) => [company.id, company]),
+      );
+      const items: BatchMutationItem[] = [];
+
+      for (const companyId of dto.ids) {
+        const company = selected.get(companyId);
+
+        if (!company) {
+          throw new NotFoundException('A selected company could not be found.');
+        }
+
+        if (company.status === dto.status) {
+          items.push({
+            id: company.id,
+            outcome: 'UNCHANGED',
+            updatedAt: company.updatedAt,
+          });
+          continue;
+        }
+
+        const updated = await tx.company.update({
+          where: { id: company.id },
+          data: { status: dto.status },
+          select: { id: true, updatedAt: true },
+        });
+
+        await this.auditService.write(
+          {
+            actorUserId: principal.userId,
+            companyId: company.id,
+            action: AUDIT_ACTIONS.COMPANY_STATUS_CHANGED,
+            targetType: 'company',
+            targetId: company.id,
+            metadata: { previousStatus: company.status, status: dto.status },
+          },
+          tx,
+        );
+
+        items.push({
+          id: updated.id,
+          outcome: 'CHANGED',
+          updatedAt: updated.updatedAt,
+        });
+      }
+
+      return batchMutationResult(items);
     });
   }
 

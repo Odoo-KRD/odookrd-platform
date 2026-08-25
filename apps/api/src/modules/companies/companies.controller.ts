@@ -17,6 +17,7 @@ import { AuthorizationGuard } from '../authorization/guards/authorization.guard'
 import { RequirePermissions } from '../authorization/decorators/require-permissions.decorator';
 import { PERMISSIONS } from '../authorization/permissions';
 import { CompaniesService } from './companies.service';
+import { BatchCompanyStatusDto } from './dto/batch-company-status.dto';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { ListCompaniesQueryDto } from './dto/list-companies-query.dto';
 import { UpdateCompanyStatusDto } from './dto/update-company-status.dto';
@@ -52,6 +53,15 @@ export class CompaniesController {
     @Body() dto: CreateCompanyDto,
   ) {
     return this.companiesService.create(principal, dto);
+  }
+
+  @Post('batch-status')
+  @RequirePermissions(PERMISSIONS.COMPANIES_MANAGE)
+  batchStatus(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() dto: BatchCompanyStatusDto,
+  ) {
+    return this.companiesService.updateStatuses(principal, dto);
   }
 
   @Patch(':id')

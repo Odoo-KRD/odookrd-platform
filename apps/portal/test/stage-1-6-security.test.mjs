@@ -153,7 +153,7 @@ test("redirects, permissions, and company scope remain server constrained", asyn
   );
   assert.match(
     companyActions,
-    /getAdminApiContext\(PERMISSIONS\.COMPANIES_MANAGE\)/,
+    /getAdminApiContext\(\s*PERMISSIONS\.COMPANIES_MANAGE\s*,?\s*\)/,
   );
 });
 

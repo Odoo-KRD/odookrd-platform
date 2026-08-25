@@ -164,6 +164,26 @@ export type ServiceCatalogStatus = "ACTIVE" | "INACTIVE";
 export type CompanyServiceStatus =
   "PROVISIONING" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "CANCELLED";
 
+export type ServiceFeatureValueType = "BOOLEAN" | "NUMBER" | "STORAGE" | "TEXT";
+export type ServiceFeatureStatus = "ACTIVE" | "INACTIVE";
+export type ServiceFeatureValue = boolean | number | string;
+export type CompanyServiceFeatureSource = "CATALOG_DEFAULT" | "ADMIN_OVERRIDE";
+export type CompanyServiceLifecycleSource = "ADMIN" | "SYSTEM" | "INTEGRATION";
+export type BatchMutationOutcome = "CHANGED" | "UNCHANGED";
+
+export interface BatchMutationItem {
+  id: string;
+  outcome: BatchMutationOutcome;
+  updatedAt: string;
+}
+
+export interface BatchMutationResult {
+  requested: number;
+  changed: number;
+  unchanged: number;
+  items: BatchMutationItem[];
+}
+
 export interface ManagedService {
   id: string;
   key: string;
@@ -176,6 +196,97 @@ export interface ManagedService {
   createdAt: string;
   updatedAt: string;
   assignmentCount: number;
+  featureCount?: number;
+}
+
+export interface ManagedServiceFeature {
+  id: string;
+  serviceId: string;
+  definitionId?: string | null;
+  key: string;
+  name: string;
+  nameTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  valueType: ServiceFeatureValueType;
+  parameterLabel?: string | null;
+  parameterLabelTranslations?: LocalizedText;
+  defaultValue: ServiceFeatureValue;
+  valueTranslations: LocalizedText;
+  unit: string | null;
+  status: ServiceFeatureStatus;
+  customerVisible: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceFeatureDefinition {
+  id: string;
+  key: string;
+  name: string;
+  nameTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  category: ServiceCategory;
+  valueType: ServiceFeatureValueType;
+  parameterLabel: string;
+  parameterLabelTranslations: LocalizedText;
+  defaultValue: ServiceFeatureValue;
+  valueTranslations: LocalizedText;
+  unit: string | null;
+  status: ServiceFeatureStatus;
+  sortOrder: number;
+  serviceCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyServiceFeature {
+  id: string;
+  companyServiceId: string;
+  serviceFeatureId: string;
+  value: ServiceFeatureValue;
+  valueTranslations: LocalizedText;
+  source: CompanyServiceFeatureSource;
+  customerVisible: boolean;
+  customerVisibleOverride: boolean | null;
+  sortOrder: number;
+  sortOrderOverride: number | null;
+  createdAt: string;
+  updatedAt: string;
+  feature: Pick<
+    ManagedServiceFeature,
+    | "id"
+    | "key"
+    | "name"
+    | "nameTranslations"
+    | "description"
+    | "descriptionTranslations"
+    | "valueType"
+    | "parameterLabel"
+    | "parameterLabelTranslations"
+    | "unit"
+    | "status"
+    | "customerVisible"
+    | "sortOrder"
+  >;
+}
+
+export interface CompanyServiceLifecycleEvent {
+  id: string;
+  companyServiceId: string;
+  companyId: string;
+  fromStatus: CompanyServiceStatus | null;
+  toStatus: CompanyServiceStatus;
+  source: CompanyServiceLifecycleSource;
+  reasonCode?: string | null;
+  reason?: string | null;
+  actorUserId?: string | null;
+  actorEmailSnapshot?: string | null;
+  effectiveAt: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
 }
 
 export interface CompanyServiceAssignment {

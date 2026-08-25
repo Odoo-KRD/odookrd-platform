@@ -2,12 +2,20 @@
 
 import {
   PERMISSIONS,
+  type BatchMutationResult,
+  type CompanyServiceFeature,
   type CompanyServiceAssignment,
   type CompanyServiceStatus,
-  type ManagedService,
   type LocalizedText,
+  type ManagedService,
+  type ManagedServiceFeature,
+  type PaginatedResult,
   type ServiceCatalogStatus,
   type ServiceCategory,
+  type ServiceFeatureStatus,
+  type ServiceFeatureDefinition,
+  type ServiceFeatureValue,
+  type ServiceFeatureValueType,
 } from "@odookrd/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -16,6 +24,7 @@ import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import type { FormState } from "@/lib/forms";
 import { localizedFormValues, primaryLocalizedValue } from "@/lib/i18n/content";
+import { isPredefinedFeatureUnit } from "@/lib/service-feature-units";
 
 const serviceCategories: readonly ServiceCategory[] = [
   "ODOO",
@@ -34,6 +43,13 @@ const assignmentStatuses: readonly CompanyServiceStatus[] = [
   "SUSPENDED",
   "EXPIRED",
   "CANCELLED",
+];
+
+const featureValueTypes: readonly ServiceFeatureValueType[] = [
+  "BOOLEAN",
+  "NUMBER",
+  "STORAGE",
+  "TEXT",
 ];
 
 const uuidPattern =
@@ -106,6 +122,211 @@ function validHttpsUrl(value: string): boolean {
     );
   } catch {
     return false;
+  }
+}
+
+function selectedBatchIds(formData: FormData): string[] | null {
+  const values = formData.getAll("selectedIds");
+
+  if (
+    values.length === 0 ||
+    values.length > 100 ||
+    values.some(
+      (value) => typeof value !== "string" || !uuidPattern.test(value),
+    )
+  ) {
+    return null;
+  }
+
+  const ids = [...new Set(values as string[])];
+  return ids.length === values.length ? ids : null;
+}
+
+function featureValue(
+  formData: FormData,
+  valueType: ServiceFeatureValueType,
+  field: "defaultValue" | "value",
+  localizedField: "featureValue" | "assignmentValue" | "attachmentValue",
+): { value: ServiceFeatureValue; translations: LocalizedText } | null {
+  if (valueType === "BOOLEAN") {
+    const value = formData.get(field);
+
+    return value === "true" || value === "false"
+      ? { value: value === "true", translations: {} }
+      : null;
+  }
+
+  if (valueType === "NUMBER" || valueType === "STORAGE") {
+    const selected = formData.get(field);
+
+    if (typeof selected !== "string" || selected.trim() === "") {
+      return null;
+    }
+
+    const value = Number(selected);
+    return Number.isFinite(value) ? { value, translations: {} } : null;
+  }
+
+  const translations = localizedFormValues(formData, localizedField, 500);
+  const value = translations ? primaryLocalizedValue(translations) : null;
+
+  if (!value || !translations) {
+    return null;
+  }
+
+  return {
+    value,
+    translations: translations.ku
+      ? translations
+      : { ...translations, ku: value },
+  };
+}
+
+interface ServiceFeatureInput {
+  name: string;
+  nameTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  valueType: ServiceFeatureValueType;
+  defaultValue: ServiceFeatureValue;
+  valueTranslations: LocalizedText;
+  unit: string | null;
+  status: ServiceFeatureStatus;
+  customerVisible: boolean;
+  sortOrder: number;
+}
+
+interface ServiceFeatureDefinitionInput extends Omit<
+  ServiceFeatureInput,
+  "customerVisible"
+> {
+  category: ServiceCategory;
+  parameterLabel: string;
+  parameterLabelTranslations: LocalizedText;
+}
+
+function featureInput(formData: FormData): ServiceFeatureInput | null {
+  const nameTranslations = localizedFormValues(formData, "featureName", 200);
+  const descriptionTranslations = localizedFormValues(
+    formData,
+    "featureDescription",
+    1000,
+  );
+  const name = nameTranslations
+    ? primaryLocalizedValue(nameTranslations)
+    : null;
+  const description = descriptionTranslations
+    ? primaryLocalizedValue(descriptionTranslations)
+    : null;
+  const selectedValueType = formData.get("valueType");
+  const selectedStatus = formData.get("featureStatus");
+  const rawSortOrder = formData.get("sortOrder");
+
+  if (
+    !name ||
+    !nameTranslations ||
+    !descriptionTranslations ||
+    typeof selectedValueType !== "string" ||
+    !featureValueTypes.includes(selectedValueType as ServiceFeatureValueType) ||
+    (selectedStatus !== "ACTIVE" && selectedStatus !== "INACTIVE") ||
+    typeof rawSortOrder !== "string"
+  ) {
+    return null;
+  }
+
+  const valueType = selectedValueType as ServiceFeatureValueType;
+  const selectedValue = featureValue(
+    formData,
+    valueType,
+    "defaultValue",
+    "featureValue",
+  );
+  const sortOrder = Number(rawSortOrder);
+  const unit =
+    valueType === "NUMBER" || valueType === "STORAGE"
+      ? textValue(formData, "unit", 32)
+      : "";
+
+  if (
+    !selectedValue ||
+    unit === null ||
+    (unit !== "" && !isPredefinedFeatureUnit(unit)) ||
+    !Number.isSafeInteger(sortOrder) ||
+    sortOrder < 0 ||
+    sortOrder > 10000
+  ) {
+    return null;
+  }
+
+  return {
+    name,
+    nameTranslations: nameTranslations.ku
+      ? nameTranslations
+      : { ...nameTranslations, ku: name },
+    description: description || null,
+    descriptionTranslations,
+    valueType,
+    defaultValue: selectedValue.value,
+    valueTranslations: selectedValue.translations,
+    unit: unit || null,
+    status: selectedStatus,
+    customerVisible: formData.get("customerVisible") === "on",
+    sortOrder,
+  };
+}
+
+function definitionInput(
+  formData: FormData,
+): ServiceFeatureDefinitionInput | null {
+  const feature = featureInput(formData);
+  const category = formData.get("category");
+  const parameterLabelTranslations = localizedFormValues(
+    formData,
+    "parameterLabel",
+    100,
+  );
+  const parameterLabel = parameterLabelTranslations
+    ? primaryLocalizedValue(parameterLabelTranslations)
+    : null;
+
+  if (
+    !feature ||
+    !isServiceCategory(category) ||
+    !parameterLabel ||
+    !parameterLabelTranslations
+  ) {
+    return null;
+  }
+
+  const { customerVisible, ...definition } = feature;
+  void customerVisible;
+
+  return {
+    ...definition,
+    category,
+    parameterLabel,
+    parameterLabelTranslations: parameterLabelTranslations.ku
+      ? parameterLabelTranslations
+      : { ...parameterLabelTranslations, ku: parameterLabel },
+  };
+}
+
+function refreshServiceAdministration(
+  serviceId?: string,
+  assignmentId?: string,
+): void {
+  revalidatePath("/admin/services");
+  revalidatePath("/admin/services/features");
+  revalidatePath("/admin/companies");
+  revalidatePath("/dashboard/services");
+
+  if (serviceId) {
+    revalidatePath(`/admin/services/${serviceId}`);
+  }
+
+  if (assignmentId) {
+    revalidatePath(`/admin/services/assignments/${assignmentId}`);
+    revalidatePath(`/dashboard/services/${assignmentId}`);
   }
 }
 
@@ -244,6 +465,393 @@ export async function updateServiceAction(
   redirect(`/admin/services/${serviceId}`);
 }
 
+export async function batchServiceStatusAction(
+  formData: FormData,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const ids = selectedBatchIds(formData);
+  const status = formData.get("batchAction");
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !ids ||
+    !isCatalogStatus(status)
+  ) {
+    return {
+      ok: false,
+      message: "Choose valid services and a catalog status.",
+    };
+  }
+
+  try {
+    const result = await apiRequest<BatchMutationResult>(
+      "/services/batch-status",
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ ids, status }),
+      },
+    );
+
+    refreshServiceAdministration();
+
+    return {
+      ok: true,
+      message: `${result.changed} changed; ${result.unchanged} unchanged.`,
+    };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "Batch update failed.",
+    };
+  }
+}
+
+export async function createFeatureDefinitionAction(
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const key = textValue(formData, "featureKey", 100);
+  const input = definitionInput(formData);
+
+  if (session.user.accountScope !== "PLATFORM") {
+    return { message: "Platform feature administration is forbidden." };
+  }
+
+  if (!key || !/^[a-z][a-z0-9_-]{1,99}$/.test(key)) {
+    return {
+      message:
+        "Enter a feature key such as storage-odoo using lowercase letters, digits, - or _.",
+    };
+  }
+
+  if (!input) {
+    return {
+      message:
+        "Enter the feature name, category, parameter, and a valid value for its selected type.",
+    };
+  }
+
+  try {
+    await apiRequest<ServiceFeatureDefinition>("/service-feature-definitions", {
+      method: "POST",
+      token,
+      body: JSON.stringify({ key, ...input }),
+    });
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration();
+  redirect("/admin/services/features");
+}
+
+export async function updateFeatureDefinitionAction(
+  definitionId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const input = definitionInput(formData);
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(definitionId)
+  ) {
+    return { message: "Platform feature administration is forbidden." };
+  }
+
+  if (!input) {
+    return {
+      message:
+        "Enter the feature name, category, parameter, and a valid value for its selected type.",
+    };
+  }
+
+  try {
+    await apiRequest<ServiceFeatureDefinition>(
+      `/service-feature-definitions/${encodeURIComponent(definitionId)}`,
+      { method: "PATCH", token, body: JSON.stringify(input) },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration();
+  revalidatePath(`/admin/services/features/${definitionId}`);
+  return { message: null };
+}
+
+export async function attachServiceFeatureDefinitionAction(
+  serviceId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const definitionId = textValue(formData, "definitionId", 36);
+  const selectedValueType = formData.get("valueType");
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(serviceId) ||
+    !definitionId ||
+    !uuidPattern.test(definitionId) ||
+    typeof selectedValueType !== "string" ||
+    !featureValueTypes.includes(selectedValueType as ServiceFeatureValueType)
+  ) {
+    return { message: "Select an available predefined feature." };
+  }
+
+  const selectedValue = featureValue(
+    formData,
+    selectedValueType as ServiceFeatureValueType,
+    "value",
+    "attachmentValue",
+  );
+
+  if (!selectedValue) {
+    return {
+      message: "Enter a valid value for the selected feature parameter.",
+    };
+  }
+
+  try {
+    await apiRequest<ManagedServiceFeature>(
+      `/services/${encodeURIComponent(serviceId)}/features/attach`,
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          definitionId,
+          value: selectedValue.value,
+          valueTranslations: selectedValue.translations,
+          customerVisible: formData.get("customerVisible") === "on",
+        }),
+      },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration(serviceId);
+  return { message: null };
+}
+
+export async function updateAttachedServiceFeatureAction(
+  serviceId: string,
+  featureId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const selectedValueType = formData.get("valueType");
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(serviceId) ||
+    !uuidPattern.test(featureId) ||
+    typeof selectedValueType !== "string" ||
+    !featureValueTypes.includes(selectedValueType as ServiceFeatureValueType)
+  ) {
+    return { message: "Choose a valid service feature." };
+  }
+
+  const selectedValue = featureValue(
+    formData,
+    selectedValueType as ServiceFeatureValueType,
+    "value",
+    "attachmentValue",
+  );
+
+  if (!selectedValue) {
+    return {
+      message: "Enter a valid value for the selected feature parameter.",
+    };
+  }
+
+  try {
+    await apiRequest<ManagedServiceFeature>(
+      `/services/${encodeURIComponent(serviceId)}/features/${encodeURIComponent(featureId)}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({
+          defaultValue: selectedValue.value,
+          valueTranslations: selectedValue.translations,
+          customerVisible: formData.get("customerVisible") === "on",
+        }),
+      },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration(serviceId);
+  return { message: null };
+}
+
+export async function createServiceFeatureAction(
+  serviceId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const key = textValue(formData, "featureKey", 100);
+  const input = featureInput(formData);
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(serviceId) ||
+    !key ||
+    !/^[a-z][a-z0-9_-]{1,99}$/.test(key) ||
+    !input
+  ) {
+    return { message: "Complete the feature fields with a valid typed value." };
+  }
+
+  try {
+    await apiRequest<ManagedServiceFeature>(
+      `/services/${encodeURIComponent(serviceId)}/features`,
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ key, ...input }),
+      },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration(serviceId);
+  return { message: null };
+}
+
+export async function updateServiceFeatureAction(
+  serviceId: string,
+  featureId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const input = featureInput(formData);
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(serviceId) ||
+    !uuidPattern.test(featureId) ||
+    !input
+  ) {
+    return { message: "Complete the feature fields with a valid typed value." };
+  }
+
+  try {
+    await apiRequest<ManagedServiceFeature>(
+      `/services/${encodeURIComponent(serviceId)}/features/${encodeURIComponent(featureId)}`,
+      { method: "PATCH", token, body: JSON.stringify(input) },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration(serviceId);
+  return { message: null };
+}
+
+export async function moveServiceFeatureAction(
+  serviceId: string,
+  featureId: string,
+  direction: "up" | "down",
+): Promise<void> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(serviceId) ||
+    !uuidPattern.test(featureId)
+  ) {
+    throw new Error("Platform service-feature administration is forbidden.");
+  }
+
+  const result = await apiRequest<PaginatedResult<ManagedServiceFeature>>(
+    `/services/${encodeURIComponent(serviceId)}/features?limit=100&offset=0`,
+    { token },
+  );
+  const ids = result.items.map((feature) => feature.id);
+  const currentIndex = ids.indexOf(featureId);
+  const nextIndex = currentIndex + (direction === "up" ? -1 : 1);
+
+  if (currentIndex < 0 || nextIndex < 0 || nextIndex >= ids.length) {
+    return;
+  }
+
+  [ids[currentIndex], ids[nextIndex]] = [ids[nextIndex], ids[currentIndex]];
+
+  await apiRequest<{ reordered: number }>(
+    `/services/${encodeURIComponent(serviceId)}/features/reorder`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({ ids }),
+    },
+  );
+
+  refreshServiceAdministration(serviceId);
+}
+
+export async function reorderServiceFeaturesAction(
+  serviceId: string,
+  ids: string[],
+): Promise<{ ok: boolean; message: string | null }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(serviceId) ||
+    !Array.isArray(ids) ||
+    ids.length === 0 ||
+    ids.length > 100 ||
+    ids.some((id) => typeof id !== "string" || !uuidPattern.test(id)) ||
+    new Set(ids).size !== ids.length
+  ) {
+    return { ok: false, message: "Choose a valid service-feature order." };
+  }
+
+  try {
+    await apiRequest<{ reordered: number }>(
+      `/services/${encodeURIComponent(serviceId)}/features/reorder`,
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ ids }),
+      },
+    );
+  } catch (error: unknown) {
+    return { ok: false, message: failed(error).message };
+  }
+
+  refreshServiceAdministration(serviceId);
+  return { ok: true, message: null };
+}
+
 interface AssignmentFormInput {
   displayName: string | null;
   displayNameTranslations: LocalizedText;
@@ -347,6 +955,24 @@ export async function createAssignmentAction(
   redirect(`/admin/services/assignments/${created.id}`);
 }
 
+export async function createCompanyAssignmentAction(
+  companyId: string,
+  previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const selectedCompanyId = formData.get("companyId");
+
+  if (
+    !uuidPattern.test(companyId) ||
+    typeof selectedCompanyId !== "string" ||
+    selectedCompanyId !== companyId
+  ) {
+    return { message: "The selected company cannot be changed." };
+  }
+
+  return createAssignmentAction(previousState, formData);
+}
+
 export async function updateAssignmentAction(
   assignmentId: string,
   _previousState: FormState,
@@ -383,4 +1009,179 @@ export async function updateAssignmentAction(
   revalidatePath("/dashboard/services");
   revalidatePath(`/dashboard/services/${assignmentId}`);
   redirect(`/admin/services/assignments/${assignmentId}`);
+}
+
+export async function batchAssignmentTransitionAction(
+  formData: FormData,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const ids = selectedBatchIds(formData);
+  const toStatus = formData.get("batchAction");
+  const reason = textValue(formData, "reason", 1000);
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !ids ||
+    !isAssignmentStatus(toStatus) ||
+    reason === null ||
+    ((toStatus === "SUSPENDED" || toStatus === "CANCELLED") && !reason)
+  ) {
+    return {
+      ok: false,
+      message: "Choose a valid transition and provide a reason when required.",
+    };
+  }
+
+  try {
+    const result = await apiRequest<BatchMutationResult>(
+      "/service-assignments/batch-transition",
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ ids, toStatus, reason: reason || undefined }),
+      },
+    );
+
+    refreshServiceAdministration();
+
+    return {
+      ok: true,
+      message: `${result.changed} changed; ${result.unchanged} unchanged.`,
+    };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The status transition failed.",
+    };
+  }
+}
+
+export async function transitionAssignmentAction(
+  assignmentId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const toStatus = formData.get("toStatus");
+  const reason = textValue(formData, "reason", 1000);
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(assignmentId) ||
+    !isAssignmentStatus(toStatus) ||
+    reason === null ||
+    ((toStatus === "SUSPENDED" || toStatus === "CANCELLED") && !reason)
+  ) {
+    return { message: "Select a valid status and enter any required reason." };
+  }
+
+  try {
+    const assignment = await apiRequest<CompanyServiceAssignment>(
+      `/service-assignments/${encodeURIComponent(assignmentId)}/transitions`,
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ toStatus, reason: reason || undefined }),
+      },
+    );
+
+    refreshServiceAdministration(assignment.serviceId, assignment.id);
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  return { message: null };
+}
+
+export async function updateAssignmentFeatureAction(
+  assignmentId: string,
+  assignmentFeatureId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  const mode = formData.get("mode");
+  const selectedValueType = formData.get("valueType");
+  const selectedVisibility = formData.get("customerVisibleOverride");
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(assignmentId) ||
+    !uuidPattern.test(assignmentFeatureId) ||
+    (mode !== "override" && mode !== "reset") ||
+    typeof selectedValueType !== "string" ||
+    !featureValueTypes.includes(selectedValueType as ServiceFeatureValueType) ||
+    (selectedVisibility !== "inherit" &&
+      selectedVisibility !== "true" &&
+      selectedVisibility !== "false")
+  ) {
+    return { message: "Choose a valid feature value and visibility." };
+  }
+
+  const valueType = selectedValueType as ServiceFeatureValueType;
+  const selectedValue = featureValue(
+    formData,
+    valueType,
+    "value",
+    "assignmentValue",
+  );
+
+  if (mode === "override" && !selectedValue) {
+    return { message: "Enter a valid value for the selected feature type." };
+  }
+
+  try {
+    await apiRequest<CompanyServiceFeature>(
+      `/service-assignments/${encodeURIComponent(assignmentId)}/features/${encodeURIComponent(assignmentFeatureId)}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({
+          ...(mode === "reset"
+            ? { reset: true }
+            : {
+                value: selectedValue?.value,
+                valueTranslations: selectedValue?.translations,
+              }),
+          customerVisibleOverride:
+            selectedVisibility === "inherit"
+              ? null
+              : selectedVisibility === "true",
+        }),
+      },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  refreshServiceAdministration(undefined, assignmentId);
+  return { message: null };
+}
+
+export async function syncAssignmentFeaturesAction(
+  assignmentId: string,
+): Promise<void> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(assignmentId)
+  ) {
+    throw new Error("Platform service-feature administration is forbidden.");
+  }
+
+  await apiRequest<{ added: number; unchanged: number }>(
+    `/service-assignments/${encodeURIComponent(assignmentId)}/features/sync`,
+    { method: "POST", token },
+  );
+
+  refreshServiceAdministration(undefined, assignmentId);
 }

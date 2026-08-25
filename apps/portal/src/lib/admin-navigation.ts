@@ -12,6 +12,8 @@ export interface AdminNavigationLabels {
   manageUsers: string;
   manageRoles: string;
   services: string;
+  manageServices: string;
+  featureDefinitions: string;
   notifications: string;
   deliveryLog: string;
   providerStatus: string;
@@ -87,10 +89,22 @@ export function buildAdminNavigation(
     hasPermission(session, PERMISSIONS.SERVICES_MANAGE)
   ) {
     entries.push({
-      kind: "item",
-      href: "/admin/services",
+      kind: "group",
+      id: "services",
       label: labels.services,
       icon: "services",
+      children: [
+        {
+          kind: "item",
+          href: "/admin/services",
+          label: labels.manageServices,
+        },
+        {
+          kind: "item",
+          href: "/admin/services/features",
+          label: labels.featureDefinitions,
+        },
+      ],
     });
   }
 

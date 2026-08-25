@@ -252,7 +252,7 @@ describe('SettingsService', () => {
       COMPANY_ID,
       [
         { key: 'general.default_locale', value: 'ar' },
-        { key: 'theme.default_font', value: 'Noto Naskh Arabic' },
+        { key: 'theme.default_font', value: 'Noto Sans Arabic' },
       ],
     );
 

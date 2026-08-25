@@ -36,12 +36,12 @@ export function CompanyFilter({
   }
 
   return (
-    <label className="grid min-w-52 gap-1.5 text-xs font-medium text-slate-600">
-      <span>{label}</span>
+    <label className="inline-flex min-w-44 items-center">
+      <span className="sr-only">{label}</span>
       <select
         value={value ?? ""}
         onChange={updateCompany}
-        className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#714b67]"
+        className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-[#714b67]"
       >
         <option value="">{allCompanies}</option>
         {companies.map((company) => (

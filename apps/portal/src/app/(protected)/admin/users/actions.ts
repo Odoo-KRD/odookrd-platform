@@ -3,6 +3,7 @@
 import {
   PERMISSIONS,
   type AccountScope,
+  type BatchMutationResult,
   type ManagedUser,
   type UserInvitation,
 } from "@odookrd/types";
@@ -42,6 +43,23 @@ function selectedRoleKeys(formData: FormData): string[] | null {
   const roles = values as string[];
 
   return [...new Set(roles)];
+}
+
+function selectedBatchIds(formData: FormData): string[] | null {
+  const values = formData.getAll("selectedIds");
+
+  if (
+    values.length === 0 ||
+    values.length > 100 ||
+    values.some(
+      (value) => typeof value !== "string" || !uuidPattern.test(value),
+    )
+  ) {
+    return null;
+  }
+
+  const ids = [...new Set(values as string[])];
+  return ids.length === values.length ? ids : null;
 }
 
 export async function inviteUserAction(
@@ -166,6 +184,40 @@ export async function updateUserStatusAction(
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${userId}`);
   redirect(`/admin/users/${userId}`);
+}
+
+export async function batchUserStatusAction(
+  formData: FormData,
+): Promise<{ ok: boolean; message: string }> {
+  const { token } = await getAdminApiContext(PERMISSIONS.USERS_MANAGE);
+  const ids = selectedBatchIds(formData);
+  const status = formData.get("batchAction");
+
+  if (!ids || (status !== "ACTIVE" && status !== "SUSPENDED")) {
+    return { ok: false, message: "Choose valid users and an account status." };
+  }
+
+  try {
+    const result = await apiRequest<BatchMutationResult>(
+      "/users/batch-status",
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ ids, status }),
+      },
+    );
+
+    revalidatePath("/admin/users");
+    return {
+      ok: true,
+      message: `${result.changed} changed; ${result.unchanged} unchanged.`,
+    };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failure(error).message ?? "Batch update failed.",
+    };
+  }
 }
 
 export async function updateUserRolesAction(

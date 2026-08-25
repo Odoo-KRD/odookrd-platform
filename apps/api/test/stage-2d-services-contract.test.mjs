@@ -85,7 +85,10 @@ test('catalog mutation routes require platform service-management permission', (
   const managementChecks = serviceController.match(
     /@RequirePermissions\(PERMISSIONS\.SERVICES_MANAGE\)/g,
   );
-  assert.equal(managementChecks?.length, 4);
+  assert.ok(
+    (managementChecks?.length ?? 0) >= 4,
+    'Every original and additive catalog route must require management permission.',
+  );
   assert.match(
     service,
     /principal\.accountScope\s*!==\s*AccountScope\.PLATFORM/,

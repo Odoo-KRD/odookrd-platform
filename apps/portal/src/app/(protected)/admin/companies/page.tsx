@@ -18,6 +18,8 @@ import { formatDate } from "@/lib/format";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 
+import { batchCompanyStatusAction } from "./actions";
+
 interface CompaniesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
@@ -221,6 +223,25 @@ export default async function CompaniesPage({
         ]}
         rows={rows}
         labels={tableLabels}
+        selectable={canCreate}
+        batchAction={canCreate ? batchCompanyStatusAction : undefined}
+        batchActions={
+          canCreate
+            ? [
+                { value: "ACTIVE", label: admin.companies.statusActive },
+                {
+                  value: "SUSPENDED",
+                  label: admin.companies.statusSuspended,
+                  tone: "danger",
+                },
+                {
+                  value: "ARCHIVED",
+                  label: admin.companies.statusArchived,
+                  tone: "danger",
+                },
+              ]
+            : []
+        }
         toolbar={toolbar}
         footer={footer}
         empty={

@@ -73,6 +73,37 @@ enum CompanyServiceStatus {
   @@map("company_service_status")
 }
 
+enum ServiceFeatureValueType {
+  BOOLEAN
+  NUMBER
+  STORAGE
+  TEXT
+
+  @@map("service_feature_value_type")
+}
+
+enum ServiceFeatureStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("service_feature_status")
+}
+
+enum CompanyServiceFeatureSource {
+  CATALOG_DEFAULT
+  ADMIN_OVERRIDE
+
+  @@map("company_service_feature_source")
+}
+
+enum CompanyServiceLifecycleSource {
+  ADMIN
+  SYSTEM
+  INTEGRATION
+
+  @@map("company_service_lifecycle_source")
+}
+
 enum SettingScope {
   PLATFORM
   COMPANY
@@ -109,6 +140,7 @@ model Company {
   users                  User[]
   settings               Setting[]
   serviceAssignments     CompanyService[]
+  serviceLifecycleEvents CompanyServiceLifecycleEvent[]
   notifications          Notification[]
   notificationRecipients NotificationRecipient[]
   invitationDispatches   UserInvitationDispatch[]
@@ -129,13 +161,14 @@ model User {
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company                   Company?                   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  company                   Company?                       @relation(fields: [companyId], references: [id], onDelete: Restrict)
   userRoles                 UserRole[]
   sessions                  Session[]
   authTokens                AuthToken[]
   notificationRecipients    NotificationRecipient[]
   invitationDispatches      UserInvitationDispatch[]
   notificationProviderTests NotificationProviderTest[]
+  serviceLifecycleEvents    CompanyServiceLifecycleEvent[]
   uiPreference              UserUiPreference?
 
   @@index([companyId])
@@ -297,6 +330,7 @@ model Service {
   updatedAt               DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   assignments CompanyService[]
+  features    ServiceFeature[]
 
   @@index([category, status], map: "services_category_status_idx")
   @@map("services")
@@ -317,13 +351,118 @@ model CompanyService {
   createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  company         Company                        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  service         Service                        @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  features        CompanyServiceFeature[]
+  lifecycleEvents CompanyServiceLifecycleEvent[]
 
   @@index([companyId, status], map: "company_services_company_status_idx")
   @@index([serviceId], map: "company_services_service_id_idx")
   @@index([expiresAt], map: "company_services_expires_at_idx")
   @@map("company_services")
+}
+
+model ServiceFeatureDefinition {
+  id                         String                  @id @default(uuid()) @db.Uuid
+  key                        String                  @unique @db.VarChar(100)
+  name                       String                  @db.VarChar(200)
+  nameTranslations           Json                    @default("{}") @map("name_translations") @db.JsonB
+  description                String?                 @db.VarChar(1000)
+  descriptionTranslations    Json                    @default("{}") @map("description_translations") @db.JsonB
+  category                   ServiceCategory
+  valueType                  ServiceFeatureValueType @map("value_type")
+  parameterLabel             String                  @map("parameter_label") @db.VarChar(100)
+  parameterLabelTranslations Json                    @default("{}") @map("parameter_label_translations") @db.JsonB
+  defaultValue               Json                    @map("default_value") @db.JsonB
+  valueTranslations          Json                    @default("{}") @map("value_translations") @db.JsonB
+  unit                       String?                 @db.VarChar(32)
+  status                     ServiceFeatureStatus    @default(ACTIVE)
+  sortOrder                  Int                     @default(0) @map("sort_order")
+  createdAt                  DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  serviceFeatures ServiceFeature[]
+
+  @@index([category, status, sortOrder, id], map: "service_feature_definitions_category_status_sort_idx")
+  @@map("service_feature_definitions")
+}
+
+model ServiceFeature {
+  id                         String                  @id @default(uuid()) @db.Uuid
+  serviceId                  String                  @map("service_id") @db.Uuid
+  definitionId               String?                 @map("definition_id") @db.Uuid
+  key                        String                  @db.VarChar(100)
+  name                       String                  @db.VarChar(200)
+  nameTranslations           Json                    @default("{}") @map("name_translations") @db.JsonB
+  description                String?                 @db.VarChar(1000)
+  descriptionTranslations    Json                    @default("{}") @map("description_translations") @db.JsonB
+  valueType                  ServiceFeatureValueType @map("value_type")
+  parameterLabel             String?                 @map("parameter_label") @db.VarChar(100)
+  parameterLabelTranslations Json                    @default("{}") @map("parameter_label_translations") @db.JsonB
+  defaultValue               Json                    @map("default_value") @db.JsonB
+  valueTranslations          Json                    @default("{}") @map("value_translations") @db.JsonB
+  unit                       String?                 @db.VarChar(32)
+  status                     ServiceFeatureStatus    @default(ACTIVE)
+  customerVisible            Boolean                 @default(true) @map("customer_visible")
+  sortOrder                  Int                     @default(0) @map("sort_order")
+  createdAt                  DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  service            Service                   @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  definition         ServiceFeatureDefinition? @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  assignmentFeatures CompanyServiceFeature[]
+
+  @@unique([serviceId, key], map: "service_features_service_id_key_unique")
+  @@unique([serviceId, definitionId], map: "service_features_service_definition_unique")
+  @@index([serviceId, status, sortOrder, id], map: "service_features_service_status_sort_idx")
+  @@index([definitionId], map: "service_features_definition_id_idx")
+  @@map("service_features")
+}
+
+model CompanyServiceFeature {
+  id                      String                      @id @default(uuid()) @db.Uuid
+  companyServiceId        String                      @map("company_service_id") @db.Uuid
+  serviceFeatureId        String                      @map("service_feature_id") @db.Uuid
+  value                   Json                        @db.JsonB
+  valueTranslations       Json                        @default("{}") @map("value_translations") @db.JsonB
+  source                  CompanyServiceFeatureSource @default(CATALOG_DEFAULT)
+  customerVisibleOverride Boolean?                    @map("customer_visible_override")
+  sortOrderOverride       Int?                        @map("sort_order_override")
+  createdAt               DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  companyService CompanyService @relation(fields: [companyServiceId], references: [id], onDelete: Cascade)
+  serviceFeature ServiceFeature @relation(fields: [serviceFeatureId], references: [id], onDelete: Restrict)
+
+  @@unique([companyServiceId, serviceFeatureId], map: "company_service_features_assignment_feature_unique")
+  @@index([companyServiceId, sortOrderOverride, id], map: "company_service_features_assignment_sort_idx")
+  @@index([serviceFeatureId], map: "company_service_features_feature_id_idx")
+  @@map("company_service_features")
+}
+
+model CompanyServiceLifecycleEvent {
+  id                 String                        @id @default(uuid()) @db.Uuid
+  companyServiceId   String                        @map("company_service_id") @db.Uuid
+  companyId          String                        @map("company_id") @db.Uuid
+  fromStatus         CompanyServiceStatus?         @map("from_status")
+  toStatus           CompanyServiceStatus          @map("to_status")
+  source             CompanyServiceLifecycleSource @default(ADMIN)
+  reasonCode         String?                       @map("reason_code") @db.VarChar(80)
+  reason             String?                       @db.VarChar(1000)
+  actorUserId        String?                       @map("actor_user_id") @db.Uuid
+  actorEmailSnapshot String?                       @map("actor_email_snapshot") @db.VarChar(320)
+  effectiveAt        DateTime                      @map("effective_at") @db.Timestamptz(6)
+  metadata           Json?                         @db.JsonB
+  createdAt          DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  companyService CompanyService @relation(fields: [companyServiceId], references: [id], onDelete: Restrict)
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  actor          User?          @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([companyServiceId, effectiveAt(sort: Desc), id(sort: Desc)], map: "company_service_lifecycle_assignment_effective_idx")
+  @@index([companyId, effectiveAt(sort: Desc), id(sort: Desc)], map: "company_service_lifecycle_company_effective_idx")
+  @@index([toStatus, effectiveAt], map: "company_service_lifecycle_status_effective_idx")
+  @@map("company_service_lifecycle_events")
 }
 
 model Notification {

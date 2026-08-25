@@ -2,13 +2,16 @@ import {
   PERMISSIONS,
   type CompanyServiceAssignment,
   type ManagedService,
+  type ManagedServiceFeature,
   type PaginatedResult,
+  type ServiceFeatureDefinition,
 } from "@odookrd/types";
 import { DataTable, EmptyState, PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ServiceForm } from "@/components/services/service-form";
+import { ServiceFeaturesManager } from "@/components/services/service-features-manager";
 import {
   AssignmentStatusBadge,
   CatalogStatusBadge,
@@ -18,7 +21,13 @@ import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getServicesDictionary } from "@/lib/i18n/services-server";
 
-import { updateServiceAction } from "../actions";
+import {
+  attachServiceFeatureDefinitionAction,
+  moveServiceFeatureAction,
+  reorderServiceFeaturesAction,
+  updateAttachedServiceFeatureAction,
+  updateServiceAction,
+} from "../actions";
 
 interface ServiceDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -27,26 +36,51 @@ interface ServiceDetailsPageProps {
 export default async function ServiceDetailsPage({
   params,
 }: ServiceDetailsPageProps) {
-  const [{ session, token }, { locale, services, content }, { id }] =
-    await Promise.all([
-      getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
-      getServicesDictionary(),
-      params,
-    ]);
+  const [
+    { session, token },
+    { locale, services, serviceFeatures, content },
+    { id },
+  ] = await Promise.all([
+    getAdminApiContext(PERMISSIONS.SERVICES_MANAGE),
+    getServicesDictionary(),
+    params,
+  ]);
 
   if (session.user.accountScope !== "PLATFORM") {
     redirect("/dashboard");
   }
 
-  const [service, assignments] = await Promise.all([
+  const [service, features, assignments, definitions] = await Promise.all([
     apiRequest<ManagedService>(`/services/${encodeURIComponent(id)}`, {
       token,
     }),
+    apiRequest<PaginatedResult<ManagedServiceFeature>>(
+      `/services/${encodeURIComponent(id)}/features?limit=100&offset=0`,
+      { token },
+    ),
     apiRequest<PaginatedResult<CompanyServiceAssignment>>(
       `/service-assignments?serviceId=${encodeURIComponent(id)}&limit=50&offset=0`,
       { token },
     ),
+    apiRequest<PaginatedResult<ServiceFeatureDefinition>>(
+      "/service-feature-definitions?status=ACTIVE&limit=100&offset=0",
+      { token },
+    ),
   ]);
+
+  const attachedDefinitions = new Set(
+    features.items.flatMap((feature) =>
+      feature.definitionId
+        ? [feature.definitionId, feature.key]
+        : [feature.key],
+    ),
+  );
+  const availableDefinitions = definitions.items.filter(
+    (definition) =>
+      definition.category === service.category &&
+      !attachedDefinitions.has(definition.id) &&
+      !attachedDefinitions.has(definition.key),
+  );
 
   return (
     <div className="grid gap-7">
@@ -102,7 +136,7 @@ export default async function ServiceDetailsPage({
 
       <Panel className="p-6 sm:p-8">
         <h2 className="mb-6 text-base font-semibold text-slate-900">
-          {services.editService}
+          {serviceFeatures.overview}
         </h2>
         <ServiceForm
           action={updateServiceAction.bind(null, service.id)}
@@ -113,9 +147,26 @@ export default async function ServiceDetailsPage({
         />
       </Panel>
 
+      <ServiceFeaturesManager
+        locale={locale}
+        items={features.items}
+        total={features.pagination.total}
+        definitions={availableDefinitions}
+        services={services}
+        labels={serviceFeatures}
+        content={content}
+        attachAction={attachServiceFeatureDefinitionAction.bind(
+          null,
+          service.id,
+        )}
+        updateAction={updateAttachedServiceFeatureAction.bind(null, service.id)}
+        moveAction={moveServiceFeatureAction.bind(null, service.id)}
+        reorderAction={reorderServiceFeaturesAction.bind(null, service.id)}
+      />
+
       <section className="grid gap-4">
         <h2 className="text-base font-semibold text-slate-900">
-          {services.assignments}
+          {serviceFeatures.companyServices}
         </h2>
         <Panel>
           {assignments.items.length === 0 ? (

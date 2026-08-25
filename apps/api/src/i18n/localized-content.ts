@@ -85,6 +85,7 @@ export function localizeResponse(value: unknown, locale: ApiLocale): unknown {
     ['name', 'nameTranslations'],
     ['description', 'descriptionTranslations'],
     ['displayName', 'displayNameTranslations'],
+    ['parameterLabel', 'parameterLabelTranslations'],
   ] as const) {
     const original: unknown = entries[field];
 

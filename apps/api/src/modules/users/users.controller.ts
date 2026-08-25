@@ -18,6 +18,7 @@ import { RequirePermissions } from '../authorization/decorators/require-permissi
 import { AuthorizationGuard } from '../authorization/guards/authorization.guard';
 import { PERMISSIONS } from '../authorization/permissions';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { BatchUserStatusDto } from './dto/batch-user-status.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ReplaceUserRolesDto } from './dto/replace-user-roles.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
@@ -53,6 +54,15 @@ export class UsersController {
     @Body() dto: InviteUserDto,
   ) {
     return this.usersService.invite(principal, dto);
+  }
+
+  @Post('batch-status')
+  @RequirePermissions(PERMISSIONS.USERS_MANAGE)
+  batchStatus(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() dto: BatchUserStatusDto,
+  ) {
+    return this.usersService.updateStatuses(principal, dto);
   }
 
   @Patch(':id/status')

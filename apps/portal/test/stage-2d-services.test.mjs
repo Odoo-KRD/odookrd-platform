@@ -12,6 +12,7 @@ function read(path) {
 
 const authorization = read("src/lib/authorization.ts");
 const adminLayout = read("src/app/(protected)/admin/layout.tsx");
+const adminNavigation = read("src/lib/admin-navigation.ts");
 const customerLayout = read("src/app/(protected)/(customer)/layout.tsx");
 const actions = read("src/app/(protected)/admin/services/actions.ts");
 const customerPage = read(
@@ -29,10 +30,11 @@ const dictionaries = ["ku", "ar", "en"]
 
 test("platform service administration navigation requires management permission", () => {
   assert.match(
-    adminLayout,
+    adminNavigation,
     /session\.user\.accountScope\s*===\s*['"]PLATFORM['"][\s\S]*?hasPermission\(session,\s*PERMISSIONS\.SERVICES_MANAGE\)/,
   );
-  assert.match(adminLayout, /href:\s*['"]\/admin\/services['"]/);
+  assert.match(adminNavigation, /href:\s*['"]\/admin\/services['"]/);
+  assert.match(adminLayout, /buildAdminNavigation\(session/);
   assert.match(authorization, /PERMISSIONS\.SERVICES_MANAGE/);
 });
 

@@ -17,10 +17,16 @@ import {
 } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { PaginatedResult } from '../../common/pagination/paginated-result.interface';
+import {
+  batchMutationResult,
+  type BatchMutationItem,
+  type BatchMutationResult,
+} from '../../common/batch/batch-mutation.dto';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { AUDIT_ACTIONS } from '../audit/audit.actions';
 import { AuditService } from '../audit/audit.service';
 import type { InviteUserDto } from './dto/invite-user.dto';
+import type { BatchUserStatusDto } from './dto/batch-user-status.dto';
 import type { ListUsersQueryDto } from './dto/list-users-query.dto';
 import type { ReplaceUserRolesDto } from './dto/replace-user-roles.dto';
 import type { UpdateUserStatusDto } from './dto/update-user-status.dto';
@@ -442,6 +448,156 @@ export class UsersService {
       return this.toResponse(user);
     });
   }
+
+  async updateStatuses(
+    principal: AuthenticatedPrincipal,
+    dto: BatchUserStatusDto,
+  ): Promise<BatchMutationResult> {
+    const scopeWhere: Prisma.UserWhereInput =
+      principal.accountScope === AccountScope.COMPANY
+        ? { companyId: this.requireCompanyId(principal) }
+        : principal.accountScope === AccountScope.PLATFORM &&
+            principal.companyId === null
+          ? {}
+          : (() => {
+              throw new ForbiddenException('Authorization context is invalid.');
+            })();
+
+    return this.prisma.$transaction(async (tx) => {
+      const users = await tx.user.findMany({
+        where: { ...scopeWhere, id: { in: dto.ids } },
+        select: {
+          ...USER_SELECT,
+          company: { select: { status: true } },
+        },
+      });
+
+      if (users.length !== dto.ids.length) {
+        throw new NotFoundException(
+          'One or more selected users do not exist in your authorized scope.',
+        );
+      }
+
+      for (const user of users) {
+        if (user.status === UserStatus.INVITED) {
+          throw new BadRequestException(
+            'Invited users must activate their account through the invitation flow.',
+          );
+        }
+
+        if (
+          dto.status === UserStatus.SUSPENDED &&
+          user.id === principal.userId
+        ) {
+          throw new ForbiddenException('You cannot suspend your own account.');
+        }
+
+        if (
+          dto.status === UserStatus.ACTIVE &&
+          user.accountScope === AccountScope.COMPANY &&
+          user.company?.status !== CompanyStatus.ACTIVE
+        ) {
+          throw new BadRequestException(
+            'A user cannot be activated while its company is not active.',
+          );
+        }
+      }
+
+      if (dto.status === UserStatus.SUSPENDED) {
+        const suspending = users.filter(
+          (user) => user.status === UserStatus.ACTIVE,
+        );
+        const excludedIds = suspending.map((user) => user.id);
+        const checkedScopes = new Set<string>();
+
+        for (const user of suspending) {
+          const adminRoleKey = this.adminRoleKey(user.accountScope);
+
+          if (!user.userRoles.some(({ role }) => role.key === adminRoleKey)) {
+            continue;
+          }
+
+          const scopeKey = `${user.accountScope}:${user.companyId ?? 'platform'}`;
+
+          if (checkedScopes.has(scopeKey)) {
+            continue;
+          }
+
+          checkedScopes.add(scopeKey);
+
+          const remaining = await tx.user.count({
+            where: {
+              accountScope: user.accountScope,
+              companyId: user.companyId,
+              id: { notIn: excludedIds },
+              status: UserStatus.ACTIVE,
+              userRoles: { some: { role: { key: adminRoleKey } } },
+            },
+          });
+
+          if (remaining === 0) {
+            throw new BadRequestException(
+              'The final active administrator cannot be suspended.',
+            );
+          }
+        }
+      }
+
+      const selected = new Map(users.map((user) => [user.id, user]));
+      const items: BatchMutationItem[] = [];
+
+      for (const userId of dto.ids) {
+        const user = selected.get(userId);
+
+        if (!user) {
+          throw this.notFound();
+        }
+
+        if (user.status === dto.status) {
+          items.push({
+            id: user.id,
+            outcome: 'UNCHANGED',
+            updatedAt: user.updatedAt,
+          });
+          continue;
+        }
+
+        const updated = await tx.user.update({
+          where: { id: user.id },
+          data: { status: dto.status },
+          select: { id: true, updatedAt: true },
+        });
+
+        if (dto.status === UserStatus.SUSPENDED) {
+          await tx.session.updateMany({
+            where: { userId: user.id, revokedAt: null },
+            data: { revokedAt: new Date() },
+          });
+        }
+
+        await this.auditService.write(
+          {
+            actorUserId: principal.userId,
+            companyId: user.companyId,
+            action: AUDIT_ACTIONS.USER_STATUS_CHANGED,
+            targetType: 'user',
+            targetId: user.id,
+            metadata: { previousStatus: user.status, status: dto.status },
+          },
+          tx,
+        );
+
+        items.push({
+          id: updated.id,
+          outcome: 'CHANGED',
+          updatedAt: updated.updatedAt,
+        });
+      }
+
+      return batchMutationResult(items);
+    });
+  }
+
   private async assertCompanyUserCapacity(companyId: string): Promise<void> {
     const key = 'companies.max_users_per_company';
     const companyScopeKey = 'company:' + companyId;

@@ -1,6 +1,11 @@
 "use server";
 
-import { PERMISSIONS, type Company, type CompanyStatus } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  type BatchMutationResult,
+  type Company,
+  type CompanyStatus,
+} from "@odookrd/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -28,6 +33,24 @@ function companyInput(formData: FormData) {
 
   return name ? { name, nameTranslations } : null;
 }
+
+function batchIds(formData: FormData): string[] | null {
+  const ids = formData.getAll("selectedIds");
+
+  if (
+    ids.length === 0 ||
+    ids.length > 100 ||
+    ids.some((id) => typeof id !== "string" || !uuidPattern.test(id))
+  ) {
+    return null;
+  }
+
+  const unique = [...new Set(ids as string[])];
+  return unique.length === ids.length ? unique : null;
+}
+
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function createCompanyAction(
   _previousState: FormState,
@@ -141,4 +164,46 @@ export async function updateCompanyStatusAction(
   revalidatePath("/admin/companies");
   revalidatePath(`/admin/companies/${companyId}`);
   redirect(`/admin/companies/${companyId}`);
+}
+
+export async function batchCompanyStatusAction(
+  formData: FormData,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
+  const ids = batchIds(formData);
+  const status = formData.get("batchAction");
+  const statuses: CompanyStatus[] = ["ACTIVE", "SUSPENDED", "ARCHIVED"];
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !ids ||
+    typeof status !== "string" ||
+    !statuses.includes(status as CompanyStatus)
+  ) {
+    return { ok: false, message: "Choose valid companies and a status." };
+  }
+
+  try {
+    const result = await apiRequest<BatchMutationResult>(
+      "/companies/batch-status",
+      {
+        method: "POST",
+        token,
+        body: JSON.stringify({ ids, status }),
+      },
+    );
+
+    revalidatePath("/admin/companies");
+    return {
+      ok: true,
+      message: `${result.changed} changed; ${result.unchanged} unchanged.`,
+    };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failure(error).message ?? "Batch update failed.",
+    };
+  }
 }

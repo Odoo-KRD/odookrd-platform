@@ -16,6 +16,14 @@ import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-pr
 import { RequirePermissions } from '../authorization/decorators/require-permissions.decorator';
 import { AuthorizationGuard } from '../authorization/guards/authorization.guard';
 import { PERMISSIONS } from '../authorization/permissions';
+import { BatchServiceStatusDto } from './dto/service-batch.dto';
+import { AttachServiceFeatureDefinitionDto } from './dto/service-feature-definition.dto';
+import {
+  CreateServiceFeatureDto,
+  ListServiceFeaturesQueryDto,
+  ReorderServiceFeaturesDto,
+  UpdateServiceFeatureDto,
+} from './dto/service-feature.dto';
 import {
   CreateServiceDto,
   ListServicesQueryDto,
@@ -53,6 +61,71 @@ export class ServicesController {
     @Body() input: CreateServiceDto,
   ) {
     return this.services.createService(principal, input);
+  }
+
+  @Post('batch-status')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  batchStatus(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() input: BatchServiceStatusDto,
+  ) {
+    return this.services.updateServiceStatuses(principal, input);
+  }
+
+  @Get(':serviceId/features')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  listFeatures(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('serviceId', ParseUUIDPipe) serviceId: string,
+    @Query() query: ListServiceFeaturesQueryDto,
+  ) {
+    return this.services.listServiceFeatures(principal, serviceId, query);
+  }
+
+  @Post(':serviceId/features')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  createFeature(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('serviceId', ParseUUIDPipe) serviceId: string,
+    @Body() input: CreateServiceFeatureDto,
+  ) {
+    return this.services.createServiceFeature(principal, serviceId, input);
+  }
+
+  @Post(':serviceId/features/attach')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  attachFeature(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('serviceId', ParseUUIDPipe) serviceId: string,
+    @Body() input: AttachServiceFeatureDefinitionDto,
+  ) {
+    return this.services.attachFeatureDefinition(principal, serviceId, input);
+  }
+
+  @Post(':serviceId/features/reorder')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  reorderFeatures(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('serviceId', ParseUUIDPipe) serviceId: string,
+    @Body() input: ReorderServiceFeaturesDto,
+  ) {
+    return this.services.reorderServiceFeatures(principal, serviceId, input);
+  }
+
+  @Patch(':serviceId/features/:featureId')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  updateFeature(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('serviceId', ParseUUIDPipe) serviceId: string,
+    @Param('featureId', ParseUUIDPipe) featureId: string,
+    @Body() input: UpdateServiceFeatureDto,
+  ) {
+    return this.services.updateServiceFeature(
+      principal,
+      serviceId,
+      featureId,
+      input,
+    );
   }
 
   @Patch(':id')

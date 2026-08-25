@@ -20,6 +20,8 @@ import { formatDate } from "@/lib/format";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { getUsersDictionary } from "@/lib/i18n/users-server";
 
+import { batchUserStatusAction } from "./actions";
+
 interface UsersPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
@@ -188,7 +190,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
       <div className="flex flex-wrap gap-2">
         <Link
           href={usersHref(null, companyId, 0)}
-          className={`rounded-md border px-3 py-2 text-xs font-medium ${
+          className={`inline-flex h-9 items-center rounded-md border px-3 text-xs font-medium ${
             status === null
               ? "border-brand/30 bg-brand-soft text-brand"
               : "border-line bg-white text-muted hover:bg-slate-50"
@@ -201,7 +203,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
           <Link
             key={filter}
             href={usersHref(filter, companyId, 0)}
-            className={`rounded-md border px-3 py-2 text-xs font-medium ${
+            className={`inline-flex h-9 items-center rounded-md border px-3 text-xs font-medium ${
               status === filter
                 ? "border-brand/30 bg-brand-soft text-brand"
                 : "border-line bg-white text-muted hover:bg-slate-50"
@@ -284,6 +286,20 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
         ]}
         rows={rows}
         labels={tableLabels}
+        selectable={canInvite}
+        batchAction={canInvite ? batchUserStatusAction : undefined}
+        batchActions={
+          canInvite
+            ? [
+                { value: "ACTIVE", label: users.statusActive },
+                {
+                  value: "SUSPENDED",
+                  label: users.statusSuspended,
+                  tone: "danger",
+                },
+              ]
+            : []
+        }
         toolbar={toolbar}
         footer={footer}
         empty={

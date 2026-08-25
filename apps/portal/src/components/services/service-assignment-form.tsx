@@ -35,6 +35,7 @@ interface ServiceAssignmentFormProps {
   companies?: Company[];
   services?: ManagedService[];
   initial?: CompanyServiceAssignment;
+  selectedCompanyId?: string;
   selectedServiceId?: string;
   cancelHref: string;
 }
@@ -49,6 +50,7 @@ export function ServiceAssignmentForm({
   companies = [],
   services = [],
   initial,
+  selectedCompanyId,
   selectedServiceId,
   cancelHref,
 }: ServiceAssignmentFormProps) {
@@ -89,9 +91,10 @@ export function ServiceAssignmentForm({
             <select
               id="assignment-company"
               name="companyId"
-              defaultValue=""
+              defaultValue={selectedCompanyId ?? ""}
+              disabled={Boolean(selectedCompanyId)}
               required
-              className={inputClassName}
+              className={`${inputClassName} disabled:bg-slate-50`}
             >
               <option value="">{labels.chooseCompany}</option>
               {companies.map((company) => (
@@ -100,6 +103,9 @@ export function ServiceAssignmentForm({
                 </option>
               ))}
             </select>
+            {selectedCompanyId ? (
+              <input type="hidden" name="companyId" value={selectedCompanyId} />
+            ) : null}
           </div>
 
           <div className="grid gap-2">
@@ -136,26 +142,30 @@ export function ServiceAssignmentForm({
         maxLength={200}
       />
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="assignment-status"
-          className="text-sm font-medium text-slate-700"
-        >
-          {labels.status}
-        </label>
-        <select
-          id="assignment-status"
-          name="status"
-          defaultValue={initial?.status ?? "PROVISIONING"}
-          className={inputClassName}
-        >
-          {statuses.map((status) => (
-            <option key={status} value={status}>
-              {labels.assignmentStatusLabels[status]}
-            </option>
-          ))}
-        </select>
-      </div>
+      {initial ? (
+        <input type="hidden" name="status" value={initial.status} />
+      ) : (
+        <div className="grid gap-2">
+          <label
+            htmlFor="assignment-status"
+            className="text-sm font-medium text-slate-700"
+          >
+            {labels.status}
+          </label>
+          <select
+            id="assignment-status"
+            name="status"
+            defaultValue="PROVISIONING"
+            className={inputClassName}
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {labels.assignmentStatusLabels[status]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="grid gap-2">
         <label
