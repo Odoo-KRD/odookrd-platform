@@ -8,15 +8,24 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = (relative) => readFile(path.join(root, relative), "utf8");
 
 test("notification administration links to the protected broadcast composer and identifies broadcast logs", async () => {
-  const page = await source("src/app/(protected)/admin/notifications/page.tsx");
+  const [broadcasts, deliveries] = await Promise.all([
+    source("src/app/(protected)/admin/notifications/broadcasts/page.tsx"),
+    source("src/app/(protected)/admin/notifications/deliveries/page.tsx"),
+  ]);
 
-  assert.equal(page.includes('href="/admin/notifications/new"'), true);
-  assert.equal(page.includes('item.templateKey === "admin.broadcast"'), true);
+  assert.equal(
+    broadcasts.includes('href="/admin/notifications/broadcasts/new"'),
+    true,
+  );
+  assert.equal(
+    deliveries.includes('item.templateKey === "admin.broadcast"'),
+    true,
+  );
 });
 
 test("broadcast composer exposes audience counts, scoped company choice, channels, locale, and explicit confirmation", async () => {
   const [page, form, action] = await Promise.all([
-    source("src/app/(protected)/admin/notifications/new/page.tsx"),
+    source("src/app/(protected)/admin/notifications/broadcasts/new/page.tsx"),
     source("src/components/notifications/notification-broadcast-form.tsx"),
     source("src/app/(protected)/admin/notifications/new/actions.ts"),
   ]);
@@ -26,6 +35,12 @@ test("broadcast composer exposes audience counts, scoped company choice, channel
     page.includes("/notification-administration/broadcasts/options"),
     true,
   );
+
+  assert.equal(
+    page.includes('import { randomUUID } from "node:crypto";'),
+    true,
+  );
+  assert.equal(page.includes("initialRequestId={randomUUID()}"), true);
 
   for (const marker of [
     "ALL_CUSTOMERS",
@@ -37,7 +52,6 @@ test("broadcast composer exposes audience counts, scoped company choice, channel
     'name="actionUrl"',
     "required",
     "confirmed",
-    "crypto.randomUUID()",
   ]) {
     assert.equal(
       form.includes(marker),

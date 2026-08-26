@@ -75,7 +75,7 @@ test("SMTP field copy remains in the typed Kurdish, Arabic, and English admin di
 test("notification administration displays the selected transport with masked SMTP credentials", async () => {
   const [administration, page] = await Promise.all([
     source("src/lib/i18n/notification-administration.ts"),
-    source("src/app/(protected)/admin/notifications/page.tsx"),
+    source("src/app/(protected)/admin/notifications/providers/page.tsx"),
   ]);
 
   assert.equal(administration.includes("smtpHost: string;"), true);

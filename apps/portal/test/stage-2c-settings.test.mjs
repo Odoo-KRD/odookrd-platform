@@ -18,6 +18,7 @@ const localeServer = read("src/lib/i18n/server.ts");
 const publicSettings = read("src/lib/public-settings.ts");
 const authorization = read("src/lib/authorization.ts");
 const adminLayout = read("src/app/(protected)/admin/layout.tsx");
+const adminNavigation = read("src/lib/admin-navigation.ts");
 const customerLayout = read("src/app/(protected)/(customer)/layout.tsx");
 const loginPage = read("src/app/(public)/login/page.tsx");
 const dictionaries = ["ku", "ar", "en"]
@@ -29,9 +30,10 @@ test("settings administration requires explicit permissions and server API conte
   assert.match(action, /getAdminApiContext\(\s*PERMISSIONS\.SETTINGS_MANAGE/);
   assert.match(authorization, /PERMISSIONS\.SETTINGS_READ/);
   assert.match(
-    adminLayout,
+    adminNavigation,
     /hasPermission\(session, PERMISSIONS\.SETTINGS_READ\)/,
   );
+  assert.match(adminNavigation, /href:\s*"\/admin\/settings"/);
 });
 
 test("company administrators stay within their authenticated company scope", () => {

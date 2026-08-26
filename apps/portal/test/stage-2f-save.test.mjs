@@ -63,6 +63,10 @@ function actionHarness() {
   const localized = loadTypescript("src/lib/i18n/content.ts", {
     "@/lib/i18n/config": { SUPPORTED_LOCALES: ["ku", "ar", "en"] },
   });
+  const serviceFeatureUnits = loadTypescript(
+    "src/lib/service-feature-units.ts",
+    {},
+  );
   const dependencies = {
     "@odookrd/types": {
       PERMISSIONS: {
@@ -98,6 +102,7 @@ function actionHarness() {
     },
     "@/lib/forms": {},
     "@/lib/i18n/content": localized,
+    "@/lib/service-feature-units": serviceFeatureUnits,
   };
 
   return {
