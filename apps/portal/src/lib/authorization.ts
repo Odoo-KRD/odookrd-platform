@@ -15,6 +15,9 @@ const administrativePermissions = new Set<string>([
   PERMISSIONS.NOTIFICATIONS_MANAGE,
   PERMISSIONS.SETTINGS_READ,
   PERMISSIONS.SETTINGS_MANAGE,
+  PERMISSIONS.TRAINING_MANAGE,
+  PERMISSIONS.TRAINING_ASSIGN,
+  PERMISSIONS.TRAINING_PROGRESS_READ,
 ]);
 
 export function hasPermission(
@@ -88,3 +91,4 @@ export async function getCustomerApiContext(
 
   return { session, token };
 }
+

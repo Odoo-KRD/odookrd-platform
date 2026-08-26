@@ -129,6 +129,115 @@ enum NotificationDeliveryStatus {
   @@map("notification_delivery_status")
 }
 
+enum TrainingCategoryStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("training_category_status")
+}
+
+enum TrainingCourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("training_course_status")
+}
+
+enum TrainingContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("training_content_status")
+}
+
+enum TrainingStorageProvider {
+  AWS_S3
+  LOCAL
+
+  @@map("training_storage_provider")
+}
+
+enum TrainingVideoAssetStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  FAILED
+  ARCHIVED
+
+  @@map("training_video_asset_status")
+}
+
+enum TrainingAudienceMode {
+  ALL_USERS
+  ASSIGNED_USERS
+
+  @@map("training_audience_mode")
+}
+
+enum TrainingUserAccessSource {
+  PLATFORM
+  COMPANY_ADMIN
+
+  @@map("training_user_access_source")
+}
+
+enum TrainingProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+
+  @@map("training_progress_status")
+}
+
+enum TrainingQuizPlacement {
+  SECTION
+  COURSE_FINAL
+
+  @@map("training_quiz_placement")
+}
+
+enum TrainingQuizStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("training_quiz_status")
+}
+
+enum TrainingQuizVersionStatus {
+  DRAFT
+  PUBLISHED
+  RETIRED
+
+  @@map("training_quiz_version_status")
+}
+
+enum TrainingQuizQuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+
+  @@map("training_quiz_question_type")
+}
+
+enum TrainingQuizAttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  PASSED
+  FAILED
+  EXPIRED
+
+  @@map("training_quiz_attempt_status")
+}
+
+enum TrainingCertificateStatus {
+  ACTIVE
+  REVOKED
+
+  @@map("training_certificate_status")
+}
+
 model Company {
   id               String        @id @default(uuid()) @db.Uuid
   name             String        @db.VarChar(200)
@@ -137,13 +246,20 @@ model Company {
   createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  users                  User[]
-  settings               Setting[]
-  serviceAssignments     CompanyService[]
-  serviceLifecycleEvents CompanyServiceLifecycleEvent[]
-  notifications          Notification[]
-  notificationRecipients NotificationRecipient[]
-  invitationDispatches   UserInvitationDispatch[]
+  users                     User[]
+  settings                  Setting[]
+  serviceAssignments        CompanyService[]
+  serviceLifecycleEvents    CompanyServiceLifecycleEvent[]
+  notifications             Notification[]
+  notificationRecipients    NotificationRecipient[]
+  invitationDispatches      UserInvitationDispatch[]
+  trainingCompanyAccess     TrainingCourseCompanyAccess[]
+  trainingUserAccess        TrainingCourseUserAccess[]
+  trainingLessonProgress    TrainingLessonProgress[]
+  trainingCourseProgress    TrainingCourseProgress[]
+  trainingQuizAttempts      TrainingQuizAttempt[]
+  trainingCourseCompletions TrainingCourseCompletion[]
+  trainingCertificates      TrainingCertificate[]
 
   @@map("companies")
 }
@@ -154,6 +270,7 @@ model User {
   accountScope    AccountScope @map("account_scope")
   email           String       @db.VarChar(320)
   whatsappNumber  String?      @map("whatsapp_number") @db.VarChar(16)
+  certificateName String?      @map("certificate_name") @db.VarChar(250)
   normalizedEmail String       @unique @map("normalized_email") @db.VarChar(320)
   passwordHash    String?      @map("password_hash") @db.VarChar(255)
   status          UserStatus   @default(INVITED)
@@ -170,6 +287,12 @@ model User {
   notificationProviderTests NotificationProviderTest[]
   serviceLifecycleEvents    CompanyServiceLifecycleEvent[]
   uiPreference              UserUiPreference?
+  trainingUserAccess        TrainingCourseUserAccess[]
+  trainingLessonProgress    TrainingLessonProgress[]
+  trainingCourseProgress    TrainingCourseProgress[]
+  trainingQuizAttempts      TrainingQuizAttempt[]
+  trainingCourseCompletions TrainingCourseCompletion[]
+  trainingCertificates      TrainingCertificate[]
 
   @@index([companyId])
   @@index([status])
@@ -329,8 +452,9 @@ model Service {
   createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  assignments CompanyService[]
-  features    ServiceFeature[]
+  assignments          CompanyService[]
+  features             ServiceFeature[]
+  trainingCourseAccess TrainingCourseServiceAccess[]
 
   @@index([category, status], map: "services_category_status_idx")
   @@map("services")
@@ -582,4 +706,459 @@ model NotificationProviderTest {
   @@index([actorUserId, createdAt], map: "notification_provider_tests_actor_created_idx")
   @@index([status, createdAt], map: "notification_provider_tests_status_created_idx")
   @@map("notification_provider_tests")
+}
+
+model TrainingCategory {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  key                     String                 @unique @db.VarChar(100)
+  name                    String                 @db.VarChar(200)
+  nameTranslations        Json                   @default("{}") @map("name_translations") @db.JsonB
+  description             String?                @db.VarChar(1000)
+  descriptionTranslations Json                   @default("{}") @map("description_translations") @db.JsonB
+  status                  TrainingCategoryStatus @default(ACTIVE)
+  sortOrder               Int                    @default(0) @map("sort_order")
+  createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  courses TrainingCourse[]
+
+  @@index([status, sortOrder, id], map: "training_categories_status_sort_idx")
+  @@map("training_categories")
+}
+
+model TrainingCertificateTemplate {
+  id                  String   @id @default(uuid()) @db.Uuid
+  key                 String   @unique @db.VarChar(100)
+  name                String   @db.VarChar(200)
+  titleTranslations   Json     @default("{}") @map("title_translations") @db.JsonB
+  bodyTranslations    Json     @default("{}") @map("body_translations") @db.JsonB
+  logoReference       String?  @map("logo_reference") @db.VarChar(2048)
+  backgroundReference String?  @map("background_reference") @db.VarChar(2048)
+  signatoryName       String?  @map("signatory_name") @db.VarChar(200)
+  signatoryTitle      String?  @map("signatory_title") @db.VarChar(200)
+  signatureReference  String?  @map("signature_reference") @db.VarChar(2048)
+  primaryColor        String   @default("#714b67") @map("primary_color") @db.VarChar(7)
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  courses      TrainingCourse[]
+  certificates TrainingCertificate[]
+
+  @@index([active, name], map: "training_certificate_templates_active_name_idx")
+  @@map("training_certificate_templates")
+}
+
+model TrainingCourse {
+  id                    String               @id @default(uuid()) @db.Uuid
+  categoryId            String               @map("category_id") @db.Uuid
+  certificateTemplateId String?              @map("certificate_template_id") @db.Uuid
+  slug                  String               @unique @db.VarChar(150)
+  title                 String               @db.VarChar(250)
+  titleTranslations     Json                 @default("{}") @map("title_translations") @db.JsonB
+  summary               String?              @db.VarChar(2000)
+  summaryTranslations   Json                 @default("{}") @map("summary_translations") @db.JsonB
+  thumbnailUrl          String?              @map("thumbnail_url") @db.VarChar(2048)
+  status                TrainingCourseStatus @default(DRAFT)
+  sortOrder             Int                  @default(0) @map("sort_order")
+  certificateEnabled    Boolean              @default(false) @map("certificate_enabled")
+  publishedAt           DateTime?            @map("published_at") @db.Timestamptz(6)
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  category            TrainingCategory              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  certificateTemplate TrainingCertificateTemplate?  @relation(fields: [certificateTemplateId], references: [id], onDelete: Restrict)
+  sections            TrainingSection[]
+  lessons             TrainingVideoLesson[]
+  companyAccess       TrainingCourseCompanyAccess[]
+  serviceAccess       TrainingCourseServiceAccess[]
+  userAccess          TrainingCourseUserAccess[]
+  lessonProgress      TrainingLessonProgress[]
+  courseProgress      TrainingCourseProgress[]
+  quizzes             TrainingQuiz[]
+  quizAttempts        TrainingQuizAttempt[]
+  completions         TrainingCourseCompletion[]
+  certificates        TrainingCertificate[]
+
+  @@index([categoryId, status, sortOrder, id], map: "training_courses_category_status_sort_idx")
+  @@index([status, publishedAt], map: "training_courses_status_published_idx")
+  @@index([certificateTemplateId], map: "training_courses_certificate_template_idx")
+  @@map("training_courses")
+}
+
+model TrainingSection {
+  id                      String                @id @default(uuid()) @db.Uuid
+  courseId                String                @map("course_id") @db.Uuid
+  title                   String                @db.VarChar(250)
+  titleTranslations       Json                  @default("{}") @map("title_translations") @db.JsonB
+  description             String?               @db.VarChar(2000)
+  descriptionTranslations Json                  @default("{}") @map("description_translations") @db.JsonB
+  status                  TrainingContentStatus @default(DRAFT)
+  sortOrder               Int                   @default(0) @map("sort_order")
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course  TrainingCourse        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons TrainingVideoLesson[]
+  quizzes TrainingQuiz[]
+
+  @@index([courseId, status, sortOrder, id], map: "training_sections_course_status_sort_idx")
+  @@map("training_sections")
+}
+
+model TrainingVideoAsset {
+  id                        String                   @id @default(uuid()) @db.Uuid
+  provider                  TrainingStorageProvider
+  status                    TrainingVideoAssetStatus @default(UPLOADING)
+  originalFilename          String                   @map("original_filename") @db.VarChar(255)
+  mimeType                  String                   @map("mime_type") @db.VarChar(150)
+  sizeBytes                 BigInt?                  @map("size_bytes")
+  checksum                  String?                  @db.VarChar(128)
+  durationSeconds           Int?                     @map("duration_seconds")
+  width                     Int?
+  height                    Int?
+  sourceReference           String                   @map("source_reference") @db.VarChar(2048)
+  playbackManifestReference String?                  @map("playback_manifest_reference") @db.VarChar(2048)
+  posterReference           String?                  @map("poster_reference") @db.VarChar(2048)
+  mediaConvertJobId         String?                  @map("media_convert_job_id") @db.VarChar(255)
+  failureCode               String?                  @map("failure_code") @db.VarChar(80)
+  failureMessage            String?                  @map("failure_message") @db.VarChar(1000)
+  metadata                  Json?                    @db.JsonB
+  createdAt                 DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lessons TrainingVideoLesson[]
+
+  @@index([provider, status, createdAt], map: "training_video_assets_provider_status_idx")
+  @@index([checksum], map: "training_video_assets_checksum_idx")
+  @@map("training_video_assets")
+}
+
+model TrainingVideoLesson {
+  id                      String                @id @default(uuid()) @db.Uuid
+  courseId                String                @map("course_id") @db.Uuid
+  sectionId               String                @map("section_id") @db.Uuid
+  videoAssetId            String                @map("video_asset_id") @db.Uuid
+  title                   String                @db.VarChar(250)
+  titleTranslations       Json                  @default("{}") @map("title_translations") @db.JsonB
+  description             String?               @db.VarChar(2000)
+  descriptionTranslations Json                  @default("{}") @map("description_translations") @db.JsonB
+  captionTracks           Json                  @default("{}") @map("caption_tracks") @db.JsonB
+  status                  TrainingContentStatus @default(DRAFT)
+  sortOrder               Int                   @default(0) @map("sort_order")
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course                TrainingCourse           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  section               TrainingSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  videoAsset            TrainingVideoAsset       @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
+  progress              TrainingLessonProgress[]
+  lastForCourseProgress TrainingCourseProgress[] @relation("TrainingCourseProgressLastLesson")
+
+  @@index([courseId, status, id], map: "training_video_lessons_course_status_idx")
+  @@index([sectionId, status, sortOrder, id], map: "training_video_lessons_section_sort_idx")
+  @@index([videoAssetId], map: "training_video_lessons_video_asset_idx")
+  @@map("training_video_lessons")
+}
+
+model TrainingCourseCompanyAccess {
+  id        String               @id @default(uuid()) @db.Uuid
+  courseId  String               @map("course_id") @db.Uuid
+  companyId String               @map("company_id") @db.Uuid
+  mode      TrainingAudienceMode @default(ALL_USERS)
+  startsAt  DateTime?            @map("starts_at") @db.Timestamptz(6)
+  expiresAt DateTime?            @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course  TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  company Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([courseId, companyId], map: "training_course_company_access_unique")
+  @@index([companyId, startsAt, expiresAt], map: "training_course_company_access_window_idx")
+  @@map("training_course_company_access")
+}
+
+model TrainingCourseServiceAccess {
+  id        String               @id @default(uuid()) @db.Uuid
+  courseId  String               @map("course_id") @db.Uuid
+  serviceId String               @map("service_id") @db.Uuid
+  mode      TrainingAudienceMode @default(ALL_USERS)
+  startsAt  DateTime?            @map("starts_at") @db.Timestamptz(6)
+  expiresAt DateTime?            @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course  TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  service Service        @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@unique([courseId, serviceId], map: "training_course_service_access_unique")
+  @@index([serviceId, startsAt, expiresAt], map: "training_course_service_access_window_idx")
+  @@map("training_course_service_access")
+}
+
+model TrainingCourseUserAccess {
+  id        String                   @id @default(uuid()) @db.Uuid
+  courseId  String                   @map("course_id") @db.Uuid
+  companyId String                   @map("company_id") @db.Uuid
+  userId    String                   @map("user_id") @db.Uuid
+  source    TrainingUserAccessSource @default(PLATFORM)
+  startsAt  DateTime?                @map("starts_at") @db.Timestamptz(6)
+  expiresAt DateTime?                @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course  TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  company Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId], map: "training_course_user_access_unique")
+  @@index([companyId, userId, startsAt, expiresAt], map: "training_course_user_access_window_idx")
+  @@map("training_course_user_access")
+}
+
+model TrainingLessonProgress {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  companyId               String                 @map("company_id") @db.Uuid
+  userId                  String                 @map("user_id") @db.Uuid
+  courseId                String                 @map("course_id") @db.Uuid
+  lessonId                String                 @map("lesson_id") @db.Uuid
+  status                  TrainingProgressStatus @default(IN_PROGRESS)
+  lastPositionSeconds     Int                    @default(0) @map("last_position_seconds")
+  furthestPositionSeconds Int                    @default(0) @map("furthest_position_seconds")
+  startedAt               DateTime               @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt             DateTime?              @map("completed_at") @db.Timestamptz(6)
+  lastAccessedAt          DateTime               @default(now()) @map("last_accessed_at") @db.Timestamptz(6)
+  createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company Company             @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course  TrainingCourse      @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  lesson  TrainingVideoLesson @relation(fields: [lessonId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, lessonId], map: "training_lesson_progress_user_lesson_unique")
+  @@index([companyId, userId, lastAccessedAt(sort: Desc)], map: "training_lesson_progress_company_user_idx")
+  @@index([courseId, status], map: "training_lesson_progress_course_status_idx")
+  @@map("training_lesson_progress")
+}
+
+model TrainingCourseProgress {
+  id             String                 @id @default(uuid()) @db.Uuid
+  companyId      String                 @map("company_id") @db.Uuid
+  userId         String                 @map("user_id") @db.Uuid
+  courseId       String                 @map("course_id") @db.Uuid
+  lastLessonId   String?                @map("last_lesson_id") @db.Uuid
+  status         TrainingProgressStatus @default(IN_PROGRESS)
+  startedAt      DateTime               @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt    DateTime?              @map("completed_at") @db.Timestamptz(6)
+  lastAccessedAt DateTime               @default(now()) @map("last_accessed_at") @db.Timestamptz(6)
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company    Company              @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course     TrainingCourse       @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  lastLesson TrainingVideoLesson? @relation("TrainingCourseProgressLastLesson", fields: [lastLessonId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseId], map: "training_course_progress_user_course_unique")
+  @@index([companyId, userId, lastAccessedAt(sort: Desc)], map: "training_course_progress_continue_idx")
+  @@index([courseId, status], map: "training_course_progress_course_status_idx")
+  @@map("training_course_progress")
+}
+
+model TrainingQuiz {
+  id                      String                @id @default(uuid()) @db.Uuid
+  courseId                String                @map("course_id") @db.Uuid
+  sectionId               String?               @map("section_id") @db.Uuid
+  placement               TrainingQuizPlacement
+  title                   String                @db.VarChar(250)
+  titleTranslations       Json                  @default("{}") @map("title_translations") @db.JsonB
+  instructions            String?               @db.VarChar(2000)
+  instructionTranslations Json                  @default("{}") @map("instruction_translations") @db.JsonB
+  status                  TrainingQuizStatus    @default(DRAFT)
+  requiredForCompletion   Boolean               @default(true) @map("required_for_completion")
+  requiredToContinue      Boolean               @default(false) @map("required_to_continue")
+  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course   TrainingCourse        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  section  TrainingSection?      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  versions TrainingQuizVersion[]
+  attempts TrainingQuizAttempt[]
+
+  @@index([courseId, placement, status], map: "training_quizzes_course_placement_idx")
+  @@index([sectionId], map: "training_quizzes_section_idx")
+  @@map("training_quizzes")
+}
+
+model TrainingQuizVersion {
+  id               String                    @id @default(uuid()) @db.Uuid
+  quizId           String                    @map("quiz_id") @db.Uuid
+  version          Int
+  status           TrainingQuizVersionStatus @default(DRAFT)
+  passPercentage   Int                       @default(70) @map("pass_percentage")
+  maxAttempts      Int?                      @map("max_attempts")
+  timeLimitSeconds Int?                      @map("time_limit_seconds")
+  shuffleQuestions Boolean                   @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean                   @default(false) @map("shuffle_options")
+  revealAnswers    Boolean                   @default(true) @map("reveal_answers")
+  publishedAt      DateTime?                 @map("published_at") @db.Timestamptz(6)
+  createdAt        DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  quiz      TrainingQuiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questions TrainingQuizQuestion[]
+  attempts  TrainingQuizAttempt[]
+
+  @@unique([quizId, version], map: "training_quiz_versions_quiz_version_unique")
+  @@index([quizId, status], map: "training_quiz_versions_quiz_status_idx")
+  @@map("training_quiz_versions")
+}
+
+model TrainingQuizQuestion {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  quizVersionId           String                   @map("quiz_version_id") @db.Uuid
+  type                    TrainingQuizQuestionType
+  prompt                  String                   @db.VarChar(2000)
+  promptTranslations      Json                     @default("{}") @map("prompt_translations") @db.JsonB
+  explanation             String?                  @db.VarChar(2000)
+  explanationTranslations Json                     @default("{}") @map("explanation_translations") @db.JsonB
+  points                  Int                      @default(1)
+  sortOrder               Int                      @default(0) @map("sort_order")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  quizVersion TrainingQuizVersion         @relation(fields: [quizVersionId], references: [id], onDelete: Cascade)
+  options     TrainingQuizOption[]
+  answers     TrainingQuizAttemptAnswer[]
+
+  @@index([quizVersionId, sortOrder, id], map: "training_quiz_questions_version_sort_idx")
+  @@map("training_quiz_questions")
+}
+
+model TrainingQuizOption {
+  id               String   @id @default(uuid()) @db.Uuid
+  questionId       String   @map("question_id") @db.Uuid
+  text             String   @db.VarChar(1000)
+  textTranslations Json     @default("{}") @map("text_translations") @db.JsonB
+  isCorrect        Boolean  @default(false) @map("is_correct")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  question TrainingQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, sortOrder, id], map: "training_quiz_options_question_sort_idx")
+  @@map("training_quiz_options")
+}
+
+model TrainingQuizAttempt {
+  id            String                    @id @default(uuid()) @db.Uuid
+  companyId     String                    @map("company_id") @db.Uuid
+  userId        String                    @map("user_id") @db.Uuid
+  courseId      String                    @map("course_id") @db.Uuid
+  quizId        String                    @map("quiz_id") @db.Uuid
+  quizVersionId String                    @map("quiz_version_id") @db.Uuid
+  attemptNumber Int                       @map("attempt_number")
+  status        TrainingQuizAttemptStatus @default(IN_PROGRESS)
+  score         Int?
+  maxScore      Int?                      @map("max_score")
+  percentage    Int?
+  startedAt     DateTime                  @default(now()) @map("started_at") @db.Timestamptz(6)
+  submittedAt   DateTime?                 @map("submitted_at") @db.Timestamptz(6)
+  expiresAt     DateTime?                 @map("expires_at") @db.Timestamptz(6)
+  createdAt     DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company     Company                     @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user        User                        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course      TrainingCourse              @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  quiz        TrainingQuiz                @relation(fields: [quizId], references: [id], onDelete: Restrict)
+  quizVersion TrainingQuizVersion         @relation(fields: [quizVersionId], references: [id], onDelete: Restrict)
+  answers     TrainingQuizAttemptAnswer[]
+
+  @@unique([userId, quizId, attemptNumber], map: "training_quiz_attempts_user_quiz_number_unique")
+  @@index([companyId, courseId, status], map: "training_quiz_attempts_company_course_idx")
+  @@index([userId, startedAt(sort: Desc)], map: "training_quiz_attempts_user_started_idx")
+  @@map("training_quiz_attempts")
+}
+
+model TrainingQuizAttemptAnswer {
+  id                String   @id @default(uuid()) @db.Uuid
+  attemptId         String   @map("attempt_id") @db.Uuid
+  questionId        String   @map("question_id") @db.Uuid
+  selectedOptionIds Json     @default("[]") @map("selected_option_ids") @db.JsonB
+  isCorrect         Boolean? @map("is_correct")
+  pointsAwarded     Int?     @map("points_awarded")
+  answeredAt        DateTime @default(now()) @map("answered_at") @db.Timestamptz(6)
+
+  attempt  TrainingQuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question TrainingQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([attemptId, questionId], map: "training_quiz_answers_attempt_question_unique")
+  @@index([questionId], map: "training_quiz_answers_question_idx")
+  @@map("training_quiz_attempt_answers")
+}
+
+model TrainingCourseCompletion {
+  id                      String   @id @default(uuid()) @db.Uuid
+  companyId               String   @map("company_id") @db.Uuid
+  userId                  String   @map("user_id") @db.Uuid
+  courseId                String   @map("course_id") @db.Uuid
+  courseTitleSnapshot     String   @map("course_title_snapshot") @db.VarChar(250)
+  courseTitleTranslations Json     @default("{}") @map("course_title_translations") @db.JsonB
+  finalScorePercentage    Int?     @map("final_score_percentage")
+  requirementSnapshot     Json     @default("{}") @map("requirement_snapshot") @db.JsonB
+  completedAt             DateTime @map("completed_at") @db.Timestamptz(6)
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  company     Company              @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course      TrainingCourse       @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  certificate TrainingCertificate?
+
+  @@unique([userId, courseId], map: "training_course_completions_user_course_unique")
+  @@index([companyId, completedAt(sort: Desc)], map: "training_course_completions_company_idx")
+  @@index([courseId, completedAt(sort: Desc)], map: "training_course_completions_course_idx")
+  @@map("training_course_completions")
+}
+
+model TrainingCertificate {
+  id                      String                    @id @default(uuid()) @db.Uuid
+  completionId            String                    @unique @map("completion_id") @db.Uuid
+  templateId              String                    @map("template_id") @db.Uuid
+  companyId               String                    @map("company_id") @db.Uuid
+  userId                  String                    @map("user_id") @db.Uuid
+  courseId                String                    @map("course_id") @db.Uuid
+  certificateNumber       String                    @unique @map("certificate_number") @db.VarChar(100)
+  verificationCodeHash    String                    @unique @map("verification_code_hash") @db.VarChar(128)
+  learnerNameSnapshot     String                    @map("learner_name_snapshot") @db.VarChar(250)
+  learnerEmailSnapshot    String                    @map("learner_email_snapshot") @db.VarChar(320)
+  companyNameSnapshot     String                    @map("company_name_snapshot") @db.VarChar(200)
+  courseTitleSnapshot     String                    @map("course_title_snapshot") @db.VarChar(250)
+  courseTitleTranslations Json                      @default("{}") @map("course_title_translations") @db.JsonB
+  locale                  String                    @db.VarChar(10)
+  scorePercentage         Int?                      @map("score_percentage")
+  status                  TrainingCertificateStatus @default(ACTIVE)
+  issuedAt                DateTime                  @default(now()) @map("issued_at") @db.Timestamptz(6)
+  expiresAt               DateTime?                 @map("expires_at") @db.Timestamptz(6)
+  pdfStorageProvider      TrainingStorageProvider?  @map("pdf_storage_provider")
+  pdfStorageReference     String?                   @map("pdf_storage_reference") @db.VarChar(2048)
+  pdfChecksum             String?                   @map("pdf_checksum") @db.VarChar(128)
+  revokedAt               DateTime?                 @map("revoked_at") @db.Timestamptz(6)
+  revocationReason        String?                   @map("revocation_reason") @db.VarChar(1000)
+  createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  completion TrainingCourseCompletion    @relation(fields: [completionId], references: [id], onDelete: Restrict)
+  template   TrainingCertificateTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  company    Company                     @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user       User                        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course     TrainingCourse              @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, issuedAt(sort: Desc)], map: "training_certificates_company_issued_idx")
+  @@index([userId, issuedAt(sort: Desc)], map: "training_certificates_user_issued_idx")
+  @@index([courseId, issuedAt(sort: Desc)], map: "training_certificates_course_issued_idx")
+  @@map("training_certificates")
 }
