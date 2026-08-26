@@ -16,6 +16,11 @@ export const PERMISSIONS = {
 
   SETTINGS_MANAGE: 'settings.manage',
 
+  TRAINING_READ: 'training.read',
+  TRAINING_MANAGE: 'training.manage',
+  TRAINING_ASSIGN: 'training.assign',
+  TRAINING_PROGRESS_READ: 'training.progress.read',
+
   AUDIT_LOGS_READ: 'audit_logs.read',
 } as const;
 

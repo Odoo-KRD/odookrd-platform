@@ -26,6 +26,23 @@ export const AUDIT_ACTIONS = {
     'service.assignment.status_transitioned',
   SERVICE_ASSIGNMENT_BATCH_TRANSITIONED:
     'service.assignment.batch_transitioned',
+  TRAINING_CATEGORY_CREATED: 'training.category.created',
+  TRAINING_CATEGORY_UPDATED: 'training.category.updated',
+  TRAINING_COURSE_CREATED: 'training.course.created',
+  TRAINING_COURSE_UPDATED: 'training.course.updated',
+  TRAINING_SECTION_CREATED: 'training.section.created',
+  TRAINING_SECTION_UPDATED: 'training.section.updated',
+  TRAINING_LESSON_CREATED: 'training.lesson.created',
+  TRAINING_LESSON_UPDATED: 'training.lesson.updated',
+  TRAINING_VIDEO_UPLOAD_CREATED: 'training.video_upload.created',
+  TRAINING_VIDEO_ASSET_UPDATED: 'training.video_asset.updated',
+  TRAINING_ACCESS_ASSIGNED: 'training.access.assigned',
+  TRAINING_ACCESS_REVOKED: 'training.access.revoked',
+  TRAINING_QUIZ_CREATED: 'training.quiz.created',
+  TRAINING_QUIZ_UPDATED: 'training.quiz.updated',
+  TRAINING_COURSE_COMPLETED: 'training.course.completed',
+  TRAINING_CERTIFICATE_ISSUED: 'training.certificate.issued',
+  TRAINING_CERTIFICATE_REVOKED: 'training.certificate.revoked',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

@@ -89,6 +89,26 @@ const permissions = [
     description:
       'Change permitted settings within the authorized platform or company scope.',
   },
+  {
+    key: 'training.read',
+    name: 'Read training',
+    description: 'View training content available within the authorized scope.',
+  },
+  {
+    key: 'training.manage',
+    name: 'Manage training',
+    description: 'Manage the platform training catalog and learning content.',
+  },
+  {
+    key: 'training.assign',
+    name: 'Assign training',
+    description: 'Assign training access within the authorized company scope.',
+  },
+  {
+    key: 'training.progress.read',
+    name: 'Read training progress',
+    description: 'View training progress within the authorized scope.',
+  },
 ] as const;
 
 const roles = [
@@ -113,6 +133,10 @@ const roles = [
       'notifications.read',
 
       'notifications.manage',
+      'training.read',
+      'training.manage',
+      'training.assign',
+      'training.progress.read',
     ],
   },
   {
@@ -133,6 +157,9 @@ const roles = [
       'notifications.read',
 
       'notifications.manage',
+      'training.read',
+      'training.assign',
+      'training.progress.read',
     ],
   },
   {
@@ -141,7 +168,12 @@ const roles = [
     description: 'Standard user for a customer company.',
     scope: RoleScope.COMPANY,
     isSystem: true,
-    permissions: ['companies.read', 'services.read', 'notifications.read'],
+    permissions: [
+      'companies.read',
+      'services.read',
+      'notifications.read',
+      'training.read',
+    ],
   },
 ] as const;
 

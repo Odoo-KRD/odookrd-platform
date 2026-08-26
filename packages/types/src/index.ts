@@ -19,6 +19,11 @@ export const PERMISSIONS = {
   NOTIFICATIONS_MANAGE: "notifications.manage",
   SETTINGS_READ: "settings.read",
   SETTINGS_MANAGE: "settings.manage",
+  TRAINING_READ: "training.read",
+  TRAINING_MANAGE: "training.manage",
+  TRAINING_ASSIGN: "training.assign",
+  TRAINING_PROGRESS_READ: "training.progress.read",
+
   AUDIT_LOGS_READ: "audit_logs.read",
 } as const;
 
@@ -577,4 +582,50 @@ export interface NotificationBroadcastResult {
   notificationCount: number;
   channels: NotificationChannel[];
   externalDeliveryQueued: boolean;
+}
+
+export const TRAINING_STORAGE_PROVIDERS = ["AWS_S3", "LOCAL"] as const;
+export type TrainingStorageProvider =
+  (typeof TRAINING_STORAGE_PROVIDERS)[number];
+
+export const DEFAULT_TRAINING_STORAGE_PROVIDER: TrainingStorageProvider =
+  "AWS_S3";
+export const LOCAL_TRAINING_TRANSCODING_ENABLED = false;
+export const DEFAULT_LESSON_COMPLETION_PERCENTAGE = 90;
+
+export type TrainingCategoryStatus = "ACTIVE" | "INACTIVE";
+export type TrainingCourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+export type TrainingContentStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+export type TrainingVideoAssetStatus =
+  | "UPLOADING"
+  | "PROCESSING"
+  | "READY"
+  | "FAILED"
+  | "ARCHIVED";
+export type TrainingAudienceMode = "ALL_USERS" | "ASSIGNED_USERS";
+export type TrainingUserAccessSource = "PLATFORM" | "COMPANY_ADMIN";
+export type TrainingProgressStatus = "IN_PROGRESS" | "COMPLETED";
+export type TrainingQuizPlacement = "SECTION" | "COURSE_FINAL";
+export type TrainingQuizStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+export type TrainingQuizVersionStatus = "DRAFT" | "PUBLISHED" | "RETIRED";
+export type TrainingQuizQuestionType =
+  | "SINGLE_CHOICE"
+  | "MULTIPLE_CHOICE"
+  | "TRUE_FALSE";
+export type TrainingQuizAttemptStatus =
+  | "IN_PROGRESS"
+  | "SUBMITTED"
+  | "PASSED"
+  | "FAILED"
+  | "EXPIRED";
+export type TrainingCertificateStatus = "ACTIVE" | "REVOKED";
+
+export interface TrainingFoundationCapabilities {
+  enabled: boolean;
+  primaryStorageProvider: TrainingStorageProvider;
+  localUploadEnabled: boolean;
+  localTranscodingEnabled: false;
+  lessonCompletionPercentage: number;
+  quizzesEnabled: boolean;
+  certificatesEnabled: boolean;
 }

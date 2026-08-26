@@ -27,6 +27,9 @@ const COMPANY_ROLE_PERMISSION_KEYS = new Set([
   'notifications.manage',
   'settings.read',
   'settings.manage',
+  'training.read',
+  'training.assign',
+  'training.progress.read',
 ]);
 
 const ROLE_SELECT = {
