@@ -1,7 +1,8 @@
 "use client";
 
-import { ActionButton } from "@odookrd/ui";
 import { useActionState } from "react";
+
+import { AdminActionButton } from "@/components/admin/admin-action-controls";
 
 import type { FormState } from "@/lib/forms";
 import type { RoleAdministrationDictionary } from "@/lib/i18n/role-administration";
@@ -36,9 +37,14 @@ export function DeleteRoleForm({ action, labels }: DeleteRoleFormProps) {
       ) : null}
 
       <div>
-        <ActionButton type="submit" variant="danger" disabled={pending}>
+        <AdminActionButton
+          type="submit"
+          tone="danger"
+          icon="delete"
+          disabled={pending}
+        >
           {pending ? labels.deleting : labels.delete}
-        </ActionButton>
+        </AdminActionButton>
       </div>
     </form>
   );

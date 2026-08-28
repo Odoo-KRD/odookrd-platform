@@ -44,4 +44,34 @@ export const environmentValidationSchema = Joi.object({
     .min(60)
     .max(86400)
     .default(900),
+
+  FILES_STORAGE_PROVIDER: Joi.string()
+    .valid('LOCAL', 'AWS_S3')
+    .default('LOCAL'),
+  FILES_LOCAL_ROOT: Joi.string().default('/opt/odookrd-platform/var/uploads'),
+  FILES_S3_REGION: Joi.when('FILES_STORAGE_PROVIDER', {
+    is: 'AWS_S3',
+    then: Joi.string().min(1).required(),
+    otherwise: Joi.string().optional(),
+  }),
+  FILES_S3_BUCKET: Joi.when('FILES_STORAGE_PROVIDER', {
+    is: 'AWS_S3',
+    then: Joi.string().min(3).required(),
+    otherwise: Joi.string().optional(),
+  }),
+  FILES_MAX_IMAGE_BYTES: Joi.number()
+    .integer()
+    .min(1024)
+    .max(104857600)
+    .default(10485760),
+  FILES_MAX_DOCUMENT_BYTES: Joi.number()
+    .integer()
+    .min(1024)
+    .max(104857600)
+    .default(52428800),
+  FILES_MAX_ATTACHMENT_BYTES: Joi.number()
+    .integer()
+    .min(1024)
+    .max(104857600)
+    .default(52428800),
 });

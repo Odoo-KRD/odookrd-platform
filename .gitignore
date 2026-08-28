@@ -35,3 +35,6 @@ temp/
 *.db
 *.db-journal
 /apps/api/src/generated/prisma/
+
+# Runtime file storage
+/var/

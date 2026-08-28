@@ -109,6 +109,7 @@ export const adminEn = {
     statusInvited: "Invited",
     statusActive: "Active",
     statusSuspended: "Suspended",
+    statusArchived: "Archived",
     saveRoles: "Save roles",
     updateStatus: "Change account status",
     applyStatus: "Apply status",
@@ -159,7 +160,8 @@ export const adminEn = {
       companies: "Companies",
       notifications: "Notifications",
       helpdesk: "Helpdesk",
-      trainings: "Trainings",
+      trainings: "E-Learning",
+      files: "File Storage",
     },
     categoryDescriptions: {
       general: "Site title, default language, and timezone.",
@@ -167,7 +169,9 @@ export const adminEn = {
       companies: "Company account limits and policies.",
       notifications: "In-app, Amazon SES, and WhatsApp API configuration.",
       helpdesk: "Helpdesk settings will be added with that module.",
-      trainings: "Training settings will be added with that module.",
+      trainings: "Course, lesson, progress, quiz and certificate settings.",
+      files:
+        "Platform-wide file storage, upload limits and allowed file types.",
     },
     sources: {
       DEFAULT: "Default",

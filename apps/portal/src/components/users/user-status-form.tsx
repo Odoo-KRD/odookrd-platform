@@ -13,14 +13,21 @@ interface UserStatusFormProps {
   labels: UsersDictionary;
 }
 
-export function UserStatusForm({ action, status, labels }: UserStatusFormProps) {
+export function UserStatusForm({
+  action,
+  status,
+  labels,
+}: UserStatusFormProps) {
   const [state, formAction, pending] = useActionState(action, {
     message: null,
   });
 
   return (
     <form action={formAction} className="grid max-w-xl gap-4">
-      <label htmlFor="user-status" className="text-sm font-medium text-slate-700">
+      <label
+        htmlFor="user-status"
+        className="text-sm font-medium text-slate-700"
+      >
         {labels.status}
       </label>
       <select
@@ -31,10 +38,14 @@ export function UserStatusForm({ action, status, labels }: UserStatusFormProps) 
       >
         <option value="ACTIVE">{labels.statusActive}</option>
         <option value="SUSPENDED">{labels.statusSuspended}</option>
+        <option value="ARCHIVED">{labels.statusArchived}</option>
       </select>
 
       {state.message ? (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {state.message}
         </p>
       ) : null}

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -19,6 +20,7 @@ import { AuthorizationGuard } from '../authorization/guards/authorization.guard'
 import { PERMISSIONS } from '../authorization/permissions';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { BatchUserStatusDto } from './dto/batch-user-status.dto';
+import { BatchDeleteUsersDto } from './dto/batch-delete-users.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ReplaceUserRolesDto } from './dto/replace-user-roles.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
@@ -73,6 +75,24 @@ export class UsersController {
     @Body() dto: UpdateUserStatusDto,
   ) {
     return this.usersService.updateStatus(principal, userId, dto);
+  }
+
+  @Post('batch-delete')
+  @RequirePermissions(PERMISSIONS.USERS_MANAGE)
+  batchDelete(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() dto: BatchDeleteUsersDto,
+  ) {
+    return this.usersService.deleteMany(principal, dto.ids);
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.USERS_MANAGE)
+  delete(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) userId: string,
+  ) {
+    return this.usersService.delete(principal, userId);
   }
 
   @Put(':id/roles')

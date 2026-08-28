@@ -180,12 +180,26 @@ export async function batchCompanyStatusAction(
     session.user.accountScope !== "PLATFORM" ||
     !ids ||
     typeof status !== "string" ||
-    !statuses.includes(status as CompanyStatus)
+    (!statuses.includes(status as CompanyStatus) && status !== "DELETE")
   ) {
-    return { ok: false, message: "Choose valid companies and a status." };
+    return { ok: false, message: "Choose valid companies and an action." };
   }
 
   try {
+    if (status === "DELETE") {
+      const result = await apiRequest<{ deleted: number }>(
+        "/companies/batch-delete",
+        {
+          method: "POST",
+          token,
+          body: JSON.stringify({ ids }),
+        },
+      );
+
+      revalidatePath("/admin/companies");
+      return { ok: true, message: `${result.deleted} deleted.` };
+    }
+
     const result = await apiRequest<BatchMutationResult>(
       "/companies/batch-status",
       {
@@ -205,5 +219,78 @@ export async function batchCompanyStatusAction(
       ok: false,
       message: failure(error).message ?? "Batch update failed.",
     };
+  }
+}
+
+export async function archiveCompanyRowAction(
+  companyId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
+
+  if (session.user.accountScope !== "PLATFORM") {
+    return { ok: false, message: "Platform scope is required." };
+  }
+
+  try {
+    await apiRequest(`/companies/${encodeURIComponent(companyId)}/status`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ status: "ARCHIVED" }),
+    });
+    revalidatePath("/admin/companies");
+    revalidatePath(`/admin/companies/${companyId}`);
+    return { ok: true, message: "Company archived." };
+  } catch (error: unknown) {
+    return { ok: false, message: failure(error).message ?? "Archive failed." };
+  }
+}
+
+export async function restoreCompanyRowAction(
+  companyId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
+
+  if (session.user.accountScope !== "PLATFORM") {
+    return { ok: false, message: "Platform scope is required." };
+  }
+
+  try {
+    await apiRequest(`/companies/${encodeURIComponent(companyId)}/status`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ status: "ACTIVE" }),
+    });
+    revalidatePath("/admin/companies");
+    revalidatePath(`/admin/companies/${companyId}`);
+    return { ok: true, message: "Company restored." };
+  } catch (error: unknown) {
+    return { ok: false, message: failure(error).message ?? "Restore failed." };
+  }
+}
+
+export async function deleteCompanyRowAction(
+  companyId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.COMPANIES_MANAGE,
+  );
+
+  if (session.user.accountScope !== "PLATFORM") {
+    return { ok: false, message: "Platform scope is required." };
+  }
+
+  try {
+    await apiRequest(`/companies/${encodeURIComponent(companyId)}`, {
+      method: "DELETE",
+      token,
+    });
+    revalidatePath("/admin/companies");
+    return { ok: true, message: "Company deleted." };
+  } catch (error: unknown) {
+    return { ok: false, message: failure(error).message ?? "Delete failed." };
   }
 }

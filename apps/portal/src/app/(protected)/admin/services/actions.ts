@@ -1185,3 +1185,194 @@ export async function syncAssignmentFeaturesAction(
 
   refreshServiceAdministration(undefined, assignmentId);
 }
+
+export async function archiveServiceRowAction(
+  serviceId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can archive services.",
+    };
+  }
+
+  try {
+    await apiRequest<ManagedService>(
+      `/services/${encodeURIComponent(serviceId)}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ status: "INACTIVE" }),
+      },
+    );
+    revalidatePath("/admin/services");
+    revalidatePath(`/admin/services/${serviceId}`);
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The service could not be archived.",
+    };
+  }
+}
+
+export async function restoreServiceRowAction(
+  serviceId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can restore services.",
+    };
+  }
+
+  try {
+    await apiRequest<ManagedService>(
+      `/services/${encodeURIComponent(serviceId)}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ status: "ACTIVE" }),
+      },
+    );
+    revalidatePath("/admin/services");
+    revalidatePath(`/admin/services/${serviceId}`);
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The service could not be restored.",
+    };
+  }
+}
+
+export async function deleteServiceRowAction(
+  serviceId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can delete services.",
+    };
+  }
+
+  try {
+    await apiRequest<{ success: true }>(
+      `/services/${encodeURIComponent(serviceId)}`,
+      {
+        method: "DELETE",
+        token,
+      },
+    );
+    revalidatePath("/admin/services");
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The service could not be deleted.",
+    };
+  }
+}
+
+export async function archiveFeatureDefinitionRowAction(
+  definitionId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can archive features.",
+    };
+  }
+
+  try {
+    await apiRequest<ServiceFeatureDefinition>(
+      `/service-feature-definitions/${encodeURIComponent(definitionId)}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ status: "INACTIVE" }),
+      },
+    );
+    revalidatePath("/admin/services/features");
+    revalidatePath(`/admin/services/features/${definitionId}`);
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The feature could not be archived.",
+    };
+  }
+}
+
+export async function restoreFeatureDefinitionRowAction(
+  definitionId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can restore features.",
+    };
+  }
+
+  try {
+    await apiRequest<ServiceFeatureDefinition>(
+      `/service-feature-definitions/${encodeURIComponent(definitionId)}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ status: "ACTIVE" }),
+      },
+    );
+    revalidatePath("/admin/services/features");
+    revalidatePath(`/admin/services/features/${definitionId}`);
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The feature could not be restored.",
+    };
+  }
+}
+
+export async function deleteFeatureDefinitionRowAction(
+  definitionId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can delete features.",
+    };
+  }
+
+  try {
+    await apiRequest<{ success: true }>(
+      `/service-feature-definitions/${encodeURIComponent(definitionId)}`,
+      { method: "DELETE", token },
+    );
+    revalidatePath("/admin/services/features");
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failed(error).message ?? "The feature could not be deleted.",
+    };
+  }
+}

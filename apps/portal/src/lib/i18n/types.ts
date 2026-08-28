@@ -144,6 +144,7 @@ export interface UsersDictionary {
   statusInvited: string;
   statusActive: string;
   statusSuspended: string;
+  statusArchived: string;
   saveRoles: string;
   updateStatus: string;
   applyStatus: string;
@@ -390,7 +391,10 @@ export interface CustomerWorkspaceDictionary {
     lastActivity: string;
     companyAdministrator: string;
     companyUser: string;
-    statusLabels: Record<"INVITED" | "ACTIVE" | "SUSPENDED", string>;
+    statusLabels: Record<
+      "INVITED" | "ACTIVE" | "SUSPENDED" | "ARCHIVED",
+      string
+    >;
   };
   activity: {
     labels: Record<

@@ -107,6 +107,7 @@ export const adminAr = {
     statusInvited: "مدعو",
     statusActive: "نشط",
     statusSuspended: "موقوف",
+    statusArchived: "مؤرشف",
     saveRoles: "حفظ الأدوار",
     updateStatus: "تغيير الحالة",
     applyStatus: "تطبيق الحالة",
@@ -154,7 +155,8 @@ export const adminAr = {
       companies: "الشركات",
       notifications: "الإشعارات",
       helpdesk: "مكتب المساعدة",
-      trainings: "التدريب",
+      trainings: "التعلّم الإلكتروني",
+      files: "تخزين الملفات",
     },
     categoryDescriptions: {
       general: "عنوان الموقع واللغة والمنطقة الزمنية الافتراضية.",
@@ -162,7 +164,8 @@ export const adminAr = {
       companies: "حدود وسياسات حسابات الشركات.",
       notifications: "داخل التطبيق وAmazon SES وWhatsApp API.",
       helpdesk: "إعدادات مكتب المساعدة ستضاف في مرحلة لاحقة.",
-      trainings: "إعدادات التدريب ستضاف في مرحلة لاحقة.",
+      trainings: "إعدادات الدورات والدروس والتقدم والاختبارات والشهادات.",
+      files: "تخزين ملفات المنصة وحدود الرفع وأنواع الملفات المسموحة.",
     },
     sources: {
       DEFAULT: "افتراضي",

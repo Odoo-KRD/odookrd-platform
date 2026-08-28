@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -67,5 +68,14 @@ export class ServiceFeatureDefinitionsController {
       definitionId,
       input,
     );
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  remove(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) definitionId: string,
+  ) {
+    return this.services.deleteFeatureDefinition(principal, definitionId);
   }
 }

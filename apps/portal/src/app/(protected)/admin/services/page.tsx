@@ -16,15 +16,20 @@ import {
   type AdminDataTableRow,
   type AdminTableTone,
 } from "@/components/admin/admin-data-table";
+import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
+import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { getServicesDictionary } from "@/lib/i18n/services-server";
 
 import {
+  archiveServiceRowAction,
   batchAssignmentTransitionAction,
   batchServiceStatusAction,
+  deleteServiceRowAction,
+  restoreServiceRowAction,
 } from "./actions";
 
 interface ServicesPageProps {
@@ -186,6 +191,8 @@ export default async function ServicesPage({
     }
   }
 
+  const lifecycle = adminLifecycleDictionaries[locale];
+
   const canReadCompanies = hasPermission(session, PERMISSIONS.COMPANIES_READ);
 
   const [catalog, assignments, companies, filterServices] = await Promise.all([
@@ -250,9 +257,19 @@ export default async function ServicesPage({
           value: String(service.assignmentCount),
         },
         actions: {
-          type: "link",
-          label: services.view,
-          href: `/admin/services/${service.id}`,
+          type: "node",
+          value: (
+            <AdminLifecycleRowActions
+              id={service.id}
+              name={service.name}
+              status={service.status}
+              editHref={`/admin/services/${service.id}`}
+              labels={lifecycle}
+              archiveAction={archiveServiceRowAction}
+              restoreAction={restoreServiceRowAction}
+              deleteAction={deleteServiceRowAction}
+            />
+          ),
         },
       },
     }),
@@ -301,9 +318,14 @@ export default async function ServicesPage({
           className: "break-all",
         },
         actions: {
-          type: "link",
-          label: services.view,
-          href: `/admin/services/assignments/${assignment.id}`,
+          type: "actions",
+          items: [
+            {
+              key: "view",
+              label: services.view,
+              href: `/admin/services/assignments/${assignment.id}`,
+            },
+          ],
         },
       },
     }),

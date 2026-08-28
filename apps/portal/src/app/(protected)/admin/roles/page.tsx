@@ -6,12 +6,20 @@ import {
   AdminDataTable,
   type AdminDataTableRow,
 } from "@/components/admin/admin-data-table";
+import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import type { AdminDictionary } from "@/lib/i18n/admin";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { roleAdministrationDictionaries } from "@/lib/i18n/role-administration";
+
+import {
+  archiveRoleRowAction,
+  deleteRoleRowAction,
+  restoreRoleRowAction,
+} from "./actions";
 
 function translatedRole(role: Role, dictionary: AdminDictionary): string {
   if (role.key === "platform_admin") return dictionary.roles.platformAdmin;
@@ -29,6 +37,7 @@ export default async function RolesPage() {
   const roles = await apiRequest<Role[]>("/roles", { token });
   const labels = roleAdministrationDictionaries[locale];
   const tableLabels = adminTableDictionaries[locale];
+  const lifecycle = adminLifecycleDictionaries[locale];
   const canManage =
     session.user.accountScope === "PLATFORM" &&
     hasPermission(session, PERMISSIONS.ROLES_MANAGE);
@@ -64,6 +73,11 @@ export default async function RolesPage() {
         label: role.isSystem ? labels.system : labels.custom,
         tone: role.isSystem ? "neutral" : "success",
       },
+      status: {
+        type: "badge",
+        label: role.archivedAt ? labels.archived : labels.active,
+        tone: role.archivedAt ? "neutral" : "success",
+      },
       permissions: {
         type: "text",
         value: String(role.permissions.length),
@@ -72,11 +86,33 @@ export default async function RolesPage() {
         type: "text",
         value: String(role.assignmentCount),
       },
-      actions: {
-        type: "link",
-        label: labels.view,
-        href: `/admin/roles/${role.id}`,
-      },
+      actions:
+        canManage && !role.isSystem
+          ? {
+              type: "node",
+              value: (
+                <AdminLifecycleRowActions
+                  id={role.id}
+                  name={translatedRole(role, admin)}
+                  status={role.archivedAt ? "ARCHIVED" : "ACTIVE"}
+                  editHref={`/admin/roles/${role.id}`}
+                  labels={lifecycle}
+                  archiveAction={archiveRoleRowAction}
+                  restoreAction={restoreRoleRowAction}
+                  deleteAction={deleteRoleRowAction}
+                />
+              ),
+            }
+          : {
+              type: "actions",
+              items: [
+                {
+                  key: "view",
+                  label: labels.view,
+                  href: `/admin/roles/${role.id}`,
+                },
+              ],
+            },
     },
   }));
 
@@ -94,6 +130,7 @@ export default async function RolesPage() {
           { key: "key", label: labels.key },
           { key: "scope", label: labels.scope },
           { key: "type", label: labels.type },
+          { key: "status", label: labels.status },
           { key: "permissions", label: labels.permissions },
           { key: "assigned", label: labels.assignedUsers },
           { key: "actions", label: admin.companies.actions },

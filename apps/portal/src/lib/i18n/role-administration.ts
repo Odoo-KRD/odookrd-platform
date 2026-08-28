@@ -16,6 +16,9 @@ export interface RoleAdministrationDictionary {
   platform: string;
   company: string;
   type: string;
+  status: string;
+  active: string;
+  archived: string;
   system: string;
   custom: string;
   permissions: string;
@@ -55,6 +58,9 @@ export const roleAdministrationDictionaries: Record<
     platform: "پلاتفۆرم",
     company: "کۆمپانیا",
     type: "جۆر",
+    status: "دۆخ",
+    active: "چالاک",
+    archived: "ئەرشیفکراو",
     system: "سیستەم",
     custom: "تایبەت",
     permissions: "ڕێگەپێدانەکان",
@@ -90,6 +96,9 @@ export const roleAdministrationDictionaries: Record<
     platform: "المنصة",
     company: "الشركة",
     type: "النوع",
+    status: "الحالة",
+    active: "نشط",
+    archived: "مؤرشف",
     system: "نظام",
     custom: "مخصص",
     permissions: "الصلاحيات",
@@ -101,7 +110,7 @@ export const roleAdministrationDictionaries: Record<
     delete: "حذف الدور",
     deleting: "جارٍ الحذف...",
     deleteConfirm: "هل أنت متأكد من حذف هذا الدور؟",
-    systemProtected: "أدوار النظام محمية ولا يمكن تعديلها أو حذفها.",
+    systemProtected: "أدوار النظام محمية ولا يمكن تعديلها أو أرشفتها أو حذفها.",
     immutableFields: "مفتاح الدور ونطاقه لا يتغيران بعد الإنشاء.",
     back: "رجوع",
     view: "عرض",
@@ -125,6 +134,9 @@ export const roleAdministrationDictionaries: Record<
     platform: "Platform",
     company: "Company",
     type: "Type",
+    status: "Status",
+    active: "Active",
+    archived: "Archived",
     system: "System",
     custom: "Custom",
     permissions: "Permissions",
@@ -137,7 +149,7 @@ export const roleAdministrationDictionaries: Record<
     deleting: "Deleting...",
     deleteConfirm: "Are you sure you want to delete this role?",
     systemProtected:
-      "System roles are protected and cannot be edited or deleted.",
+      "System roles are protected and cannot be edited, archived, or deleted.",
     immutableFields: "The role key and scope cannot change after creation.",
     back: "Back",
     view: "View",

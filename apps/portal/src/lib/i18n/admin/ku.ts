@@ -109,6 +109,7 @@ export const adminKu = {
     statusInvited: "بانگهێشتکراو",
     statusActive: "چالاک",
     statusSuspended: "ڕاگیراو",
+    statusArchived: "ئەرشیفکراو",
     saveRoles: "پاشەکەوتکردنی ڕۆڵەکان",
     updateStatus: "گۆڕینی دۆخ",
     applyStatus: "جێبەجێکردن",
@@ -157,7 +158,8 @@ export const adminKu = {
       companies: "کۆمپانیاکان",
       notifications: "ئاگادارکردنەوەکان",
       helpdesk: "یارمەتی",
-      trainings: "ڕاهێنانەکان",
+      trainings: "فێرکاری ئۆنلاین",
+      files: "هەڵگرتنی فایل",
     },
     categoryDescriptions: {
       general: "ناوی ماڵپەڕ، زمانی بنەڕەتی و کاتی ناوچەیی.",
@@ -165,7 +167,8 @@ export const adminKu = {
       companies: "سنوور و سیاسەتەکانی کۆمپانیا.",
       notifications: "ناوئەپ، Amazon SES و WhatsApp API.",
       helpdesk: "ڕێکخستنەکانی یارمەتی لە قۆناغی داهاتوودا.",
-      trainings: "ڕێکخستنەکانی ڕاهێنان لە قۆناغی داهاتوودا.",
+      trainings: "ڕێکخستنەکانی کۆرس، وانە، پێشکەوتن، تاقیکردنەوە و بڕوانامە.",
+      files: "هەڵگرتنی فایل، سنووری بارکردن و جۆرە ڕێگەپێدراوەکان.",
     },
     sources: {
       DEFAULT: "بنەڕەت",

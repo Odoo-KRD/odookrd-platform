@@ -146,6 +146,7 @@ export const frontendKu = {
         INVITED: "بانگهێشتکراو",
         ACTIVE: "چالاک",
         SUSPENDED: "ڕاگیراو",
+        ARCHIVED: "ئەرشیفکراو",
       },
     },
     activity: {

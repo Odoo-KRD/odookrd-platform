@@ -13,20 +13,27 @@ import {
   type AdminDataTableRow,
   type AdminTableTone,
 } from "@/components/admin/admin-data-table";
+import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { CompanyFilter } from "@/components/users/company-filter";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
+import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { getUsersDictionary } from "@/lib/i18n/users-server";
 
-import { batchUserStatusAction } from "./actions";
+import {
+  archiveUserRowAction,
+  batchUserStatusAction,
+  deleteUserRowAction,
+  restoreUserRowAction,
+} from "./actions";
 
 interface UsersPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-const statuses: UserStatus[] = ["INVITED", "ACTIVE", "SUSPENDED"];
+const statuses: UserStatus[] = ["INVITED", "ACTIVE", "SUSPENDED", "ARCHIVED"];
 const pageSize = 20;
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -70,6 +77,7 @@ function usersHref(
 function statusTone(status: UserStatus): AdminTableTone {
   if (status === "ACTIVE") return "success";
   if (status === "SUSPENDED") return "danger";
+  if (status === "ARCHIVED") return "neutral";
   return "accent";
 }
 
@@ -124,6 +132,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   ) : undefined;
 
   const tableLabels = adminTableDictionaries[locale];
+  const lifecycle = adminLifecycleDictionaries[locale];
 
   const rows: AdminDataTableRow[] = result.items.map(
     (user): AdminDataTableRow => {
@@ -150,7 +159,9 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                 ? users.statusInvited
                 : user.status === "ACTIVE"
                   ? users.statusActive
-                  : users.statusSuspended,
+                  : user.status === "SUSPENDED"
+                    ? users.statusSuspended
+                    : users.statusArchived,
             tone: statusTone(user.status),
           },
           ...(isPlatform
@@ -175,11 +186,27 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
             value: formatDate(user.createdAt, locale),
             muted: true,
           },
-          actions: {
-            type: "link",
-            label: users.view,
-            href: `/admin/users/${user.id}`,
-          },
+          actions: canInvite
+            ? {
+                type: "node",
+                value: (
+                  <AdminLifecycleRowActions
+                    id={user.id}
+                    name={user.email}
+                    status={user.status}
+                    editHref={`/admin/users/${user.id}`}
+                    labels={lifecycle}
+                    archiveAction={archiveUserRowAction}
+                    restoreAction={restoreUserRowAction}
+                    deleteAction={deleteUserRowAction}
+                  />
+                ),
+              }
+            : {
+                type: "link",
+                label: users.view,
+                href: `/admin/users/${user.id}`,
+              },
         },
       };
     },
@@ -213,7 +240,9 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
               ? users.statusInvited
               : filter === "ACTIVE"
                 ? users.statusActive
-                : users.statusSuspended}
+                : filter === "SUSPENDED"
+                  ? users.statusSuspended
+                  : users.statusArchived}
           </Link>
         ))}
       </div>
@@ -295,6 +324,16 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                 {
                   value: "SUSPENDED",
                   label: users.statusSuspended,
+                  tone: "danger",
+                },
+                {
+                  value: "ARCHIVED",
+                  label: users.statusArchived,
+                  tone: "danger",
+                },
+                {
+                  value: "DELETE",
+                  label: lifecycle.delete,
                   tone: "danger",
                 },
               ]

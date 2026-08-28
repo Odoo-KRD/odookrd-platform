@@ -12,10 +12,18 @@ import {
   AdminDataTable,
   type AdminDataTableRow,
 } from "@/components/admin/admin-data-table";
+import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
+import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { getServicesDictionary } from "@/lib/i18n/services-server";
+
+import {
+  archiveFeatureDefinitionRowAction,
+  deleteFeatureDefinitionRowAction,
+  restoreFeatureDefinitionRowAction,
+} from "../actions";
 
 interface FeatureDefinitionsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -60,6 +68,8 @@ export default async function FeatureDefinitionsPage({
 
   if (category) query.set("category", category);
   if (status) query.set("status", status);
+
+  const lifecycle = adminLifecycleDictionaries[locale];
 
   const definitions = await apiRequest<
     PaginatedResult<ServiceFeatureDefinition>
@@ -106,9 +116,19 @@ export default async function FeatureDefinitionsPage({
       },
       serviceCount: { type: "text", value: String(definition.serviceCount) },
       actions: {
-        type: "link",
-        label: services.view,
-        href: `/admin/services/features/${definition.id}`,
+        type: "node",
+        value: (
+          <AdminLifecycleRowActions
+            id={definition.id}
+            name={definition.name}
+            status={definition.status}
+            editHref={`/admin/services/features/${definition.id}`}
+            labels={lifecycle}
+            archiveAction={archiveFeatureDefinitionRowAction}
+            restoreAction={restoreFeatureDefinitionRowAction}
+            deleteAction={deleteFeatureDefinitionRowAction}
+          />
+        ),
       },
     },
   }));

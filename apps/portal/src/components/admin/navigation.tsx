@@ -11,6 +11,7 @@ export type AdminNavigationIconName =
   | "users"
   | "roles"
   | "services"
+  | "training"
   | "notifications"
   | "settings";
 
@@ -170,6 +171,13 @@ function NavigationIcon({
       return (
         <svg {...common}>
           <path d="M12 3 4 7l8 4 8-4-8-4ZM4 12l8 4 8-4M4 17l8 4 8-4" />
+        </svg>
+      );
+    case "training":
+      return (
+        <svg {...common}>
+          <path d="M4 5.5h11a3 3 0 0 1 3 3V20H7a3 3 0 0 1-3-3V5.5Z" />
+          <path d="M7 5.5V20M10 9h5M10 13h5" />
         </svg>
       );
     case "notifications":

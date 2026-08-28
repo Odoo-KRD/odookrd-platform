@@ -13,6 +13,7 @@ import { portalDictionaries } from "@/lib/i18n/portal";
 import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
 import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
+import { trainingDictionaries } from "@/lib/i18n/training";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
@@ -50,6 +51,9 @@ export default async function ProtectedAdminLayout({
     services: servicesDictionaries[locale].title,
     manageServices: serviceFeatureDictionaries[locale].manageServices,
     featureDefinitions: serviceFeatureDictionaries[locale].featureDefinitions,
+    training: trainingDictionaries[locale].navigation,
+    trainingCourses: trainingDictionaries[locale].coursesNavigation,
+    trainingCategories: trainingDictionaries[locale].categoriesNavigation,
     notifications: notificationLabels.navigation,
     deliveryLog: notificationLabels.deliveryLog,
     providerStatus: notificationLabels.providerStatus,

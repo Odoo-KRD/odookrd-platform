@@ -168,6 +168,89 @@ export async function deleteRoleAction(
   redirect("/admin/roles");
 }
 
+export async function archiveRoleRowAction(
+  roleId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(PERMISSIONS.ROLES_MANAGE);
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can archive roles.",
+    };
+  }
+
+  try {
+    await apiRequest<Role>(`/roles/${encodeURIComponent(roleId)}/archive`, {
+      method: "PATCH",
+      token,
+    });
+    revalidatePath("/admin/roles");
+    revalidatePath(`/admin/roles/${roleId}`);
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failure(error).message ?? "The role could not be archived.",
+    };
+  }
+}
+
+export async function restoreRoleRowAction(
+  roleId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(PERMISSIONS.ROLES_MANAGE);
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can restore roles.",
+    };
+  }
+
+  try {
+    await apiRequest<Role>(`/roles/${encodeURIComponent(roleId)}/restore`, {
+      method: "PATCH",
+      token,
+    });
+    revalidatePath("/admin/roles");
+    revalidatePath(`/admin/roles/${roleId}`);
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failure(error).message ?? "The role could not be restored.",
+    };
+  }
+}
+
+export async function deleteRoleRowAction(
+  roleId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { session, token } = await getAdminApiContext(PERMISSIONS.ROLES_MANAGE);
+  if (session.user.accountScope !== "PLATFORM") {
+    return {
+      ok: false,
+      message: "Only platform administrators can delete roles.",
+    };
+  }
+
+  try {
+    await apiRequest<{ success: true }>(
+      `/roles/${encodeURIComponent(roleId)}`,
+      {
+        method: "DELETE",
+        token,
+      },
+    );
+    revalidatePath("/admin/roles");
+    return { ok: true, message: "" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      message: failure(error).message ?? "The role could not be deleted.",
+    };
+  }
+}
+
 export async function loadRolePermissions(): Promise<PermissionDefinition[]> {
   const { token } = await getAdminApiContext(PERMISSIONS.ROLES_MANAGE);
   return apiRequest<PermissionDefinition[]>("/roles/permissions", { token });

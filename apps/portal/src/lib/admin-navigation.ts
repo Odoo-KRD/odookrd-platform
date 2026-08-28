@@ -14,6 +14,9 @@ export interface AdminNavigationLabels {
   services: string;
   manageServices: string;
   featureDefinitions: string;
+  training: string;
+  trainingCourses: string;
+  trainingCategories: string;
   notifications: string;
   deliveryLog: string;
   providerStatus: string;
@@ -103,6 +106,30 @@ export function buildAdminNavigation(
           kind: "item",
           href: "/admin/services/features",
           label: labels.featureDefinitions,
+        },
+      ],
+    });
+  }
+
+  if (
+    session.user.accountScope === "PLATFORM" &&
+    hasPermission(session, PERMISSIONS.TRAINING_MANAGE)
+  ) {
+    entries.push({
+      kind: "group",
+      id: "training",
+      label: labels.training,
+      icon: "training",
+      children: [
+        {
+          kind: "item",
+          href: "/admin/training/courses",
+          label: labels.trainingCourses,
+        },
+        {
+          kind: "item",
+          href: "/admin/training/categories",
+          label: labels.trainingCategories,
         },
       ],
     });

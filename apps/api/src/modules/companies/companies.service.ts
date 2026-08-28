@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -11,6 +12,7 @@ import {
   type BatchMutationItem,
   type BatchMutationResult,
 } from '../../common/batch/batch-mutation.dto';
+import type { Prisma } from '../../generated/prisma/client';
 import { AccountScope } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
@@ -377,6 +379,186 @@ export class CompaniesService {
 
       return batchMutationResult(items);
     });
+  }
+
+  async delete(
+    principal: AuthenticatedPrincipal,
+    companyId: string,
+  ): Promise<{ deleted: number }> {
+    this.assertPlatformScope(principal);
+
+    return this.prisma.$transaction(async (tx) => {
+      const company = await tx.company.findUnique({
+        where: { id: companyId },
+        select: { id: true, name: true },
+      });
+
+      if (!company) {
+        throw this.notFound();
+      }
+
+      await this.assertCompaniesDeletable(tx, [company.id]);
+      await tx.company.delete({ where: { id: company.id } });
+
+      await this.auditService.write(
+        {
+          actorUserId: principal.userId,
+          companyId: company.id,
+          action: AUDIT_ACTIONS.COMPANY_DELETED,
+          targetType: 'company',
+          targetId: company.id,
+          metadata: { name: company.name },
+        },
+        tx,
+      );
+
+      return { deleted: 1 };
+    });
+  }
+
+  async deleteMany(
+    principal: AuthenticatedPrincipal,
+    companyIds: string[],
+  ): Promise<{ deleted: number }> {
+    this.assertPlatformScope(principal);
+
+    return this.prisma.$transaction(async (tx) => {
+      const companies = await tx.company.findMany({
+        where: { id: { in: companyIds } },
+        select: { id: true, name: true },
+      });
+
+      if (companies.length !== companyIds.length) {
+        throw new NotFoundException(
+          'One or more selected companies could not be found.',
+        );
+      }
+
+      await this.assertCompaniesDeletable(tx, companyIds);
+      await tx.company.deleteMany({ where: { id: { in: companyIds } } });
+
+      for (const company of companies) {
+        await this.auditService.write(
+          {
+            actorUserId: principal.userId,
+            companyId: company.id,
+            action: AUDIT_ACTIONS.COMPANY_DELETED,
+            targetType: 'company',
+            targetId: company.id,
+            metadata: { name: company.name, batch: true },
+          },
+          tx,
+        );
+      }
+
+      return { deleted: companies.length };
+    });
+  }
+
+  private async assertCompaniesDeletable(
+    tx: Prisma.TransactionClient,
+    companyIds: string[],
+  ): Promise<void> {
+    const [
+      user,
+      setting,
+      companyService,
+      lifecycleEvent,
+      notification,
+      notificationRecipient,
+      invitation,
+      fileAsset,
+      companyAccess,
+      userAccess,
+      lessonProgress,
+      courseProgress,
+      quizAttempt,
+      completion,
+      certificate,
+    ] = await Promise.all([
+      tx.user.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.setting.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.companyService.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.companyServiceLifecycleEvent.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.notification.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.notificationRecipient.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.userInvitationDispatch.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.fileAsset.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseCompanyAccess.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseUserAccess.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingLessonProgress.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseProgress.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingQuizAttempt.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseCompletion.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+      tx.trainingCertificate.findFirst({
+        where: { companyId: { in: companyIds } },
+        select: { id: true },
+      }),
+    ]);
+
+    if (
+      user ||
+      setting ||
+      companyService ||
+      lifecycleEvent ||
+      notification ||
+      notificationRecipient ||
+      invitation ||
+      fileAsset ||
+      companyAccess ||
+      userAccess ||
+      lessonProgress ||
+      courseProgress ||
+      quizAttempt ||
+      completion ||
+      certificate
+    ) {
+      throw new ConflictException(
+        'This company contains related users, services, files, notifications, settings, or training data. Archive the company instead.',
+      );
+    }
   }
 
   private assertPlatformScope(principal: AuthenticatedPrincipal): void {

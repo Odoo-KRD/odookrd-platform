@@ -138,6 +138,7 @@ export const frontendAr = {
         INVITED: "مدعو",
         ACTIVE: "نشط",
         SUSPENDED: "موقوف",
+        ARCHIVED: "مؤرشف",
       },
     },
     activity: {

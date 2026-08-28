@@ -1,6 +1,14 @@
 "use client";
 
 import Link from "next/link";
+
+import {
+  AdminActionGroup,
+  AdminActionLink,
+  inferAdminActionIcon,
+  type AdminActionTone,
+} from "@/components/admin/admin-action-controls";
+import type { AdminActionIconName } from "@/components/admin/admin-action-icons";
 import {
   useEffect,
   useId,
@@ -44,6 +52,26 @@ export type AdminTableCell =
       label: string;
       href: string;
       dir?: "ltr" | "rtl";
+    }
+  | {
+      type: "image";
+      src: string | null;
+      alt: string;
+      fallback: string;
+    }
+  | {
+      type: "node";
+      value: ReactNode;
+    }
+  | {
+      type: "actions";
+      items: Array<{
+        key: string;
+        label: string;
+        href: string;
+        tone?: AdminActionTone;
+        icon?: AdminActionIconName;
+      }>;
     };
 
 export interface AdminDataTableColumn {
@@ -116,6 +144,46 @@ function renderCell(cell: AdminTableCell): ReactNode {
       >
         {cell.label}
       </Link>
+    );
+  }
+
+  if (cell.type === "image") {
+    return (
+      <div className="flex size-12 items-center justify-center overflow-hidden rounded-md border border-line bg-surface-subtle">
+        {cell.src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cell.src}
+            alt={cell.alt}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="text-sm font-semibold text-muted">
+            {cell.fallback}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (cell.type === "node") {
+    return cell.value;
+  }
+
+  if (cell.type === "actions") {
+    return (
+      <AdminActionGroup>
+        {cell.items.map((item) => (
+          <AdminActionLink
+            key={item.key}
+            href={item.href}
+            tone={item.tone ?? "default"}
+            icon={item.icon ?? inferAdminActionIcon(item.key)}
+          >
+            {item.label}
+          </AdminActionLink>
+        ))}
+      </AdminActionGroup>
     );
   }
 
@@ -201,7 +269,9 @@ export function AdminDataTable({
           .map((cell) => {
             if (cell.type === "text") return cell.value;
             if (cell.type === "link") return cell.label;
+            if (cell.type === "node") return "";
             if (cell.type === "badge") return cell.label;
+            if (cell.type === "image") return cell.alt;
             return cell.items.map((item) => item.label).join(" ");
           })
           .join(" ")

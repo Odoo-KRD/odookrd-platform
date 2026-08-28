@@ -12,13 +12,20 @@ import {
   type AdminDataTableRow,
   type AdminTableTone,
 } from "@/components/admin/admin-data-table";
+import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 
-import { batchCompanyStatusAction } from "./actions";
+import {
+  archiveCompanyRowAction,
+  batchCompanyStatusAction,
+  deleteCompanyRowAction,
+  restoreCompanyRowAction,
+} from "./actions";
 
 interface CompaniesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -92,6 +99,8 @@ export default async function CompaniesPage({
   const canCreate =
     isPlatform && hasPermission(session, PERMISSIONS.COMPANIES_MANAGE);
 
+  const lifecycle = adminLifecycleDictionaries[locale];
+
   const addCompany = canCreate ? (
     <Link
       href="/admin/companies/new"
@@ -122,11 +131,27 @@ export default async function CompaniesPage({
           value: formatDate(company.createdAt, locale),
           muted: true,
         },
-        actions: {
-          type: "link",
-          label: admin.companies.view,
-          href: `/admin/companies/${company.id}`,
-        },
+        actions: canCreate
+          ? {
+              type: "node",
+              value: (
+                <AdminLifecycleRowActions
+                  id={company.id}
+                  name={company.name}
+                  status={company.status}
+                  editHref={`/admin/companies/${company.id}`}
+                  labels={lifecycle}
+                  archiveAction={archiveCompanyRowAction}
+                  restoreAction={restoreCompanyRowAction}
+                  deleteAction={deleteCompanyRowAction}
+                />
+              ),
+            }
+          : {
+              type: "link",
+              label: admin.companies.view,
+              href: `/admin/companies/${company.id}`,
+            },
       },
     }),
   );
@@ -237,6 +262,11 @@ export default async function CompaniesPage({
                 {
                   value: "ARCHIVED",
                   label: admin.companies.statusArchived,
+                  tone: "danger",
+                },
+                {
+                  value: "DELETE",
+                  label: lifecycle.delete,
                   tone: "danger",
                 },
               ]

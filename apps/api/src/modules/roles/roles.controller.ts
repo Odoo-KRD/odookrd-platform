@@ -65,6 +65,24 @@ export class RolesController {
     return this.rolesService.update(principal, roleId, dto);
   }
 
+  @Patch(':roleId/archive')
+  @RequirePermissions(PERMISSIONS.ROLES_MANAGE)
+  archive(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('roleId', new ParseUUIDPipe()) roleId: string,
+  ) {
+    return this.rolesService.archive(principal, roleId);
+  }
+
+  @Patch(':roleId/restore')
+  @RequirePermissions(PERMISSIONS.ROLES_MANAGE)
+  restore(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('roleId', new ParseUUIDPipe()) roleId: string,
+  ) {
+    return this.rolesService.restore(principal, roleId);
+  }
+
   @Delete(':roleId')
   @RequirePermissions(PERMISSIONS.ROLES_MANAGE)
   remove(

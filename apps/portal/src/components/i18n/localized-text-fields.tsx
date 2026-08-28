@@ -120,6 +120,11 @@ export function LocalizedTextField({
 
   return (
     <div className="grid gap-2">
+      <input
+        type="hidden"
+        name={`${field}.__activeLocale`}
+        value={activeLocale}
+      />
       <label
         htmlFor={`${field}-${activeLocale}`}
         className="text-sm font-medium text-slate-700"
@@ -140,7 +145,7 @@ export function LocalizedTextField({
             placeholder={fallbackPlaceholder}
             maxLength={maxLength}
             rows={4}
-            required={required && activeLocale === DEFAULT_LOCALE}
+            required={required}
             className={`${fieldClassName} min-h-28 py-2.5`}
           />
         ) : (
@@ -155,7 +160,7 @@ export function LocalizedTextField({
             }
             placeholder={fallbackPlaceholder}
             maxLength={maxLength}
-            required={required && activeLocale === DEFAULT_LOCALE}
+            required={required}
             className={`${fieldClassName} h-11`}
           />
         )}
@@ -269,7 +274,7 @@ export function LocalizedTextField({
                         }
                         maxLength={maxLength}
                         rows={3}
-                        required={required && isDefault}
+                        required={required && selectedLocale === activeLocale}
                         className={`${popupFieldClassName} min-h-20 py-2`}
                       />
                     ) : (
@@ -289,7 +294,7 @@ export function LocalizedTextField({
                           )
                         }
                         maxLength={maxLength}
-                        required={required && isDefault}
+                        required={required && selectedLocale === activeLocale}
                         className={`${popupFieldClassName} h-10`}
                       />
                     )}

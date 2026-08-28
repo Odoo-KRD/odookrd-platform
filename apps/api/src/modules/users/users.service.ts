@@ -283,17 +283,23 @@ export class UsersService {
         throw this.notFound();
       }
 
-      if (existing.status === UserStatus.INVITED) {
+      if (
+        existing.status === UserStatus.INVITED &&
+        dto.status !== UserStatus.ARCHIVED
+      ) {
         throw new BadRequestException(
-          'Invited users must activate their account through the invitation flow.',
+          'Invited users can only be archived or activated through invitation flow.',
         );
       }
 
       if (
-        dto.status === UserStatus.SUSPENDED &&
+        (dto.status === UserStatus.SUSPENDED ||
+          dto.status === UserStatus.ARCHIVED) &&
         existing.id === principal.userId
       ) {
-        throw new ForbiddenException('You cannot suspend your own account.');
+        throw new ForbiddenException(
+          'You cannot suspend or archive your own account.',
+        );
       }
 
       if (
@@ -310,7 +316,10 @@ export class UsersService {
         return this.toResponse(existing);
       }
 
-      if (dto.status === UserStatus.SUSPENDED) {
+      if (
+        dto.status === UserStatus.SUSPENDED ||
+        dto.status === UserStatus.ARCHIVED
+      ) {
         await this.assertNotLastActiveAdmin(tx, existing);
       }
 
@@ -324,7 +333,10 @@ export class UsersService {
         select: USER_SELECT,
       });
 
-      if (dto.status === UserStatus.SUSPENDED) {
+      if (
+        dto.status === UserStatus.SUSPENDED ||
+        dto.status === UserStatus.ARCHIVED
+      ) {
         await tx.session.updateMany({
           where: {
             userId: existing.id,
@@ -336,11 +348,21 @@ export class UsersService {
         });
       }
 
+      if (dto.status === UserStatus.ARCHIVED) {
+        await tx.authToken.updateMany({
+          where: { userId: existing.id, usedAt: null },
+          data: { usedAt: new Date() },
+        });
+      }
+
       await this.auditService.write(
         {
           actorUserId: principal.userId,
           companyId: existing.companyId,
-          action: AUDIT_ACTIONS.USER_STATUS_CHANGED,
+          action:
+            dto.status === UserStatus.ARCHIVED
+              ? AUDIT_ACTIONS.USER_ARCHIVED
+              : AUDIT_ACTIONS.USER_STATUS_CHANGED,
           targetType: 'user',
           targetId: existing.id,
           metadata: {
@@ -479,17 +501,23 @@ export class UsersService {
       }
 
       for (const user of users) {
-        if (user.status === UserStatus.INVITED) {
+        if (
+          user.status === UserStatus.INVITED &&
+          dto.status !== UserStatus.ARCHIVED
+        ) {
           throw new BadRequestException(
-            'Invited users must activate their account through the invitation flow.',
+            'Invited users can only be archived or activated through invitation flow.',
           );
         }
 
         if (
-          dto.status === UserStatus.SUSPENDED &&
+          (dto.status === UserStatus.SUSPENDED ||
+            dto.status === UserStatus.ARCHIVED) &&
           user.id === principal.userId
         ) {
-          throw new ForbiddenException('You cannot suspend your own account.');
+          throw new ForbiddenException(
+            'You cannot suspend or archive your own account.',
+          );
         }
 
         if (
@@ -503,7 +531,10 @@ export class UsersService {
         }
       }
 
-      if (dto.status === UserStatus.SUSPENDED) {
+      if (
+        dto.status === UserStatus.SUSPENDED ||
+        dto.status === UserStatus.ARCHIVED
+      ) {
         const suspending = users.filter(
           (user) => user.status === UserStatus.ACTIVE,
         );
@@ -568,10 +599,20 @@ export class UsersService {
           select: { id: true, updatedAt: true },
         });
 
-        if (dto.status === UserStatus.SUSPENDED) {
+        if (
+          dto.status === UserStatus.SUSPENDED ||
+          dto.status === UserStatus.ARCHIVED
+        ) {
           await tx.session.updateMany({
             where: { userId: user.id, revokedAt: null },
             data: { revokedAt: new Date() },
+          });
+        }
+
+        if (dto.status === UserStatus.ARCHIVED) {
+          await tx.authToken.updateMany({
+            where: { userId: user.id, usedAt: null },
+            data: { usedAt: new Date() },
           });
         }
 
@@ -579,7 +620,10 @@ export class UsersService {
           {
             actorUserId: principal.userId,
             companyId: user.companyId,
-            action: AUDIT_ACTIONS.USER_STATUS_CHANGED,
+            action:
+              dto.status === UserStatus.ARCHIVED
+                ? AUDIT_ACTIONS.USER_ARCHIVED
+                : AUDIT_ACTIONS.USER_STATUS_CHANGED,
             targetType: 'user',
             targetId: user.id,
             metadata: { previousStatus: user.status, status: dto.status },
@@ -598,6 +642,221 @@ export class UsersService {
     });
   }
 
+  async delete(
+    principal: AuthenticatedPrincipal,
+    userId: string,
+  ): Promise<{ deleted: number }> {
+    if (userId === principal.userId) {
+      throw new ForbiddenException('You cannot delete your own account.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirst({
+        where: this.scopedUserWhere(principal, userId),
+        select: USER_SELECT,
+      });
+
+      if (!user) {
+        throw this.notFound();
+      }
+
+      await this.assertNotLastActiveAdmin(tx, user);
+      await this.assertUsersDeletable(tx, [user.id]);
+
+      await tx.userInvitationDispatch.deleteMany({
+        where: { userId: user.id },
+      });
+      await tx.user.delete({ where: { id: user.id } });
+
+      await this.auditService.write(
+        {
+          actorUserId: principal.userId,
+          companyId: user.companyId,
+          action: AUDIT_ACTIONS.USER_DELETED,
+          targetType: 'user',
+          targetId: user.id,
+          metadata: { email: user.email },
+        },
+        tx,
+      );
+
+      return { deleted: 1 };
+    });
+  }
+
+  async deleteMany(
+    principal: AuthenticatedPrincipal,
+    userIds: string[],
+  ): Promise<{ deleted: number }> {
+    if (userIds.includes(principal.userId)) {
+      throw new ForbiddenException('You cannot delete your own account.');
+    }
+
+    const scopeWhere: Prisma.UserWhereInput =
+      principal.accountScope === AccountScope.COMPANY
+        ? { companyId: this.requireCompanyId(principal) }
+        : principal.accountScope === AccountScope.PLATFORM &&
+            principal.companyId === null
+          ? {}
+          : (() => {
+              throw new ForbiddenException('Authorization context is invalid.');
+            })();
+
+    return this.prisma.$transaction(async (tx) => {
+      const users = await tx.user.findMany({
+        where: { ...scopeWhere, id: { in: userIds } },
+        select: USER_SELECT,
+      });
+
+      if (users.length !== userIds.length) {
+        throw new NotFoundException(
+          'One or more selected users do not exist in your authorized scope.',
+        );
+      }
+
+      const activeAdmins = users.filter(
+        (user) =>
+          user.status === UserStatus.ACTIVE &&
+          user.userRoles.some(
+            ({ role }) => role.key === this.adminRoleKey(user.accountScope),
+          ),
+      );
+
+      const checkedScopes = new Set<string>();
+
+      for (const user of activeAdmins) {
+        const scopeKey = `${user.accountScope}:${user.companyId ?? 'platform'}`;
+
+        if (checkedScopes.has(scopeKey)) {
+          continue;
+        }
+
+        checkedScopes.add(scopeKey);
+
+        const remaining = await tx.user.count({
+          where: {
+            accountScope: user.accountScope,
+            companyId: user.companyId,
+            id: { notIn: userIds },
+            status: UserStatus.ACTIVE,
+            userRoles: {
+              some: {
+                role: {
+                  key: this.adminRoleKey(user.accountScope),
+                },
+              },
+            },
+          },
+        });
+
+        if (remaining === 0) {
+          throw new BadRequestException(
+            'The final active administrator cannot be deleted.',
+          );
+        }
+      }
+
+      await this.assertUsersDeletable(tx, userIds);
+
+      await tx.userInvitationDispatch.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+      await tx.user.deleteMany({ where: { id: { in: userIds } } });
+
+      for (const user of users) {
+        await this.auditService.write(
+          {
+            actorUserId: principal.userId,
+            companyId: user.companyId,
+            action: AUDIT_ACTIONS.USER_DELETED,
+            targetType: 'user',
+            targetId: user.id,
+            metadata: { email: user.email, batch: true },
+          },
+          tx,
+        );
+      }
+
+      return { deleted: users.length };
+    });
+  }
+
+  private async assertUsersDeletable(
+    tx: Prisma.TransactionClient,
+    userIds: string[],
+  ): Promise<void> {
+    const [
+      notificationRecipient,
+      providerTest,
+      lifecycleEvent,
+      fileAsset,
+      userAccess,
+      lessonProgress,
+      courseProgress,
+      quizAttempt,
+      completion,
+      certificate,
+    ] = await Promise.all([
+      tx.notificationRecipient.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.notificationProviderTest.findFirst({
+        where: { actorUserId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.companyServiceLifecycleEvent.findFirst({
+        where: { actorUserId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.fileAsset.findFirst({
+        where: { uploadedByUserId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseUserAccess.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.trainingLessonProgress.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseProgress.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.trainingQuizAttempt.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.trainingCourseCompletion.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+      tx.trainingCertificate.findFirst({
+        where: { userId: { in: userIds } },
+        select: { id: true },
+      }),
+    ]);
+
+    if (
+      notificationRecipient ||
+      providerTest ||
+      lifecycleEvent ||
+      fileAsset ||
+      userAccess ||
+      lessonProgress ||
+      courseProgress ||
+      quizAttempt ||
+      completion ||
+      certificate
+    ) {
+      throw new ConflictException(
+        'This user has notifications, uploaded files, service history, course assignments, learning progress, attempts, completions, or certificates. Archive the user instead.',
+      );
+    }
+  }
+
   private async assertCompanyUserCapacity(companyId: string): Promise<void> {
     const key = 'companies.max_users_per_company';
     const companyScopeKey = 'company:' + companyId;
@@ -609,7 +868,9 @@ export class UsersService {
         },
         select: { scopeKey: true, value: true },
       }),
-      this.prisma.user.count({ where: { companyId } }),
+      this.prisma.user.count({
+        where: { companyId, status: { not: UserStatus.ARCHIVED } },
+      }),
     ]);
     const companySetting = records.find(
       (record) => record.scopeKey === companyScopeKey,
@@ -724,6 +985,7 @@ export class UsersService {
         key: {
           in: uniqueKeys,
         },
+        archivedAt: null,
       },
       select: {
         id: true,

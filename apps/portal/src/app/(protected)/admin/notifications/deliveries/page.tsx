@@ -13,10 +13,12 @@ import {
   type AdminDataTableRow,
   type AdminTableTone,
 } from "@/components/admin/admin-data-table";
+import { AdminRecordDetailsAction } from "@/components/admin/admin-record-details-action";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
 import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
 import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
@@ -65,6 +67,7 @@ export default async function NotificationDeliveriesPage({
   const labels = notificationAdministrationDictionaries[locale];
   const broadcastLabels = notificationBroadcastDictionaries[locale];
   const tableLabels = adminTableDictionaries[locale];
+  const lifecycle = adminLifecycleDictionaries[locale];
   const selectedOffset = offset(one(rawParameters.offset));
   const kind = one(rawParameters.kind) as
     NotificationAdministrationKind | undefined;
@@ -140,6 +143,70 @@ export default async function NotificationDeliveriesPage({
           dir: "ltr",
           muted: true,
           className: "max-w-[220px] break-all text-xs",
+        },
+        actions: {
+          type: "node",
+          value: (
+            <AdminRecordDetailsAction
+              label={lifecycle.view}
+              title={`${labels.deliveryLog}: ${item.recipient}`}
+              closeLabel={lifecycle.cancel}
+              details={[
+                {
+                  label: labels.created,
+                  value: formatDate(item.createdAt, locale),
+                },
+                {
+                  label: labels.company,
+                  value: item.companyName ?? "—",
+                },
+                {
+                  label: labels.recipient,
+                  value: item.recipient,
+                  dir: "ltr",
+                },
+                {
+                  label: labels.type,
+                  value:
+                    item.templateKey === "admin.broadcast"
+                      ? broadcastLabels.logType
+                      : labels.kinds[item.kind],
+                },
+                {
+                  label: labels.channel,
+                  value: labels.channels[item.channel],
+                },
+                {
+                  label: labels.status,
+                  value: labels.statuses[item.status],
+                },
+                {
+                  label: labels.attempts,
+                  value: String(item.attemptCount),
+                },
+                {
+                  label: labels.providerMessageId,
+                  value: item.providerMessageId ?? "—",
+                  dir: "ltr",
+                },
+                {
+                  label: labels.failureCode,
+                  value: item.failureCode ?? "—",
+                  dir: "ltr",
+                },
+                {
+                  label: labels.lastAttempt,
+                  value: item.lastAttemptAt
+                    ? formatDate(item.lastAttemptAt, locale)
+                    : "—",
+                },
+                {
+                  label: labels.sent,
+                  value: item.sentAt ? formatDate(item.sentAt, locale) : "—",
+                },
+              ]}
+            />
+          ),
         },
       },
     }),
@@ -268,6 +335,7 @@ export default async function NotificationDeliveriesPage({
           { key: "status", label: labels.status },
           { key: "attempts", label: labels.attempts },
           { key: "failureCode", label: labels.failureCode },
+          { key: "actions", label: lifecycle.view },
         ]}
         rows={rows}
         labels={tableLabels}

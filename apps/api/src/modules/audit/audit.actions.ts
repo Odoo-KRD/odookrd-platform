@@ -2,14 +2,23 @@ export const AUDIT_ACTIONS = {
   COMPANY_CREATED: 'company.created',
   COMPANY_UPDATED: 'company.updated',
   COMPANY_STATUS_CHANGED: 'company.status_changed',
+  COMPANY_DELETED: 'company.deleted',
 
   USER_INVITED: 'user.invited',
   USER_STATUS_CHANGED: 'user.status_changed',
+  USER_ARCHIVED: 'user.archived',
+  USER_DELETED: 'user.deleted',
   USER_ROLES_CHANGED: 'user.roles_changed',
 
   ROLE_CREATED: 'role.created',
   ROLE_UPDATED: 'role.updated',
   ROLE_DELETED: 'role.deleted',
+  ROLE_ARCHIVED: 'role.archived',
+  ROLE_RESTORED: 'role.restored',
+  SERVICE_DELETED: 'service.deleted',
+  SERVICE_FEATURE_DEFINITION_DELETED: 'service.feature_definition.deleted',
+  TRAINING_CATEGORY_DELETED: 'training.category.deleted',
+  TRAINING_COURSE_DELETED: 'training.course.deleted',
 
   AUTH_INVITATION_ACCEPTED: 'auth.invitation.accepted',
 
@@ -26,14 +35,23 @@ export const AUDIT_ACTIONS = {
     'service.assignment.status_transitioned',
   SERVICE_ASSIGNMENT_BATCH_TRANSITIONED:
     'service.assignment.batch_transitioned',
+  FILE_UPLOADED: 'file.uploaded',
+  FILE_DELETED: 'file.deleted',
+
   TRAINING_CATEGORY_CREATED: 'training.category.created',
   TRAINING_CATEGORY_UPDATED: 'training.category.updated',
+  TRAINING_CATEGORY_BATCH_STATUS_CHANGED:
+    'training.category.batch_status_changed',
   TRAINING_COURSE_CREATED: 'training.course.created',
   TRAINING_COURSE_UPDATED: 'training.course.updated',
+  TRAINING_COURSE_STRUCTURE_UPDATED: 'training.course.structure.updated',
+  TRAINING_COURSE_BATCH_STATUS_CHANGED: 'training.course.batch_status_changed',
   TRAINING_SECTION_CREATED: 'training.section.created',
   TRAINING_SECTION_UPDATED: 'training.section.updated',
+  TRAINING_SECTION_DELETED: 'training.section.deleted',
   TRAINING_LESSON_CREATED: 'training.lesson.created',
   TRAINING_LESSON_UPDATED: 'training.lesson.updated',
+  TRAINING_LESSON_DELETED: 'training.lesson.deleted',
   TRAINING_VIDEO_UPLOAD_CREATED: 'training.video_upload.created',
   TRAINING_VIDEO_ASSET_UPDATED: 'training.video_asset.updated',
   TRAINING_ACCESS_ASSIGNED: 'training.access.assigned',

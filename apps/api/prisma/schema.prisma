@@ -27,6 +27,7 @@ enum UserStatus {
   INVITED
   ACTIVE
   SUSPENDED
+  ARCHIVED
 
   @@map("user_status")
 }
@@ -127,6 +128,28 @@ enum NotificationDeliveryStatus {
   SKIPPED
 
   @@map("notification_delivery_status")
+}
+
+enum FileAssetKind {
+  IMAGE
+  DOCUMENT
+  ATTACHMENT
+
+  @@map("file_asset_kind")
+}
+
+enum FileStorageProvider {
+  LOCAL
+  AWS_S3
+
+  @@map("file_storage_provider")
+}
+
+enum FileAssetStatus {
+  READY
+  DELETED
+
+  @@map("file_asset_status")
 }
 
 enum TrainingCategoryStatus {
@@ -253,6 +276,7 @@ model Company {
   notifications             Notification[]
   notificationRecipients    NotificationRecipient[]
   invitationDispatches      UserInvitationDispatch[]
+  fileAssets                FileAsset[]
   trainingCompanyAccess     TrainingCourseCompanyAccess[]
   trainingUserAccess        TrainingCourseUserAccess[]
   trainingLessonProgress    TrainingLessonProgress[]
@@ -287,6 +311,7 @@ model User {
   notificationProviderTests NotificationProviderTest[]
   serviceLifecycleEvents    CompanyServiceLifecycleEvent[]
   uiPreference              UserUiPreference?
+  uploadedFileAssets        FileAsset[]                    @relation("FileAssetUploader")
   trainingUserAccess        TrainingCourseUserAccess[]
   trainingLessonProgress    TrainingLessonProgress[]
   trainingCourseProgress    TrainingCourseProgress[]
@@ -311,6 +336,37 @@ model UserUiPreference {
   @@map("user_ui_preferences")
 }
 
+model FileAsset {
+  id               String              @id @default(uuid()) @db.Uuid
+  accountScope     AccountScope        @map("account_scope")
+  companyId        String?             @map("company_id") @db.Uuid
+  kind             FileAssetKind
+  storageProvider  FileStorageProvider @map("storage_provider")
+  storageKey       String              @map("storage_key") @db.VarChar(512)
+  originalFilename String              @map("original_filename") @db.VarChar(255)
+  mimeType         String              @map("mime_type") @db.VarChar(127)
+  sizeBytes        Int                 @map("size_bytes")
+  sha256           String              @db.VarChar(64)
+  status           FileAssetStatus     @default(READY)
+  uploadedByUserId String              @map("uploaded_by_user_id") @db.Uuid
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?           @map("deleted_at") @db.Timestamptz(6)
+
+  company              Company?         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  uploadedBy           User             @relation("FileAssetUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  trainingCourseCovers TrainingCourse[] @relation("TrainingCourseCoverImage")
+
+  @@unique([storageProvider, storageKey])
+  @@index([companyId])
+  @@index([accountScope, status])
+  @@index([companyId, status])
+  @@index([kind])
+  @@index([uploadedByUserId])
+  @@index([createdAt])
+  @@map("file_assets")
+}
+
 model Role {
   id          String    @id @default(uuid()) @db.Uuid
   key         String    @unique @db.VarChar(100)
@@ -318,6 +374,7 @@ model Role {
   description String?   @db.VarChar(500)
   scope       RoleScope
   isSystem    Boolean   @default(false) @map("is_system")
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz(6)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -759,6 +816,7 @@ model TrainingCourse {
   summary               String?              @db.VarChar(2000)
   summaryTranslations   Json                 @default("{}") @map("summary_translations") @db.JsonB
   thumbnailUrl          String?              @map("thumbnail_url") @db.VarChar(2048)
+  coverImageAssetId     String?              @map("cover_image_asset_id") @db.Uuid
   status                TrainingCourseStatus @default(DRAFT)
   sortOrder             Int                  @default(0) @map("sort_order")
   certificateEnabled    Boolean              @default(false) @map("certificate_enabled")
@@ -768,6 +826,7 @@ model TrainingCourse {
 
   category            TrainingCategory              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   certificateTemplate TrainingCertificateTemplate?  @relation(fields: [certificateTemplateId], references: [id], onDelete: Restrict)
+  coverImageAsset     FileAsset?                    @relation("TrainingCourseCoverImage", fields: [coverImageAssetId], references: [id], onDelete: SetNull)
   sections            TrainingSection[]
   lessons             TrainingVideoLesson[]
   companyAccess       TrainingCourseCompanyAccess[]
@@ -783,20 +842,22 @@ model TrainingCourse {
   @@index([categoryId, status, sortOrder, id], map: "training_courses_category_status_sort_idx")
   @@index([status, publishedAt], map: "training_courses_status_published_idx")
   @@index([certificateTemplateId], map: "training_courses_certificate_template_idx")
+  @@index([coverImageAssetId], map: "training_courses_cover_image_asset_idx")
   @@map("training_courses")
 }
 
 model TrainingSection {
-  id                      String                @id @default(uuid()) @db.Uuid
-  courseId                String                @map("course_id") @db.Uuid
-  title                   String                @db.VarChar(250)
-  titleTranslations       Json                  @default("{}") @map("title_translations") @db.JsonB
-  description             String?               @db.VarChar(2000)
-  descriptionTranslations Json                  @default("{}") @map("description_translations") @db.JsonB
-  status                  TrainingContentStatus @default(DRAFT)
-  sortOrder               Int                   @default(0) @map("sort_order")
-  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                          String                @id @default(uuid()) @db.Uuid
+  courseId                    String                @map("course_id") @db.Uuid
+  title                       String                @db.VarChar(250)
+  titleTranslations           Json                  @default("{}") @map("title_translations") @db.JsonB
+  description                 String?               @db.VarChar(2000)
+  descriptionTranslations     Json                  @default("{}") @map("description_translations") @db.JsonB
+  richDescriptionTranslations Json                  @default("{}") @map("rich_description_translations") @db.JsonB
+  status                      TrainingContentStatus @default(DRAFT)
+  sortOrder                   Int                   @default(0) @map("sort_order")
+  createdAt                   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   course  TrainingCourse        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons TrainingVideoLesson[]
@@ -835,23 +896,24 @@ model TrainingVideoAsset {
 }
 
 model TrainingVideoLesson {
-  id                      String                @id @default(uuid()) @db.Uuid
-  courseId                String                @map("course_id") @db.Uuid
-  sectionId               String                @map("section_id") @db.Uuid
-  videoAssetId            String                @map("video_asset_id") @db.Uuid
-  title                   String                @db.VarChar(250)
-  titleTranslations       Json                  @default("{}") @map("title_translations") @db.JsonB
-  description             String?               @db.VarChar(2000)
-  descriptionTranslations Json                  @default("{}") @map("description_translations") @db.JsonB
-  captionTracks           Json                  @default("{}") @map("caption_tracks") @db.JsonB
-  status                  TrainingContentStatus @default(DRAFT)
-  sortOrder               Int                   @default(0) @map("sort_order")
-  createdAt               DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                          String                @id @default(uuid()) @db.Uuid
+  courseId                    String                @map("course_id") @db.Uuid
+  sectionId                   String                @map("section_id") @db.Uuid
+  videoAssetId                String?               @map("video_asset_id") @db.Uuid
+  title                       String                @db.VarChar(250)
+  titleTranslations           Json                  @default("{}") @map("title_translations") @db.JsonB
+  description                 String?               @db.VarChar(2000)
+  descriptionTranslations     Json                  @default("{}") @map("description_translations") @db.JsonB
+  richDescriptionTranslations Json                  @default("{}") @map("rich_description_translations") @db.JsonB
+  captionTracks               Json                  @default("{}") @map("caption_tracks") @db.JsonB
+  status                      TrainingContentStatus @default(DRAFT)
+  sortOrder                   Int                   @default(0) @map("sort_order")
+  createdAt                   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   course                TrainingCourse           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   section               TrainingSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  videoAsset            TrainingVideoAsset       @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
+  videoAsset            TrainingVideoAsset?      @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
   progress              TrainingLessonProgress[]
   lastForCourseProgress TrainingCourseProgress[] @relation("TrainingCourseProgressLastLesson")
 

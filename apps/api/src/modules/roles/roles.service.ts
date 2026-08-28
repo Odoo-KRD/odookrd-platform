@@ -39,6 +39,7 @@ const ROLE_SELECT = {
   description: true,
   scope: true,
   isSystem: true,
+  archivedAt: true,
   rolePermissions: {
     select: {
       permission: {
@@ -70,6 +71,7 @@ export class RolesService {
         principal.accountScope === AccountScope.COMPANY
           ? {
               scope: RoleScope.COMPANY,
+              archivedAt: null,
             }
           : undefined,
       orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
@@ -230,6 +232,12 @@ export class RolesService {
         throw new ForbiddenException('System roles cannot be edited.');
       }
 
+      if (existing.archivedAt) {
+        throw new ConflictException(
+          'Restore the archived role before editing it.',
+        );
+      }
+
       const permissions = await this.resolvePermissions(
         tx,
         dto.permissionKeys,
@@ -291,6 +299,106 @@ export class RolesService {
     });
   }
 
+  async archive(
+    principal: AuthenticatedPrincipal,
+    roleId: string,
+  ): Promise<RoleResponse> {
+    this.assertPlatformPrincipal(principal);
+
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.role.findUnique({
+        where: { id: roleId },
+        select: ROLE_SELECT,
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Role not found.');
+      }
+
+      if (existing.isSystem) {
+        throw new ForbiddenException('System roles cannot be archived.');
+      }
+
+      if (existing._count.userRoles > 0) {
+        throw new ConflictException(
+          'This role is assigned to users and cannot be archived.',
+        );
+      }
+
+      if (existing.archivedAt) {
+        return this.toResponse(existing);
+      }
+
+      const updated = await tx.role.update({
+        where: { id: roleId },
+        data: { archivedAt: new Date() },
+        select: ROLE_SELECT,
+      });
+
+      await this.auditService.write(
+        {
+          actorUserId: principal.userId,
+          companyId: null,
+          action: AUDIT_ACTIONS.ROLE_ARCHIVED,
+          targetType: 'role',
+          targetId: updated.id,
+          metadata: { key: updated.key, scope: updated.scope },
+        },
+        tx,
+      );
+
+      return this.toResponse(updated);
+    });
+  }
+
+  async restore(
+    principal: AuthenticatedPrincipal,
+    roleId: string,
+  ): Promise<RoleResponse> {
+    this.assertPlatformPrincipal(principal);
+
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.role.findUnique({
+        where: { id: roleId },
+        select: ROLE_SELECT,
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Role not found.');
+      }
+
+      if (existing.isSystem) {
+        throw new ForbiddenException(
+          'System roles do not have an archive lifecycle.',
+        );
+      }
+
+      if (!existing.archivedAt) {
+        return this.toResponse(existing);
+      }
+
+      const updated = await tx.role.update({
+        where: { id: roleId },
+        data: { archivedAt: null },
+        select: ROLE_SELECT,
+      });
+
+      await this.auditService.write(
+        {
+          actorUserId: principal.userId,
+          companyId: null,
+          action: AUDIT_ACTIONS.ROLE_RESTORED,
+          targetType: 'role',
+          targetId: updated.id,
+          metadata: { key: updated.key, scope: updated.scope },
+        },
+        tx,
+      );
+
+      return this.toResponse(updated);
+    });
+  }
+
   async remove(
     principal: AuthenticatedPrincipal,
     roleId: string,
@@ -317,6 +425,10 @@ export class RolesService {
         throw new ConflictException(
           'This role is assigned to users and cannot be deleted.',
         );
+      }
+
+      if (!existing.archivedAt) {
+        throw new ConflictException('Archive the role before deleting it.');
       }
 
       await this.auditService.write(
@@ -411,6 +523,7 @@ export class RolesService {
       description: role.description,
       scope: role.scope,
       isSystem: role.isSystem,
+      archivedAt: role.archivedAt,
       assignmentCount: role._count.userRoles,
       permissions: role.rolePermissions
         .map(({ permission }) => permission.key)

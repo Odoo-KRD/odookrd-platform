@@ -141,6 +141,7 @@ export const frontendEn = {
         INVITED: "Invited",
         ACTIVE: "Active",
         SUSPENDED: "Suspended",
+        ARCHIVED: "Archived",
       },
     },
     activity: {

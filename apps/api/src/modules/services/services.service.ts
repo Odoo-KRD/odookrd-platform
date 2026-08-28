@@ -519,6 +519,63 @@ export class ServicesService {
     });
   }
 
+  async deleteService(
+    principal: AuthenticatedPrincipal,
+    serviceId: string,
+  ): Promise<{ success: true }> {
+    this.assertPlatformAdministrator(principal);
+
+    await this.prisma.$transaction(async (transaction) => {
+      const existing = await transaction.service.findUnique({
+        where: { id: serviceId },
+        select: {
+          id: true,
+          key: true,
+          status: true,
+          _count: {
+            select: {
+              assignments: true,
+              features: true,
+              trainingCourseAccess: true,
+            },
+          },
+        },
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Service was not found.');
+      }
+
+      if (existing.status !== ServiceCatalogStatus.INACTIVE) {
+        throw new ConflictException('Archive the service before deleting it.');
+      }
+
+      if (
+        existing._count.assignments > 0 ||
+        existing._count.features > 0 ||
+        existing._count.trainingCourseAccess > 0
+      ) {
+        throw new ConflictException(
+          'This service has assignments, features, or training access and cannot be deleted. Keep it archived instead.',
+        );
+      }
+
+      await transaction.auditLog.create({
+        data: {
+          actorUserId: principal.userId,
+          action: AUDIT_ACTIONS.SERVICE_DELETED,
+          targetType: 'service',
+          targetId: existing.id,
+          metadata: { key: existing.key },
+        },
+      });
+
+      await transaction.service.delete({ where: { id: existing.id } });
+    });
+
+    return { success: true };
+  }
+
   async listFeatureDefinitions(
     principal: AuthenticatedPrincipal,
     query: ListServiceFeatureDefinitionsDto,
@@ -807,6 +864,52 @@ export class ServicesService {
     });
 
     return this.presentFeatureDefinition(definition);
+  }
+
+  async deleteFeatureDefinition(
+    principal: AuthenticatedPrincipal,
+    definitionId: string,
+  ): Promise<{ success: true }> {
+    this.assertPlatformAdministrator(principal);
+
+    await this.prisma.$transaction(async (transaction) => {
+      const existing = await transaction.serviceFeatureDefinition.findUnique({
+        where: { id: definitionId },
+        select: featureDefinitionSelect,
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Feature definition was not found.');
+      }
+
+      if (existing.status !== ServiceFeatureStatus.INACTIVE) {
+        throw new ConflictException(
+          'Archive the predefined feature before deleting it.',
+        );
+      }
+
+      if (existing._count.serviceFeatures > 0) {
+        throw new ConflictException(
+          'This predefined feature is attached to services and cannot be deleted. Keep it archived instead.',
+        );
+      }
+
+      await transaction.auditLog.create({
+        data: {
+          actorUserId: principal.userId,
+          action: AUDIT_ACTIONS.SERVICE_FEATURE_DEFINITION_DELETED,
+          targetType: 'service_feature_definition',
+          targetId: existing.id,
+          metadata: { key: existing.key },
+        },
+      });
+
+      await transaction.serviceFeatureDefinition.delete({
+        where: { id: existing.id },
+      });
+    });
+
+    return { success: true };
   }
 
   async attachFeatureDefinition(

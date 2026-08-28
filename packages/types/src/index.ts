@@ -1,6 +1,6 @@
 export type AccountScope = "PLATFORM" | "COMPANY";
 export type CompanyStatus = "ACTIVE" | "SUSPENDED" | "ARCHIVED";
-export type UserStatus = "INVITED" | "ACTIVE" | "SUSPENDED";
+export type UserStatus = "INVITED" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
 export type RoleScope = "PLATFORM" | "COMPANY";
 export type Locale = "ku" | "ar" | "en";
 export type LocalizedText = Partial<Record<Locale, string>>;
@@ -104,6 +104,7 @@ export interface Role {
   description: string | null;
   scope: RoleScope;
   isSystem: boolean;
+  archivedAt: string | null;
   assignmentCount: number;
   permissions: string[];
 }
@@ -141,7 +142,8 @@ export type SettingCategory =
   | "companies"
   | "notifications"
   | "helpdesk"
-  | "trainings";
+  | "trainings"
+  | "files";
 export type SettingPrimitive = string | number | boolean;
 
 export interface ManagedSetting {
@@ -597,11 +599,7 @@ export type TrainingCategoryStatus = "ACTIVE" | "INACTIVE";
 export type TrainingCourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type TrainingContentStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type TrainingVideoAssetStatus =
-  | "UPLOADING"
-  | "PROCESSING"
-  | "READY"
-  | "FAILED"
-  | "ARCHIVED";
+  "UPLOADING" | "PROCESSING" | "READY" | "FAILED" | "ARCHIVED";
 export type TrainingAudienceMode = "ALL_USERS" | "ASSIGNED_USERS";
 export type TrainingUserAccessSource = "PLATFORM" | "COMPANY_ADMIN";
 export type TrainingProgressStatus = "IN_PROGRESS" | "COMPLETED";
@@ -609,15 +607,9 @@ export type TrainingQuizPlacement = "SECTION" | "COURSE_FINAL";
 export type TrainingQuizStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type TrainingQuizVersionStatus = "DRAFT" | "PUBLISHED" | "RETIRED";
 export type TrainingQuizQuestionType =
-  | "SINGLE_CHOICE"
-  | "MULTIPLE_CHOICE"
-  | "TRUE_FALSE";
+  "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "TRUE_FALSE";
 export type TrainingQuizAttemptStatus =
-  | "IN_PROGRESS"
-  | "SUBMITTED"
-  | "PASSED"
-  | "FAILED"
-  | "EXPIRED";
+  "IN_PROGRESS" | "SUBMITTED" | "PASSED" | "FAILED" | "EXPIRED";
 export type TrainingCertificateStatus = "ACTIVE" | "REVOKED";
 
 export interface TrainingFoundationCapabilities {
@@ -628,4 +620,128 @@ export interface TrainingFoundationCapabilities {
   lessonCompletionPercentage: number;
   quizzesEnabled: boolean;
   certificatesEnabled: boolean;
+}
+
+export interface TrainingCategory {
+  id: string;
+  key: string;
+  name: string;
+  nameTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  status: TrainingCategoryStatus;
+  sortOrder: number;
+  courseCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingCourse {
+  id: string;
+  categoryId: string;
+  slug: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  summary: string | null;
+  summaryTranslations: LocalizedText;
+  thumbnailUrl: string | null;
+  coverImageAssetId: string | null;
+  status: TrainingCourseStatus;
+  sortOrder: number;
+  publishedAt: string | null;
+  sectionCount: number;
+  lessonCount: number;
+  createdAt: string;
+  updatedAt: string;
+  category: {
+    id: string;
+    key: string;
+    name: string;
+    nameTranslations: LocalizedText;
+    status: TrainingCategoryStatus;
+  };
+}
+
+export interface RichTextMark {
+  type: string;
+  attrs?: Record<string, unknown>;
+}
+
+export interface RichTextNode {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: RichTextNode[];
+  marks?: RichTextMark[];
+  text?: string;
+}
+
+export interface RichTextDocument extends RichTextNode {
+  type: "doc";
+}
+
+export type LocalizedRichText = Partial<Record<Locale, RichTextDocument>>;
+
+export interface TrainingSection {
+  id: string;
+  courseId: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  richDescriptionTranslations: LocalizedRichText;
+  status: TrainingContentStatus;
+  sortOrder: number;
+  lessonCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingLesson {
+  id: string;
+  courseId: string;
+  sectionId: string;
+  videoAssetId: string | null;
+  title: string;
+  titleTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  richDescriptionTranslations: LocalizedRichText;
+  status: TrainingContentStatus;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingCourseStructureSection extends TrainingSection {
+  lessons: TrainingLesson[];
+}
+
+export interface TrainingCourseStructure {
+  courseId: string;
+  sections: TrainingCourseStructureSection[];
+}
+
+// Stage 3B.1 — Shared file/media contracts.
+export const FILE_ASSET_KINDS = ["IMAGE", "DOCUMENT", "ATTACHMENT"] as const;
+export type FileAssetKind = (typeof FILE_ASSET_KINDS)[number];
+export const FILE_STORAGE_PROVIDERS = ["LOCAL", "AWS_S3"] as const;
+export type FileStorageProvider = (typeof FILE_STORAGE_PROVIDERS)[number];
+export type FileAssetStatus = "READY" | "DELETED";
+
+export interface FileAsset {
+  id: string;
+  accountScope: AccountScope;
+  companyId: string | null;
+  kind: FileAssetKind;
+  storageProvider: FileStorageProvider;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  sha256: string;
+  status: FileAssetStatus;
+  uploadedByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  contentPath: string;
 }

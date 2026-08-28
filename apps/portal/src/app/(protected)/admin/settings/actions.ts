@@ -47,18 +47,65 @@ const SETTING_KEYS_BY_CATEGORY: Record<SettingCategory, readonly string[]> = {
     "notifications.whatsapp.webhook_verify_token",
   ],
   helpdesk: [],
-  trainings: [],
+  trainings: [
+    "trainings.enabled",
+    "trainings.video.primary_provider",
+    "trainings.video.local_upload_enabled",
+    "trainings.progress.lesson_completion_percentage",
+    "trainings.quizzes.enabled",
+    "trainings.certificates.enabled",
+  ],
+  files: [
+    "files.storage.default_provider",
+    "files.upload.max_image_mb",
+    "files.upload.max_document_mb",
+    "files.upload.max_attachment_mb",
+    "files.types.jpeg_enabled",
+    "files.types.png_enabled",
+    "files.types.webp_enabled",
+    "files.types.gif_enabled",
+    "files.types.pdf_enabled",
+    "files.types.svg_enabled",
+    "files.types.docx_enabled",
+    "files.types.pptx_enabled",
+    "files.types.xlsx_enabled",
+    "files.types.zip_enabled",
+    "files.aws_s3.credential_source",
+    "files.aws_s3.access_key_id",
+    "files.aws_s3.secret_access_key",
+    "files.aws_s3.session_token",
+    "files.aws_s3.region",
+    "files.aws_s3.bucket",
+  ],
 };
 
 const booleanKeys = new Set([
   "notifications.in_app.enabled",
   "notifications.email.enabled",
   "notifications.whatsapp.enabled",
+  "trainings.enabled",
+  "trainings.video.local_upload_enabled",
+  "trainings.quizzes.enabled",
+  "trainings.certificates.enabled",
+  "files.types.jpeg_enabled",
+  "files.types.png_enabled",
+  "files.types.webp_enabled",
+  "files.types.gif_enabled",
+  "files.types.pdf_enabled",
+  "files.types.svg_enabled",
+  "files.types.docx_enabled",
+  "files.types.pptx_enabled",
+  "files.types.xlsx_enabled",
+  "files.types.zip_enabled",
 ]);
 
 const numberKeys = new Set([
   "companies.max_users_per_company",
   "notifications.email.amazon_ses.smtp_port",
+  "trainings.progress.lesson_completion_percentage",
+  "files.upload.max_image_mb",
+  "files.upload.max_document_mb",
+  "files.upload.max_attachment_mb",
 ]);
 
 const secretKeys = new Set([
@@ -69,6 +116,9 @@ const secretKeys = new Set([
   "notifications.email.amazon_ses.smtp_password",
   "notifications.whatsapp.access_token",
   "notifications.whatsapp.webhook_verify_token",
+  "files.aws_s3.access_key_id",
+  "files.aws_s3.secret_access_key",
+  "files.aws_s3.session_token",
 ]);
 
 function isSettingCategory(value: unknown): value is SettingCategory {
@@ -102,13 +152,11 @@ export async function updateSettingsAction(
   if (scope !== "PLATFORM" && scope !== "COMPANY") {
     return { message: "Choose a valid settings scope.", success: false };
   }
-
   if (!isSettingCategory(category)) {
     return { message: "Choose a valid settings category.", success: false };
   }
 
   let companyId: string | null = null;
-
   if (scope === "PLATFORM") {
     if (session.user.accountScope !== "PLATFORM") {
       return { message: "Platform scope is forbidden.", success: false };
@@ -120,11 +168,9 @@ export async function updateSettingsAction(
         : typeof selectedCompanyId === "string"
           ? selectedCompanyId
           : null;
-
     if (!companyId || !uuidPattern.test(companyId)) {
       return { message: "Choose a valid company.", success: false };
     }
-
     if (
       session.user.accountScope === "COMPANY" &&
       companyId !== session.user.companyId
@@ -140,13 +186,11 @@ export async function updateSettingsAction(
   const requestedEditable = formData
     .getAll("editable")
     .filter((value): value is string => typeof value === "string");
-
   if (requestedEditable.some((key) => !categoryKeys.has(key))) {
     return { message: "The settings request is invalid.", success: false };
   }
 
   const editable = [...new Set(requestedEditable)];
-
   const settings: Array<{ key: string; value: SettingPrimitive }> = [];
 
   for (const key of editable) {
@@ -164,11 +208,8 @@ export async function updateSettingsAction(
     }
 
     if (secretKeys.has(key)) {
-      if (formData.has("clear." + key)) {
-        settings.push({ key, value: "" });
-      } else if (selected.length > 0) {
-        settings.push({ key, value: selected });
-      }
+      if (formData.has("clear." + key)) settings.push({ key, value: "" });
+      else if (selected.length > 0) settings.push({ key, value: selected });
       continue;
     }
 
@@ -205,6 +246,5 @@ export async function updateSettingsAction(
 
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
-
   return { message: null, success: true };
 }

@@ -7,6 +7,7 @@ export interface RoleResponse {
   description: string | null;
   scope: RoleScope;
   isSystem: boolean;
+  archivedAt: Date | null;
   assignmentCount: number;
   permissions: string[];
 }

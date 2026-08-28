@@ -13,6 +13,7 @@ export function UserStatusBadge({ status, labels }: UserStatusBadgeProps) {
     INVITED: { label: labels.statusInvited, tone: "accent" },
     ACTIVE: { label: labels.statusActive, tone: "success" },
     SUSPENDED: { label: labels.statusSuspended, tone: "warning" },
+    ARCHIVED: { label: labels.statusArchived, tone: "neutral" },
   } as const;
 
   return (

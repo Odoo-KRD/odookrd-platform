@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -18,6 +19,7 @@ import { RequirePermissions } from '../authorization/decorators/require-permissi
 import { PERMISSIONS } from '../authorization/permissions';
 import { CompaniesService } from './companies.service';
 import { BatchCompanyStatusDto } from './dto/batch-company-status.dto';
+import { BatchDeleteCompaniesDto } from './dto/batch-delete-companies.dto';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { ListCompaniesQueryDto } from './dto/list-companies-query.dto';
 import { UpdateCompanyStatusDto } from './dto/update-company-status.dto';
@@ -62,6 +64,24 @@ export class CompaniesController {
     @Body() dto: BatchCompanyStatusDto,
   ) {
     return this.companiesService.updateStatuses(principal, dto);
+  }
+
+  @Post('batch-delete')
+  @RequirePermissions(PERMISSIONS.COMPANIES_MANAGE)
+  batchDelete(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() dto: BatchDeleteCompaniesDto,
+  ) {
+    return this.companiesService.deleteMany(principal, dto.ids);
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.COMPANIES_MANAGE)
+  delete(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) companyId: string,
+  ) {
+    return this.companiesService.delete(principal, companyId);
   }
 
   @Patch(':id')

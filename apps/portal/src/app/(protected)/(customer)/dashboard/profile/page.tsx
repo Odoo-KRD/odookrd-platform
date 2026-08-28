@@ -70,7 +70,15 @@ export default async function CustomerProfilePage() {
               {workspace.profile.accountStatus}
             </dt>
             <dd className="mt-2">
-              <Badge tone={profile.status === "ACTIVE" ? "success" : "warning"}>
+              <Badge
+                tone={
+                  profile.status === "ACTIVE"
+                    ? "success"
+                    : profile.status === "ARCHIVED"
+                      ? "neutral"
+                      : "warning"
+                }
+              >
                 {workspace.profile.statusLabels[profile.status]}
               </Badge>
             </dd>

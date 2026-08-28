@@ -90,6 +90,21 @@ const permissions = [
       'Change permitted settings within the authorized platform or company scope.',
   },
   {
+    key: 'files.read',
+    name: 'Read files',
+    description: 'Read file metadata and content within the authorized scope.',
+  },
+  {
+    key: 'files.upload',
+    name: 'Upload files',
+    description: 'Upload supported files within the authorized scope.',
+  },
+  {
+    key: 'files.manage',
+    name: 'Manage files',
+    description: 'Delete file assets within the authorized scope.',
+  },
+  {
     key: 'training.read',
     name: 'Read training',
     description: 'View training content available within the authorized scope.',
@@ -133,6 +148,9 @@ const roles = [
       'notifications.read',
 
       'notifications.manage',
+      'files.read',
+      'files.upload',
+      'files.manage',
       'training.read',
       'training.manage',
       'training.assign',
@@ -157,6 +175,9 @@ const roles = [
       'notifications.read',
 
       'notifications.manage',
+      'files.read',
+      'files.upload',
+      'files.manage',
       'training.read',
       'training.assign',
       'training.progress.read',
@@ -172,6 +193,8 @@ const roles = [
       'companies.read',
       'services.read',
       'notifications.read',
+      'files.read',
+      'files.upload',
       'training.read',
     ],
   },

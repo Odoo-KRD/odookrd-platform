@@ -1,6 +1,33 @@
-import type { LocalizedText } from "@odookrd/types";
+import type { Locale, LocalizedText } from "@odookrd/types";
 
 import { SUPPORTED_LOCALES } from "@/lib/i18n/config";
+
+function isSupportedLocale(value: unknown): value is Locale {
+  return (
+    typeof value === "string" &&
+    (SUPPORTED_LOCALES as readonly string[]).includes(value)
+  );
+}
+
+function preferredLocalizedValue(
+  formData: FormData,
+  field: string,
+  translations: LocalizedText,
+): string | null {
+  const activeLocale = formData.get(`${field}.__activeLocale`);
+
+  if (isSupportedLocale(activeLocale)) {
+    const activeValue = translations[activeLocale]?.trim();
+    if (activeValue) return activeValue;
+  }
+
+  for (const locale of ["ku", "en", "ar"] as const) {
+    const value = translations[locale]?.trim();
+    if (value) return value;
+  }
+
+  return null;
+}
 
 export function localizedFormValues(
   formData: FormData,
@@ -25,6 +52,11 @@ export function localizedFormValues(
     if (value) {
       translations[locale] = value;
     }
+  }
+
+  if (!translations.ku) {
+    const fallback = preferredLocalizedValue(formData, field, translations);
+    if (fallback) translations.ku = fallback;
   }
 
   return translations;

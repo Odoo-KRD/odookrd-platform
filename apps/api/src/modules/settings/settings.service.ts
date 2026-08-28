@@ -144,6 +144,18 @@ export class SettingsService {
     );
   }
 
+  async resolveConfiguredValue(key: string): Promise<SettingPrimitive | null> {
+    const definition = this.getDefinition(key);
+    if (definition.valueType === 'SECRET') {
+      throw new BadRequestException(
+        'Secret settings require the internal secret resolver.',
+      );
+    }
+
+    const record = await this.resolveRecord(definition, null);
+    return record ? this.readStoredPrimitive(record.value, definition) : null;
+  }
+
   private async list(
     principal: AuthenticatedPrincipal,
     scope: SettingScope,

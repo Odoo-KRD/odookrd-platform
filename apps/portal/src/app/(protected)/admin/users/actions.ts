@@ -164,7 +164,11 @@ export async function updateUserStatusAction(
   const { token } = await getAdminApiContext(PERMISSIONS.USERS_MANAGE);
   const selectedStatus = formData.get("status");
 
-  if (selectedStatus !== "ACTIVE" && selectedStatus !== "SUSPENDED") {
+  if (
+    selectedStatus !== "ACTIVE" &&
+    selectedStatus !== "SUSPENDED" &&
+    selectedStatus !== "ARCHIVED"
+  ) {
     return { message: "Choose a valid account status." };
   }
 
@@ -193,11 +197,31 @@ export async function batchUserStatusAction(
   const ids = selectedBatchIds(formData);
   const status = formData.get("batchAction");
 
-  if (!ids || (status !== "ACTIVE" && status !== "SUSPENDED")) {
-    return { ok: false, message: "Choose valid users and an account status." };
+  if (
+    !ids ||
+    (status !== "ACTIVE" &&
+      status !== "SUSPENDED" &&
+      status !== "ARCHIVED" &&
+      status !== "DELETE")
+  ) {
+    return { ok: false, message: "Choose valid users and an account action." };
   }
 
   try {
+    if (status === "DELETE") {
+      const result = await apiRequest<{ deleted: number }>(
+        "/users/batch-delete",
+        {
+          method: "POST",
+          token,
+          body: JSON.stringify({ ids }),
+        },
+      );
+
+      revalidatePath("/admin/users");
+      return { ok: true, message: `${result.deleted} deleted.` };
+    }
+
     const result = await apiRequest<BatchMutationResult>(
       "/users/batch-status",
       {
@@ -248,4 +272,59 @@ export async function updateUserRolesAction(
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${userId}`);
   redirect(`/admin/users/${userId}`);
+}
+
+export async function archiveUserRowAction(
+  userId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { token } = await getAdminApiContext(PERMISSIONS.USERS_MANAGE);
+
+  try {
+    await apiRequest(`/users/${encodeURIComponent(userId)}/status`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ status: "ARCHIVED" }),
+    });
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${userId}`);
+    return { ok: true, message: "User archived." };
+  } catch (error: unknown) {
+    return { ok: false, message: failure(error).message ?? "Archive failed." };
+  }
+}
+
+export async function restoreUserRowAction(
+  userId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { token } = await getAdminApiContext(PERMISSIONS.USERS_MANAGE);
+
+  try {
+    await apiRequest(`/users/${encodeURIComponent(userId)}/status`, {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ status: "ACTIVE" }),
+    });
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${userId}`);
+    return { ok: true, message: "User restored." };
+  } catch (error: unknown) {
+    return { ok: false, message: failure(error).message ?? "Restore failed." };
+  }
+}
+
+export async function deleteUserRowAction(
+  userId: string,
+): Promise<{ ok: boolean; message: string }> {
+  const { token } = await getAdminApiContext(PERMISSIONS.USERS_MANAGE);
+
+  try {
+    await apiRequest(`/users/${encodeURIComponent(userId)}`, {
+      method: "DELETE",
+      token,
+    });
+    revalidatePath("/admin/users");
+    return { ok: true, message: "User deleted." };
+  } catch (error: unknown) {
+    return { ok: false, message: failure(error).message ?? "Delete failed." };
+  }
 }

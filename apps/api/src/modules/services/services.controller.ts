@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -136,5 +137,14 @@ export class ServicesController {
     @Body() input: UpdateServiceDto,
   ) {
     return this.services.updateService(principal, serviceId, input);
+  }
+
+  @Delete(':id')
+  @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
+  remove(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) serviceId: string,
+  ) {
+    return this.services.deleteService(principal, serviceId);
   }
 }
