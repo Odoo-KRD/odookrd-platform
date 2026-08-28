@@ -10,6 +10,10 @@ import {
   AdminActionLink,
   type AdminActionTone,
 } from "@/components/admin/admin-action-controls";
+import {
+  AdminActionMenu,
+  type AdminActionMenuItem,
+} from "@/components/admin/admin-action-menu";
 import type { AdminActionIconName } from "@/components/admin/admin-action-icons";
 
 import type { AdminLifecycleLabels } from "@/lib/i18n/admin-lifecycle";
@@ -33,12 +37,14 @@ interface AdminLifecycleRowActionsProps {
     | "DRAFT"
     | "PUBLISHED";
   editHref: string;
+  compactMenu?: boolean;
   extraActions?: readonly {
     key: string;
     label: string;
     href: string;
     tone?: AdminActionTone;
     icon?: AdminActionIconName;
+    showInline?: boolean;
   }[];
   labels: AdminLifecycleLabels;
   archiveAction: (id: string) => Promise<ActionResult>;
@@ -78,6 +84,7 @@ export function AdminLifecycleRowActions({
   name,
   status,
   editHref,
+  compactMenu = false,
   extraActions = [],
   labels,
   archiveAction,
@@ -91,6 +98,14 @@ export function AdminLifecycleRowActions({
 
   const archived = status === "ARCHIVED" || status === "INACTIVE";
   const selectedText = operation ? dialogText(operation, labels, name) : null;
+  const inlineExtraActions = compactMenu
+    ? extraActions.filter((action) => action.showInline)
+    : extraActions;
+
+  function selectOperation(next: LifecycleOperation): void {
+    setMessage(null);
+    setOperation(next);
+  }
 
   function run(): void {
     if (!operation || pending) return;
@@ -120,6 +135,42 @@ export function AdminLifecycleRowActions({
       }
     });
   }
+
+  const menuItems: AdminActionMenuItem[] = [
+    {
+      key: "edit",
+      label: labels.edit,
+      href: editHref,
+      icon: "edit",
+    },
+    ...extraActions.map((action) => ({
+      key: action.key,
+      label: action.label,
+      href: action.href,
+      tone:
+        action.tone === "danger"
+          ? ("danger" as const)
+          : action.tone === "warning"
+            ? ("warning" as const)
+            : ("default" as const),
+      icon: action.icon,
+    })),
+    {
+      key: archived ? "restore" : "archive",
+      label: archived ? labels.restore : labels.archive,
+      icon: "archive",
+      tone: "warning",
+      separatorBefore: true,
+      onSelect: () => selectOperation(archived ? "restore" : "archive"),
+    },
+    {
+      key: "delete",
+      label: labels.delete,
+      icon: "delete",
+      tone: "danger",
+      onSelect: () => selectOperation("delete"),
+    },
+  ];
 
   const dialog =
     operation && selectedText && typeof document !== "undefined"
@@ -197,7 +248,7 @@ export function AdminLifecycleRowActions({
           {labels.edit}
         </AdminActionLink>
 
-        {extraActions.map((action) => (
+        {inlineExtraActions.map((action) => (
           <AdminActionLink
             key={action.key}
             href={action.href}
@@ -208,40 +259,37 @@ export function AdminLifecycleRowActions({
           </AdminActionLink>
         ))}
 
-        {archived ? (
-          <AdminActionButton
-            tone="primary"
-            icon="archive"
-            onClick={() => {
-              setMessage(null);
-              setOperation("restore");
-            }}
-          >
-            {labels.restore}
-          </AdminActionButton>
+        {compactMenu ? (
+          <AdminActionMenu label={labels.moreActions} items={menuItems} />
         ) : (
-          <AdminActionButton
-            tone="warning"
-            icon="archive"
-            onClick={() => {
-              setMessage(null);
-              setOperation("archive");
-            }}
-          >
-            {labels.archive}
-          </AdminActionButton>
-        )}
+          <>
+            {archived ? (
+              <AdminActionButton
+                tone="primary"
+                icon="archive"
+                onClick={() => selectOperation("restore")}
+              >
+                {labels.restore}
+              </AdminActionButton>
+            ) : (
+              <AdminActionButton
+                tone="warning"
+                icon="archive"
+                onClick={() => selectOperation("archive")}
+              >
+                {labels.archive}
+              </AdminActionButton>
+            )}
 
-        <AdminActionButton
-          tone="danger"
-          icon="delete"
-          onClick={() => {
-            setMessage(null);
-            setOperation("delete");
-          }}
-        >
-          {labels.delete}
-        </AdminActionButton>
+            <AdminActionButton
+              tone="danger"
+              icon="delete"
+              onClick={() => selectOperation("delete")}
+            >
+              {labels.delete}
+            </AdminActionButton>
+          </>
+        )}
       </AdminActionGroup>
 
       {dialog}

@@ -496,9 +496,9 @@ export function AdminDataTable({
                   <th
                     key={column.key}
                     scope="col"
-                    className={`border-b border-line px-4 py-3 text-start text-xs font-semibold text-muted ${
-                      column.headerClassName ?? ""
-                    }`}
+                    className={`border-b border-line px-4 py-3 text-xs font-semibold text-muted ${
+                      column.key === "actions" ? "text-end" : "text-start"
+                    } ${column.headerClassName ?? ""}`}
                   >
                     <span
                       className="block max-w-[280px] truncate"
@@ -518,7 +518,7 @@ export function AdminDataTable({
                 return (
                   <tr
                     key={row.id}
-                    className={`align-top transition-colors ${
+                    className={`align-middle transition-colors ${
                       selected ? "bg-brand-soft/70" : "hover:bg-slate-50/70"
                     }`}
                   >
@@ -541,8 +541,8 @@ export function AdminDataTable({
                         <td
                           key={column.key}
                           className={`border-b border-slate-100 px-4 py-4 text-slate-700 ${
-                            column.className ?? ""
-                          }`}
+                            column.key === "actions" ? "text-end" : ""
+                          } ${column.className ?? ""}`}
                         >
                           {cell ? renderCell(cell) : "—"}
                         </td>

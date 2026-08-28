@@ -6,6 +6,7 @@ export interface AdminLifecycleLabels {
   archive: string;
   restore: string;
   delete: string;
+  moreActions: string;
   cancel: string;
   confirm: string;
   archiveTitle: string;
@@ -25,6 +26,7 @@ export const adminLifecycleDictionaries: Record<Locale, AdminLifecycleLabels> =
       archive: "ئەرشیفکردن",
       restore: "گەڕاندنەوە",
       delete: "سڕینەوە",
+      moreActions: "کردارە زیاترەکان",
       cancel: "پاشگەزبوونەوە",
       confirm: "دڵنیام",
       archiveTitle: "ئەرشیفکردن",
@@ -44,6 +46,7 @@ export const adminLifecycleDictionaries: Record<Locale, AdminLifecycleLabels> =
       archive: "أرشفة",
       restore: "استعادة",
       delete: "حذف",
+      moreActions: "إجراءات إضافية",
       cancel: "إلغاء",
       confirm: "تأكيد",
       archiveTitle: "أرشفة",
@@ -61,6 +64,7 @@ export const adminLifecycleDictionaries: Record<Locale, AdminLifecycleLabels> =
       archive: "Archive",
       restore: "Restore",
       delete: "Delete",
+      moreActions: "More actions",
       cancel: "Cancel",
       confirm: "Confirm",
       archiveTitle: "Archive",

@@ -721,6 +721,160 @@ export interface TrainingCourseStructure {
   sections: TrainingCourseStructureSection[];
 }
 
+// Stage 3C.1 — Customer training catalog and access contracts.
+export interface TrainingCatalogCategory {
+  id: string;
+  key: string;
+  name: string;
+  nameTranslations: LocalizedText;
+}
+
+export interface TrainingCatalogCourse {
+  id: string;
+  slug: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  summary: string | null;
+  summaryTranslations: LocalizedText;
+  publishedAt: string | null;
+  hasCover: boolean;
+  sectionCount: number;
+  lessonCount: number;
+  category: TrainingCatalogCategory;
+}
+
+export interface TrainingCatalogLesson {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  sortOrder: number;
+}
+
+export interface TrainingCatalogSection {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  sortOrder: number;
+  lessons: TrainingCatalogLesson[];
+}
+
+export interface TrainingCatalogCourseDetail extends TrainingCatalogCourse {
+  sections: TrainingCatalogSection[];
+}
+
+export interface TrainingCatalogStatus {
+  enabled: boolean;
+}
+
+export interface TrainingCatalogPage extends TrainingCatalogStatus {
+  items: TrainingCatalogCourse[];
+  categories: TrainingCatalogCategory[];
+  pagination: Pagination;
+}
+
+export interface TrainingAccessEligibility {
+  hasAny: boolean;
+  hasAllUsers: boolean;
+  hasAssignedUsers: boolean;
+  requiresAssignment: boolean;
+}
+
+export interface TrainingCompanyAccessRecord {
+  id: string;
+  companyId: string;
+  mode: TrainingAudienceMode;
+  startsAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company: {
+    id: string;
+    name: string;
+    nameTranslations: LocalizedText;
+  };
+}
+
+export interface TrainingServiceAccessRecord {
+  id: string;
+  serviceId: string;
+  mode: TrainingAudienceMode;
+  startsAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  service: {
+    id: string;
+    name: string;
+    nameTranslations: LocalizedText;
+  };
+}
+
+export interface TrainingUserAccessRecord {
+  id: string;
+  companyId: string;
+  userId: string;
+  source: TrainingUserAccessSource;
+  startsAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    email: string;
+    companyId: string | null;
+    status: UserStatus;
+  };
+}
+
+export interface TrainingAccessSummary {
+  scope: "PLATFORM" | "COMPANY";
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+    titleTranslations: LocalizedText;
+  };
+  eligibility: TrainingAccessEligibility | null;
+  companyAccess: TrainingCompanyAccessRecord[];
+  serviceAccess: TrainingServiceAccessRecord[];
+  userAccess: TrainingUserAccessRecord[];
+}
+
+export interface TrainingAccessOptions {
+  scope: "PLATFORM" | "COMPANY";
+  selectedCompanyId: string | null;
+  companies: Array<{
+    id: string;
+    name: string;
+    nameTranslations: LocalizedText;
+  }>;
+  services: Array<{
+    id: string;
+    name: string;
+    nameTranslations: LocalizedText;
+  }>;
+  users: Array<{
+    id: string;
+    email: string;
+    companyId: string | null;
+    status: UserStatus;
+  }>;
+}
+
+export interface TrainingManageableCourse {
+  id: string;
+  slug: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  hasAllUsers: boolean;
+  hasAssignedUsers: boolean;
+  requiresAssignment: boolean;
+}
+
 // Stage 3B.1 — Shared file/media contracts.
 export const FILE_ASSET_KINDS = ["IMAGE", "DOCUMENT", "ATTACHMENT"] as const;
 export type FileAssetKind = (typeof FILE_ASSET_KINDS)[number];

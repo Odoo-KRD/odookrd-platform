@@ -10,7 +10,8 @@ import { redirect } from "next/navigation";
 
 import { TrainingCourseForm } from "@/components/training/training-forms";
 import { apiRequest } from "@/lib/api";
-import { getAdminApiContext } from "@/lib/authorization";
+import { getAdminApiContext, hasPermission } from "@/lib/authorization";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
 
 import { updateTrainingCourseAction } from "../../actions";
@@ -20,15 +21,16 @@ export default async function TrainingCoursePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [{ session, token }, { training, content }, { id }] = await Promise.all(
-    [
+  const [{ session, token }, { locale, training, content }, { id }] =
+    await Promise.all([
       getAdminApiContext(PERMISSIONS.TRAINING_MANAGE),
       getTrainingDictionary(),
       params,
-    ],
-  );
+    ]);
 
-  if (session.user.accountScope !== "PLATFORM") redirect("/dashboard");
+  if (session.user.accountScope !== "PLATFORM") {
+    redirect("/dashboard");
+  }
 
   const [course, categories] = await Promise.all([
     apiRequest<TrainingCourse>(`/training/courses/${encodeURIComponent(id)}`, {
@@ -47,6 +49,14 @@ export default async function TrainingCoursePage({
         description={training.editCourse}
         actions={
           <>
+            {hasPermission(session, PERMISSIONS.TRAINING_ASSIGN) ? (
+              <Link
+                href={`/admin/training/courses/${id}/access`}
+                className="inline-flex h-10 items-center rounded-md border border-line px-4 text-sm font-medium text-content hover:bg-surface-subtle"
+              >
+                {trainingCustomerDictionaries[locale].accessTitle}
+              </Link>
+            ) : null}
             <Link
               href={`/admin/training/courses/${id}/editor`}
               className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"

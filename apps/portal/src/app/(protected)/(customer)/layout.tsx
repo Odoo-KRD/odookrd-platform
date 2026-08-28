@@ -1,4 +1,4 @@
-import { PERMISSIONS } from "@odookrd/types";
+import { PERMISSIONS, type TrainingCatalogStatus } from "@odookrd/types";
 import { redirect } from "next/navigation";
 
 import {
@@ -7,11 +7,13 @@ import {
 } from "@/components/admin/navigation";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
+import { apiRequest } from "@/lib/api";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
-import { getPortalDictionary } from "@/lib/i18n/portal-server";
 import { frontendTranslations } from "@/lib/i18n/frontend";
+import { getPortalDictionary } from "@/lib/i18n/portal-server";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getPublicSettings } from "@/lib/public-settings";
-import { requireSession } from "@/lib/session";
+import { getSessionToken, requireSession } from "@/lib/session";
 
 export default async function ProtectedCustomerLayout({
   children,
@@ -27,6 +29,27 @@ export default async function ProtectedCustomerLayout({
     redirect("/admin");
   }
 
+  let trainingEnabled = false;
+
+  if (
+    session.user.companyId &&
+    hasPermission(session, PERMISSIONS.TRAINING_READ)
+  ) {
+    const token = await getSessionToken();
+
+    if (token) {
+      try {
+        const status = await apiRequest<TrainingCatalogStatus>(
+          "/training/catalog/status",
+          { token },
+        );
+        trainingEnabled = status.enabled;
+      } catch {
+        trainingEnabled = false;
+      }
+    }
+  }
+
   const navigation: AdminNavigationItem[] = [
     { kind: "item", href: "/dashboard", label: portal.navigation.dashboard },
   ];
@@ -36,6 +59,14 @@ export default async function ProtectedCustomerLayout({
       kind: "item",
       href: "/dashboard/services",
       label: frontendTranslations[locale].services.title,
+    });
+  }
+
+  if (trainingEnabled) {
+    navigation.push({
+      kind: "item",
+      href: "/dashboard/training",
+      label: trainingCustomerDictionaries[locale].navigation,
     });
   }
 

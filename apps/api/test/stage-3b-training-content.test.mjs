@@ -4,15 +4,15 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Stage 3B activates training content administration only', async () => {
+test('Stage 3B content administration remains platform-only as later Training APIs are added', async () => {
   const [module, controller, service] = await Promise.all([
     read('src/modules/training/training.module.ts'),
     read('src/modules/training/training.controller.ts'),
     read('src/modules/training/training.service.ts'),
   ]);
 
-  assert.match(module, /controllers: \[TrainingController\]/);
-  assert.match(module, /providers: \[TrainingService\]/);
+  assert.match(module, /TrainingController/);
+  assert.match(module, /TrainingService/);
   assert.match(controller, /@Controller\('training'\)/);
   assert.match(
     controller,
@@ -65,17 +65,25 @@ test('Stage 3B localizes training title and summary fields', async () => {
   assert.match(translations, /\ben:/);
 });
 
-test('Stage 3B exposes platform-only training administration navigation', async () => {
-  const [navigation, layout, page] = await Promise.all([
+test('Stage 3B keeps platform-only training navigation and a protected course listing', async () => {
+  const [navigation, layout, rootPage, coursesPage] = await Promise.all([
     read('../../apps/portal/src/lib/admin-navigation.ts'),
     read('../../apps/portal/src/app/(protected)/admin/layout.tsx'),
     read('../../apps/portal/src/app/(protected)/admin/training/page.tsx'),
+    read(
+      '../../apps/portal/src/app/(protected)/admin/training/courses/page.tsx',
+    ),
   ]);
 
   assert.match(navigation, /PERMISSIONS\.TRAINING_MANAGE/);
   assert.match(navigation, /session\.user\.accountScope === "PLATFORM"/);
   assert.match(navigation, /\/admin\/training/);
   assert.match(layout, /trainingDictionaries/);
-  assert.match(page, /getAdminApiContext\(PERMISSIONS\.TRAINING_MANAGE\)/);
-  assert.match(page, /AdminDataTable/);
+  assert.match(rootPage, /redirect\("\/admin\/training\/courses"\)/);
+  assert.match(
+    coursesPage,
+    /getAdminApiContext\(PERMISSIONS\.TRAINING_MANAGE\)/,
+  );
+  assert.match(coursesPage, /session\.user\.accountScope !== "PLATFORM"/);
+  assert.match(coursesPage, /AdminDataTable/);
 });

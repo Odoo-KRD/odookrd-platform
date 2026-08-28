@@ -7,7 +7,9 @@ interface PanelProps {
 
 export function Panel({ children, className = "" }: PanelProps) {
   return (
-    <section className={`rounded-lg border border-slate-200 bg-white ${className}`}>
+    <section
+      className={`rounded-lg border border-slate-200 bg-white ${className}`}
+    >
       {children}
     </section>
   );
@@ -33,7 +35,11 @@ export function PageHeading({ title, description, actions }: PageHeadingProps) {
         ) : null}
       </div>
 
-      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="ms-auto flex flex-wrap justify-end gap-2 text-end">
+          {actions}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -117,10 +123,8 @@ type ButtonVariant = "primary" | "secondary" | "danger";
 const buttonClasses: Record<ButtonVariant, string> = {
   primary:
     "border-[#714b67] bg-[#714b67] text-white hover:bg-[#62405a] hover:border-[#62405a]",
-  secondary:
-    "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
-  danger:
-    "border-red-200 bg-white text-red-700 hover:bg-red-50",
+  secondary: "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+  danger: "border-red-200 bg-white text-red-700 hover:bg-red-50",
 };
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

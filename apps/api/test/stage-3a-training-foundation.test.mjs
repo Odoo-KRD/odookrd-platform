@@ -41,7 +41,9 @@ test('video storage is AWS-first with simple local upload only', async () => {
       read('src/modules/training/training.constants.ts'),
       read('../../packages/types/src/index.ts'),
       read('src/modules/settings/settings.registry.ts'),
-      read('prisma/migrations/20260826100000_020_training_foundation/migration.sql'),
+      read(
+        'prisma/migrations/20260826100000_020_training_foundation/migration.sql',
+      ),
     ]);
 
   const providerEnum = schema.match(
@@ -54,13 +56,16 @@ test('video storage is AWS-first with simple local upload only', async () => {
   assert.doesNotMatch(providerEnum, /GOOGLE|DRIVE/);
   assert.match(constants, /DEFAULT_TRAINING_STORAGE_PROVIDER[\s\S]*'AWS_S3'/);
   assert.match(constants, /LOCAL_TRAINING_TRANSCODING_ENABLED = false/);
-  assert.match(sharedTypes, /TRAINING_STORAGE_PROVIDERS = \["AWS_S3", "LOCAL"\]/);
-  assert.match(settings, /key: 'trainings\.video\.primary_provider'[\s\S]*defaultValue: 'AWS_S3'/);
-  assert.match(migration, /"provider" "training_storage_provider" NOT NULL/);
   assert.match(
-    migration,
-    /training_video_assets_local_no_transcoding_check/,
+    sharedTypes,
+    /TRAINING_STORAGE_PROVIDERS = \["AWS_S3", "LOCAL"\]/,
   );
+  assert.match(
+    settings,
+    /key: 'trainings\.video\.primary_provider'[\s\S]*defaultValue: 'AWS_S3'/,
+  );
+  assert.match(migration, /"provider" "training_storage_provider" NOT NULL/);
+  assert.match(migration, /training_video_assets_local_no_transcoding_check/);
 });
 
 test('training permissions follow the approved system-role matrix', async () => {
@@ -113,12 +118,20 @@ test('database migration enforces tenant and course isolation', async () => {
   }
 });
 
-test('Stage 3A exposes no training API or frontend implementation', async () => {
-  const trainingModule = await read('src/modules/training/training.module.ts');
+test('Stage 3A foundation remains registered as later Training stages add APIs', async () => {
+  const [trainingModule, schema, settings] = await Promise.all([
+    read('src/modules/training/training.module.ts'),
+    read('prisma/schema.prisma'),
+    read('src/modules/settings/settings.registry.ts'),
+  ]);
 
-  assert.doesNotMatch(trainingModule, /controllers:/);
-  assert.doesNotMatch(trainingModule, /providers:/);
-  assert.doesNotMatch(trainingModule, /Controller|Service/);
+  assert.match(trainingModule, /export class TrainingModule/);
+  assert.match(trainingModule, /DatabaseModule/);
+  assert.match(schema, /model TrainingCourse /);
+  assert.match(schema, /model TrainingCourseCompanyAccess /);
+  assert.match(schema, /model TrainingCourseServiceAccess /);
+  assert.match(schema, /model TrainingCourseUserAccess /);
+  assert.match(settings, /key: 'trainings\.enabled'/);
 });
 
 test('training remains feature-disabled while future quiz and certificate foundations exist', async () => {

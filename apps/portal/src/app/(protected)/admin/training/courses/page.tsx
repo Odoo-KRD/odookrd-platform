@@ -16,9 +16,10 @@ import {
 } from "@/components/admin/admin-data-table";
 import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
-import { getAdminApiContext } from "@/lib/authorization";
+import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin-table";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
 
 import {
@@ -154,6 +155,7 @@ export default async function TrainingCoursesPage({
             name={course.title}
             status={course.status}
             editHref={`/admin/training/courses/${course.id}`}
+            compactMenu
             extraActions={[
               {
                 key: "course-editor",
@@ -161,7 +163,19 @@ export default async function TrainingCoursesPage({
                 href: `/admin/training/courses/${course.id}/editor`,
                 tone: "primary",
                 icon: "course-editor",
+                showInline: true,
               },
+              ...(hasPermission(session, PERMISSIONS.TRAINING_ASSIGN)
+                ? [
+                    {
+                      key: "manage-access",
+                      label:
+                        trainingCustomerDictionaries[locale].manageTraining,
+                      href: `/admin/training/courses/${course.id}/access`,
+                      icon: "manage-access" as const,
+                    },
+                  ]
+                : []),
             ]}
             labels={lifecycle}
             archiveAction={archiveTrainingCourseRowAction}

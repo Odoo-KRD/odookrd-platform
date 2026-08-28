@@ -30,7 +30,11 @@ function actionClassName(tone: AdminActionTone): string {
 }
 
 export function AdminActionGroup({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-center gap-2">{children}</div>;
+  return (
+    <div className="flex w-full flex-wrap items-center justify-end gap-2 text-end">
+      {children}
+    </div>
+  );
 }
 
 export function AdminActionLink({
