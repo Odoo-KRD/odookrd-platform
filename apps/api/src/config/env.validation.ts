@@ -49,6 +49,9 @@ export const environmentValidationSchema = Joi.object({
     .valid('LOCAL', 'AWS_S3')
     .default('LOCAL'),
   FILES_LOCAL_ROOT: Joi.string().default('/opt/odookrd-platform/var/uploads'),
+  TRAINING_LOCAL_MEDIA_ROOT: Joi.string().default(
+    '/opt/odookrd-platform/var/training-media',
+  ),
   FILES_S3_REGION: Joi.when('FILES_STORAGE_PROVIDER', {
     is: 'AWS_S3',
     then: Joi.string().min(1).required(),

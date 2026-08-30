@@ -34,6 +34,7 @@ import type {
   UpdateTrainingSectionDto,
   UpdateTrainingCourseStructureDto,
 } from './dto/training-content.dto';
+import { evaluateTrainingLessonReadiness } from './training-lesson-readiness';
 
 const categorySelect = {
   id: true,
@@ -96,6 +97,12 @@ const lessonSelect = {
   courseId: true,
   sectionId: true,
   videoAssetId: true,
+  contentType: true,
+  documentAssetId: true,
+  documentPageCount: true,
+  articleContentTranslations: true,
+  videoAsset: { select: { status: true } },
+  documentAsset: { select: { status: true } },
   title: true,
   titleTranslations: true,
   description: true,
@@ -115,6 +122,9 @@ type CourseRecord = Prisma.TrainingCourseGetPayload<{
 }>;
 type SectionRecord = Prisma.TrainingSectionGetPayload<{
   select: typeof sectionSelect;
+}>;
+type LessonRecord = Prisma.TrainingVideoLessonGetPayload<{
+  select: typeof lessonSelect;
 }>;
 
 @Injectable()
@@ -698,7 +708,11 @@ export class TrainingService {
       courseId,
       sections: sections.map((section) => {
         const { _count, ...rest } = section;
-        return { ...rest, lessonCount: _count.lessons };
+        return {
+          ...rest,
+          lessons: rest.lessons.map((lesson) => this.presentLesson(lesson)),
+          lessonCount: _count.lessons,
+        };
       }),
     };
   }
@@ -1079,11 +1093,12 @@ export class TrainingService {
   ) {
     this.assertPlatformAdministrator(principal);
     await this.assertSectionExists(this.prisma, courseId, sectionId);
-    return this.prisma.trainingVideoLesson.findMany({
+    const lessons = await this.prisma.trainingVideoLesson.findMany({
       where: { courseId, sectionId },
       select: lessonSelect,
       orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     });
+    return lessons.map((lesson) => this.presentLesson(lesson));
   }
 
   async getLesson(
@@ -1100,7 +1115,7 @@ export class TrainingService {
     if (!lesson) {
       throw new NotFoundException('Training lesson was not found.');
     }
-    return lesson;
+    return this.presentLesson(lesson);
   }
 
   async createLesson(
@@ -1114,8 +1129,13 @@ export class TrainingService {
     if (!title) {
       throw new BadRequestException('Training lesson title cannot be blank.');
     }
+    if (input.status === TrainingContentStatus.PUBLISHED) {
+      throw new ConflictException(
+        'Create the lesson as a draft, configure its primary content, then publish it from the lesson review tab.',
+      );
+    }
 
-    return this.prisma.$transaction(async (transaction) => {
+    const created = await this.prisma.$transaction(async (transaction) => {
       await this.assertSectionExists(transaction, courseId, sectionId);
       const created = await transaction.trainingVideoLesson.create({
         data: {
@@ -1152,6 +1172,7 @@ export class TrainingService {
       });
       return created;
     });
+    return this.presentLesson(created);
   }
 
   async updateLesson(
@@ -1175,7 +1196,16 @@ export class TrainingService {
       throw new BadRequestException('Training lesson title cannot be blank.');
     }
 
-    return this.prisma.$transaction(async (transaction) => {
+    if (input.status === TrainingContentStatus.PUBLISHED) {
+      const readiness = this.lessonReadiness(existing);
+      if (!readiness.ready) {
+        throw new ConflictException(
+          `Lesson is not ready to publish: ${readiness.blockers.join(', ')}.`,
+        );
+      }
+    }
+
+    const updated = await this.prisma.$transaction(async (transaction) => {
       const updated = await transaction.trainingVideoLesson.update({
         where: { id: lessonId },
         data: {
@@ -1232,6 +1262,7 @@ export class TrainingService {
       });
       return updated;
     });
+    return this.presentLesson(updated);
   }
 
   async deleteLesson(
@@ -1273,6 +1304,25 @@ export class TrainingService {
 
       return { id: lessonId, deleted: true };
     });
+  }
+
+  private lessonReadiness(record: LessonRecord) {
+    return evaluateTrainingLessonReadiness({
+      contentType: record.contentType,
+      videoStatus: record.videoAsset?.status ?? null,
+      documentStatus: record.documentAsset?.status ?? null,
+      documentPageCount: record.documentPageCount,
+      articleContentTranslations: record.articleContentTranslations,
+      quizConfigured: false,
+    });
+  }
+
+  private presentLesson(record: LessonRecord) {
+    const readiness = this.lessonReadiness(record);
+    const { videoAsset, documentAsset, ...lesson } = record;
+    void videoAsset;
+    void documentAsset;
+    return { ...lesson, contentReady: readiness.ready };
   }
 
   private presentCategory(record: CategoryRecord) {

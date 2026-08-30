@@ -9,7 +9,11 @@ import type {
 import { RichTextEditor } from "@odookrd/ui";
 import { useMemo, useState } from "react";
 
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/lib/i18n/config";
+import {
+  DEFAULT_LOCALE,
+  getTextDirection,
+  SUPPORTED_LOCALES,
+} from "@/lib/i18n/config";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 import type { TrainingDictionary } from "@/lib/i18n/training";
 
@@ -174,7 +178,7 @@ export function LocalizedRichTextEditor({
           })
         }
         labels={training.editor.toolbar}
-        dir="ltr"
+        dir={getTextDirection(activeLocale)}
         disabled={disabled}
         onUploadImage={async (file) => (await uploadAsset(file, "IMAGE")).href}
         onUploadFile={async (file) => uploadAsset(file, "ATTACHMENT")}

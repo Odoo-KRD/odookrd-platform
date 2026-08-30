@@ -8,6 +8,7 @@ import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
 import { localizeTrainingText } from "@/lib/training-display";
 
 export default async function CustomerTrainingCoursePage({
@@ -161,12 +162,24 @@ export default async function CustomerTrainingCoursePage({
                           )}
                         </p>
                         <p className="mt-1 text-xs text-muted">
-                          {labels.mediaComing}
+                          {lesson.contentReady && lesson.contentType
+                            ? trainingLessonEditorDictionaries[locale]
+                                .contentTypes[lesson.contentType]
+                            : labels.mediaComing}
                         </p>
                       </div>
-                      <span className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-muted">
-                        {labels.lessons}
-                      </span>
+                      {lesson.mediaReady ? (
+                        <Link
+                          href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${lesson.id}`}
+                          className="inline-flex h-8 items-center rounded-md bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
+                        >
+                          {labels.viewCourse}
+                        </Link>
+                      ) : (
+                        <span className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-muted">
+                          {labels.lessons}
+                        </span>
+                      )}
                     </div>
                   ))
                 )}

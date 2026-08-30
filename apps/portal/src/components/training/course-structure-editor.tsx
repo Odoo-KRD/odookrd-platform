@@ -3,6 +3,7 @@
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider, useDroppable } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
+import { useRouter } from "next/navigation";
 import type {
   Locale,
   LocalizedRichText,
@@ -20,6 +21,9 @@ import {
   type FormEvent,
 } from "react";
 
+import { AdminActionButton } from "@/components/admin/admin-action-controls";
+import { AdminActionMenu } from "@/components/admin/admin-action-menu";
+import { LessonTypeIcon } from "@/components/training/lesson-type-icon";
 import { LocalizedTextField } from "@/components/i18n/localized-text-fields";
 import {
   initializeLocalizedRichText,
@@ -28,6 +32,7 @@ import {
 } from "@/components/training/localized-rich-text-editor";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 import type { TrainingDictionary } from "@/lib/i18n/training";
+import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
 
 type EditorDialog =
   | { kind: "section-create" }
@@ -93,7 +98,7 @@ function DragHandle({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="inline-flex size-9 shrink-0 cursor-grab items-center justify-center rounded-md border border-line bg-white text-muted hover:bg-surface-subtle hover:text-content active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex size-8 shrink-0 cursor-grab items-center justify-center text-slate-400 transition-colors hover:text-slate-600 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-35"
     >
       <svg
         viewBox="0 0 20 20"
@@ -141,12 +146,28 @@ function SortableLessonRow({
     accept: "lesson",
     disabled,
   });
+  const editorLabels = trainingLessonEditorDictionaries[locale];
+  const typeLabel = lesson.contentType
+    ? editorLabels.contentTypes[lesson.contentType]
+    : editorLabels.content.noContent;
+  const readinessLabel = lesson.contentType
+    ? lesson.contentReady
+      ? editorLabels.content.ready
+      : editorLabels.content.notReady
+    : editorLabels.content.noContent;
+
+  const rowSurface =
+    lesson.status === "DRAFT"
+      ? "border-slate-200 bg-slate-50/70 hover:bg-slate-50"
+      : lesson.status === "ARCHIVED"
+        ? "border-slate-200 bg-slate-50/90 hover:bg-slate-100/70"
+        : "border-line bg-white hover:border-slate-300 hover:bg-slate-50/35";
 
   return (
     <div
       ref={ref}
-      className={`flex items-center gap-3 rounded-lg border border-line bg-white px-3 py-3 transition ${
-        isDragging ? "opacity-55 shadow-lg" : "hover:border-slate-300"
+      className={`group flex min-h-14 items-center gap-2.5 rounded-lg border px-3 py-2.5 transition-all ${rowSurface} ${
+        isDragging ? "opacity-55 shadow-lg ring-2 ring-brand/10" : ""
       }`}
     >
       <DragHandle
@@ -155,51 +176,66 @@ function SortableLessonRow({
         disabled={disabled}
       />
 
+      <LessonTypeIcon contentType={lesson.contentType} label={typeLabel} />
+
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate text-sm font-semibold text-content">
+        <div className="flex min-w-0 flex-wrap items-center gap-y-1.5">
+          <p className="min-w-0 max-w-full truncate text-sm font-semibold leading-5 text-content">
             {localizedTitle(lesson, locale)}
           </p>
-          <span
-            className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${statusTone(
-              lesson.status,
-            )}`}
-          >
-            {training.contentStatus[lesson.status]}
-          </span>
-          <span className="text-[11px] text-muted">
-            {training.editor.lessonType}
-          </span>
+
+          <div className="ms-3 flex shrink-0 flex-wrap items-center gap-1.5">
+            <span
+              className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${statusTone(
+                lesson.status,
+              )}`}
+            >
+              {training.contentStatus[lesson.status]}
+            </span>
+            <span
+              className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${
+                !lesson.contentType
+                  ? "border-slate-200 bg-white/80 text-slate-500"
+                  : lesson.contentReady
+                    ? "border-teal-200 bg-teal-50 text-teal-700"
+                    : "border-amber-200 bg-amber-50 text-amber-700"
+              }`}
+            >
+              {readinessLabel}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          onClick={onEdit}
-          disabled={disabled}
-          className="inline-flex h-8 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content hover:bg-surface-subtle disabled:opacity-50"
-        >
+      <div className="flex shrink-0 items-center gap-2">
+        <AdminActionButton icon="edit" onClick={onEdit} disabled={disabled}>
           {training.edit}
-        </button>
-        <button
-          type="button"
-          onClick={onArchive}
-          disabled={disabled}
-          className="inline-flex h-8 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content hover:bg-surface-subtle disabled:opacity-50"
-        >
-          {lesson.status === "ARCHIVED"
-            ? training.editor.restore
-            : training.editor.archive}
-        </button>
-        <button
-          type="button"
-          onClick={onDelete}
-          disabled={disabled}
-          className="inline-flex h-8 items-center rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
-        >
-          {training.editor.delete}
-        </button>
+        </AdminActionButton>
+        {!disabled ? (
+          <AdminActionMenu
+            orientation="horizontal"
+            label={`${training.edit} ${localizedTitle(lesson, locale)}`}
+            items={[
+              {
+                key: "archive",
+                label:
+                  lesson.status === "ARCHIVED"
+                    ? training.editor.restore
+                    : training.editor.archive,
+                icon: "archive",
+                onSelect: onArchive,
+              },
+              {
+                key: "delete",
+                label: training.editor.delete,
+                icon: "delete",
+                tone: "danger",
+                separatorBefore: true,
+                onSelect: onDelete,
+              },
+            ]}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -247,6 +283,8 @@ function SortableSectionCard({
   onEditLesson,
   onArchiveLesson,
   onDeleteLesson,
+  collapsed,
+  onToggleCollapsed,
 }: {
   section: TrainingCourseStructureSection;
   sectionIndex: number;
@@ -255,6 +293,8 @@ function SortableSectionCard({
   locale: Locale;
   training: TrainingDictionary;
   disabled: boolean;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
   onEditSection: () => void;
   onArchiveSection: () => void;
   onDeleteSection: () => void;
@@ -275,102 +315,157 @@ function SortableSectionCard({
   return (
     <section
       ref={ref}
-      className={`overflow-hidden rounded-xl border border-line bg-surface-panel transition ${
-        isDragging ? "opacity-60 shadow-xl" : "shadow-sm"
+      className={`overflow-hidden rounded-lg border border-line bg-white transition-all ${
+        isDragging
+          ? "opacity-60 shadow-lg ring-2 ring-brand/10"
+          : "hover:border-slate-300"
       }`}
     >
-      <header className="flex flex-wrap items-center gap-3 border-b border-line bg-slate-50/70 px-4 py-3.5">
+      <header className="flex flex-wrap items-center gap-2.5 border-b border-line bg-slate-50/45 px-3 py-3 sm:flex-nowrap sm:px-4">
         <DragHandle
           label={training.editor.dragSection}
           handleRef={handleRef}
           disabled={disabled}
         />
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={
+            locale === "ku"
+              ? collapsed
+                ? "بەش بکەرەوە"
+                : "بەش داخە"
+              : locale === "ar"
+                ? collapsed
+                  ? "توسيع القسم"
+                  : "طي القسم"
+                : collapsed
+                  ? "Expand section"
+                  : "Collapse section"
+          }
+          title={
+            locale === "ku"
+              ? collapsed
+                ? "بەش بکەرەوە"
+                : "بەش داخە"
+              : locale === "ar"
+                ? collapsed
+                  ? "توسيع القسم"
+                  : "طي القسم"
+                : collapsed
+                  ? "Expand section"
+                  : "Collapse section"
+          }
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted transition hover:bg-white hover:text-content"
+        >
+          <svg
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+            className={`size-4 fill-none stroke-current transition-transform ${
+              collapsed ? "-rotate-90" : "rotate-0"
+            }`}
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m5 7.5 5 5 5-5" />
+          </svg>
+        </button>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-y-1">
             <h3 className="truncate text-sm font-semibold text-content">
               {localizedTitle(section, locale)}
             </h3>
             <span
-              className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${statusTone(
+              className={`ms-2 inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${statusTone(
                 section.status,
               )}`}
             >
               {training.contentStatus[section.status]}
             </span>
           </div>
-          <p className="mt-1 text-xs text-muted">
+          <p className="mt-0.5 text-xs text-muted">
             {lessonIds.length} {training.lessons}
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
+        <div className="flex shrink-0 items-center gap-2">
+          <AdminActionButton
+            icon="edit"
             onClick={onEditSection}
             disabled={disabled}
-            className="inline-flex h-8 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content hover:bg-surface-subtle disabled:opacity-50"
           >
             {training.edit}
-          </button>
-          <button
-            type="button"
-            onClick={onArchiveSection}
-            disabled={disabled}
-            className="inline-flex h-8 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content hover:bg-surface-subtle disabled:opacity-50"
-          >
-            {section.status === "ARCHIVED"
-              ? training.editor.restore
-              : training.editor.archive}
-          </button>
-          <button
-            type="button"
-            onClick={onDeleteSection}
-            disabled={disabled}
-            className="inline-flex h-8 items-center rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
-          >
-            {training.editor.delete}
-          </button>
+          </AdminActionButton>
+          {!disabled ? (
+            <AdminActionMenu
+              orientation="horizontal"
+              label={`${training.edit} ${localizedTitle(section, locale)}`}
+              items={[
+                {
+                  key: "archive",
+                  label:
+                    section.status === "ARCHIVED"
+                      ? training.editor.restore
+                      : training.editor.archive,
+                  icon: "archive",
+                  onSelect: onArchiveSection,
+                },
+                {
+                  key: "delete",
+                  label: training.editor.delete,
+                  icon: "delete",
+                  tone: "danger",
+                  separatorBefore: true,
+                  onSelect: onDeleteSection,
+                },
+              ]}
+            />
+          ) : null}
         </div>
       </header>
 
-      <div className="grid gap-3 px-4 py-4">
-        <LessonDropZone sectionId={section.id} disabled={disabled}>
-          {lessonIds.length === 0 ? (
-            <div className="flex min-h-16 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50 px-4 text-center text-xs text-muted">
-              {training.editor.emptySection}
-            </div>
-          ) : (
-            lessonIds.map((lessonId, lessonIndex) => {
-              const lesson = lessonById.get(lessonId);
-              if (!lesson) return null;
-              return (
-                <SortableLessonRow
-                  key={lesson.id}
-                  lesson={lesson}
-                  index={lessonIndex}
-                  sectionId={section.id}
-                  locale={locale}
-                  training={training}
-                  disabled={disabled}
-                  onEdit={() => onEditLesson(lesson)}
-                  onArchive={() => onArchiveLesson(lesson)}
-                  onDelete={() => onDeleteLesson(lesson)}
-                />
-              );
-            })
-          )}
-        </LessonDropZone>
+      {!collapsed ? (
+        <div className="grid gap-2 bg-white px-3 py-3 sm:px-4">
+          <LessonDropZone sectionId={section.id} disabled={disabled}>
+            {lessonIds.length === 0 ? (
+              <div className="flex min-h-14 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50/50 px-4 text-center text-xs text-muted">
+                {training.editor.emptySection}
+              </div>
+            ) : (
+              lessonIds.map((lessonId, lessonIndex) => {
+                const lesson = lessonById.get(lessonId);
+                if (!lesson) return null;
+                return (
+                  <SortableLessonRow
+                    key={lesson.id}
+                    lesson={lesson}
+                    index={lessonIndex}
+                    sectionId={section.id}
+                    locale={locale}
+                    training={training}
+                    disabled={disabled}
+                    onEdit={() => onEditLesson(lesson)}
+                    onArchive={() => onArchiveLesson(lesson)}
+                    onDelete={() => onDeleteLesson(lesson)}
+                  />
+                );
+              })
+            )}
+          </LessonDropZone>
 
-        <button
-          type="button"
-          onClick={onAddLesson}
-          disabled={disabled}
-          className="inline-flex h-9 w-fit items-center rounded-md border border-dashed border-brand/30 bg-brand-soft/40 px-3 text-xs font-semibold text-brand hover:bg-brand-soft disabled:opacity-50"
-        >
-          + {training.editor.addLesson}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={onAddLesson}
+            disabled={disabled}
+            className="mt-0.5 inline-flex h-9 w-fit items-center rounded-md border border-brand/30 bg-white px-3 text-xs font-semibold text-brand transition hover:border-brand/40 hover:bg-brand-soft/40 disabled:opacity-50"
+          >
+            + {training.editor.addLesson}
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -400,6 +495,7 @@ function EditorDialogForm({
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const router = useRouter();
   const existing =
     dialog.kind === "section-edit"
       ? dialog.section
@@ -492,11 +588,20 @@ function EditorDialogForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const body = (await response.json()) as { message?: string };
+        const body = (await response.json()) as {
+          id?: string;
+          message?: string;
+        };
         if (!response.ok) {
           throw new Error(
             body.message || "The request could not be completed.",
           );
+        }
+        if (dialog.kind === "lesson-create" && body.id) {
+          router.push(
+            `/admin/training/courses/${courseId}/sections/${dialog.sectionId}/lessons/${body.id}/editor`,
+          );
+          return;
         }
         await onSaved();
         onClose();
@@ -642,6 +747,7 @@ export function CourseStructureEditor({
   training: TrainingDictionary;
   content: ContentEditorDictionary;
 }) {
+  const router = useRouter();
   const [structure, setStructure] = useState(initialStructure);
   const [order, setOrder] = useState<OrderState>(() =>
     buildOrder(initialStructure),
@@ -653,6 +759,24 @@ export function CourseStructureEditor({
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const sectionCollapseLabels =
+    locale === "ku"
+      ? {
+          expandAll: "هەموو بەشەکان بکەرەوە",
+          collapseAll: "هەموو بەشەکان داخە",
+        }
+      : locale === "ar"
+        ? {
+            expandAll: "توسيع كل الأقسام",
+            collapseAll: "طي كل الأقسام",
+          }
+        : {
+            expandAll: "Expand all",
+            collapseAll: "Collapse all",
+          };
 
   const sectionById = useMemo(
     () => new Map(structure.sections.map((section) => [section.id, section])),
@@ -835,6 +959,28 @@ export function CourseStructureEditor({
           </p>
           <p className="mt-1 text-xs text-muted">{training.editor.moveHint}</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCollapsedSections(new Set())}
+            disabled={savingStructure || actionBusy !== null}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content hover:bg-surface-subtle disabled:opacity-50"
+          >
+            {sectionCollapseLabels.expandAll}
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setCollapsedSections(
+                new Set(structure.sections.map((section) => section.id)),
+              )
+            }
+            disabled={savingStructure || actionBusy !== null}
+            className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-xs font-medium text-content hover:bg-surface-subtle disabled:opacity-50"
+          >
+            {sectionCollapseLabels.collapseAll}
+          </button>
+        </div>
         <button
           type="button"
           onClick={() => setDialog({ kind: "section-create" })}
@@ -919,6 +1065,15 @@ export function CourseStructureEditor({
                   locale={locale}
                   training={training}
                   disabled={savingStructure || actionBusy !== null}
+                  collapsed={collapsedSections.has(section.id)}
+                  onToggleCollapsed={() =>
+                    setCollapsedSections((current) => {
+                      const next = new Set(current);
+                      if (next.has(section.id)) next.delete(section.id);
+                      else next.add(section.id);
+                      return next;
+                    })
+                  }
                   onEditSection={() =>
                     setDialog({ kind: "section-edit", section })
                   }
@@ -928,11 +1083,9 @@ export function CourseStructureEditor({
                     setDialog({ kind: "lesson-create", sectionId: section.id })
                   }
                   onEditLesson={(lesson) =>
-                    setDialog({
-                      kind: "lesson-edit",
-                      sectionId: section.id,
-                      lesson,
-                    })
+                    router.push(
+                      `/admin/training/courses/${courseId}/sections/${section.id}/lessons/${lesson.id}/editor`,
+                    )
                   }
                   onArchiveLesson={(lesson) =>
                     void toggleLessonArchive(section.id, lesson)

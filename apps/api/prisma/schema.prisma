@@ -192,6 +192,23 @@ enum TrainingVideoAssetStatus {
   @@map("training_video_asset_status")
 }
 
+enum TrainingVideoDeliveryMode {
+  AWS_AUTOMATED
+  AWS_MANUAL
+  LOCAL
+
+  @@map("training_video_delivery_mode")
+}
+
+enum TrainingLessonContentType {
+  VIDEO
+  DOCUMENT
+  ARTICLE
+  QUIZ
+
+  @@map("training_lesson_content_type")
+}
+
 enum TrainingAudienceMode {
   ALL_USERS
   ASSIGNED_USERS
@@ -353,9 +370,12 @@ model FileAsset {
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?           @map("deleted_at") @db.Timestamptz(6)
 
-  company              Company?         @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  uploadedBy           User             @relation("FileAssetUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
-  trainingCourseCovers TrainingCourse[] @relation("TrainingCourseCoverImage")
+  company                 Company?              @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  uploadedBy              User                  @relation("FileAssetUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  trainingCourseCovers    TrainingCourse[]      @relation("TrainingCourseCoverImage")
+  trainingDocumentLessons TrainingVideoLesson[] @relation("TrainingLessonDocumentAsset")
+
+  trainingLessonResources TrainingLessonResource[] @relation("TrainingLessonResourceFile")
 
   @@unique([storageProvider, storageKey])
   @@index([companyId])
@@ -868,25 +888,27 @@ model TrainingSection {
 }
 
 model TrainingVideoAsset {
-  id                        String                   @id @default(uuid()) @db.Uuid
+  id                        String                    @id @default(uuid()) @db.Uuid
   provider                  TrainingStorageProvider
-  status                    TrainingVideoAssetStatus @default(UPLOADING)
-  originalFilename          String                   @map("original_filename") @db.VarChar(255)
-  mimeType                  String                   @map("mime_type") @db.VarChar(150)
-  sizeBytes                 BigInt?                  @map("size_bytes")
-  checksum                  String?                  @db.VarChar(128)
-  durationSeconds           Int?                     @map("duration_seconds")
+  status                    TrainingVideoAssetStatus  @default(UPLOADING)
+  deliveryMode              TrainingVideoDeliveryMode @default(AWS_AUTOMATED) @map("delivery_mode")
+  originalFilename          String                    @map("original_filename") @db.VarChar(255)
+  mimeType                  String                    @map("mime_type") @db.VarChar(150)
+  sizeBytes                 BigInt?                   @map("size_bytes")
+  processedSizeBytes        BigInt?                   @map("processed_size_bytes")
+  checksum                  String?                   @db.VarChar(128)
+  durationSeconds           Int?                      @map("duration_seconds")
   width                     Int?
   height                    Int?
-  sourceReference           String                   @map("source_reference") @db.VarChar(2048)
-  playbackManifestReference String?                  @map("playback_manifest_reference") @db.VarChar(2048)
-  posterReference           String?                  @map("poster_reference") @db.VarChar(2048)
-  mediaConvertJobId         String?                  @map("media_convert_job_id") @db.VarChar(255)
-  failureCode               String?                  @map("failure_code") @db.VarChar(80)
-  failureMessage            String?                  @map("failure_message") @db.VarChar(1000)
-  metadata                  Json?                    @db.JsonB
-  createdAt                 DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                 DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sourceReference           String                    @map("source_reference") @db.VarChar(2048)
+  playbackManifestReference String?                   @map("playback_manifest_reference") @db.VarChar(2048)
+  posterReference           String?                   @map("poster_reference") @db.VarChar(2048)
+  mediaConvertJobId         String?                   @map("media_convert_job_id") @db.VarChar(255)
+  failureCode               String?                   @map("failure_code") @db.VarChar(80)
+  failureMessage            String?                   @map("failure_message") @db.VarChar(1000)
+  metadata                  Json?                     @db.JsonB
+  createdAt                 DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   lessons TrainingVideoLesson[]
 
@@ -896,30 +918,37 @@ model TrainingVideoAsset {
 }
 
 model TrainingVideoLesson {
-  id                          String                @id @default(uuid()) @db.Uuid
-  courseId                    String                @map("course_id") @db.Uuid
-  sectionId                   String                @map("section_id") @db.Uuid
-  videoAssetId                String?               @map("video_asset_id") @db.Uuid
-  title                       String                @db.VarChar(250)
-  titleTranslations           Json                  @default("{}") @map("title_translations") @db.JsonB
-  description                 String?               @db.VarChar(2000)
-  descriptionTranslations     Json                  @default("{}") @map("description_translations") @db.JsonB
-  richDescriptionTranslations Json                  @default("{}") @map("rich_description_translations") @db.JsonB
-  captionTracks               Json                  @default("{}") @map("caption_tracks") @db.JsonB
-  status                      TrainingContentStatus @default(DRAFT)
-  sortOrder                   Int                   @default(0) @map("sort_order")
-  createdAt                   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt                   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                          String                     @id @default(uuid()) @db.Uuid
+  courseId                    String                     @map("course_id") @db.Uuid
+  sectionId                   String                     @map("section_id") @db.Uuid
+  videoAssetId                String?                    @map("video_asset_id") @db.Uuid
+  contentType                 TrainingLessonContentType? @map("content_type")
+  documentAssetId             String?                    @map("document_asset_id") @db.Uuid
+  documentPageCount           Int?                       @map("document_page_count")
+  articleContentTranslations  Json                       @default("{}") @map("article_content_translations") @db.JsonB
+  title                       String                     @db.VarChar(250)
+  titleTranslations           Json                       @default("{}") @map("title_translations") @db.JsonB
+  description                 String?                    @db.VarChar(2000)
+  descriptionTranslations     Json                       @default("{}") @map("description_translations") @db.JsonB
+  richDescriptionTranslations Json                       @default("{}") @map("rich_description_translations") @db.JsonB
+  captionTracks               Json                       @default("{}") @map("caption_tracks") @db.JsonB
+  status                      TrainingContentStatus      @default(DRAFT)
+  sortOrder                   Int                        @default(0) @map("sort_order")
+  createdAt                   DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                   DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   course                TrainingCourse           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   section               TrainingSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   videoAsset            TrainingVideoAsset?      @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
+  documentAsset         FileAsset?               @relation("TrainingLessonDocumentAsset", fields: [documentAssetId], references: [id], onDelete: Restrict)
+  resources             TrainingLessonResource[]
   progress              TrainingLessonProgress[]
   lastForCourseProgress TrainingCourseProgress[] @relation("TrainingCourseProgressLastLesson")
 
   @@index([courseId, status, id], map: "training_video_lessons_course_status_idx")
   @@index([sectionId, status, sortOrder, id], map: "training_video_lessons_section_sort_idx")
   @@index([videoAssetId], map: "training_video_lessons_video_asset_idx")
+  @@index([documentAssetId], map: "training_video_lessons_document_asset_idx")
   @@map("training_video_lessons")
 }
 
@@ -977,6 +1006,26 @@ model TrainingCourseUserAccess {
   @@unique([courseId, userId], map: "training_course_user_access_unique")
   @@index([companyId, userId, startsAt, expiresAt], map: "training_course_user_access_window_idx")
   @@map("training_course_user_access")
+}
+
+model TrainingLessonResource {
+  id                String              @id @default(uuid()) @db.Uuid
+  lessonId          String              @map("lesson_id") @db.Uuid
+  fileAssetId       String              @map("file_asset_id") @db.Uuid
+  title             String              @db.VarChar(250)
+  titleTranslations Json                @default("{}") @map("title_translations") @db.JsonB
+  customerVisible   Boolean             @default(true) @map("customer_visible")
+  sortOrder         Int                 @default(0) @map("sort_order")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lesson            TrainingVideoLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  fileAsset         FileAsset           @relation("TrainingLessonResourceFile", fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([lessonId, fileAssetId], map: "training_lesson_resources_lesson_file_unique")
+  @@index([lessonId, sortOrder, id], map: "training_lesson_resources_lesson_order_idx")
+  @@index([fileAssetId], map: "training_lesson_resources_file_asset_idx")
+  @@index([lessonId, customerVisible], map: "training_lesson_resources_customer_visible_idx")
+  @@map("training_lesson_resources")
 }
 
 model TrainingLessonProgress {

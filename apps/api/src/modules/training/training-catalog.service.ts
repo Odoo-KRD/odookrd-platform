@@ -12,12 +12,14 @@ import {
   FileAssetKind,
   FileAssetStatus,
   TrainingContentStatus,
+  TrainingLessonContentType,
 } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { FileStorageService } from '../files/storage/file-storage.service';
 import type { ListTrainingCatalogQueryDto } from './dto/training-catalog.dto';
 import { TrainingEntitlementService } from './training-entitlement.service';
+import { evaluateTrainingLessonReadiness } from './training-lesson-readiness';
 
 const catalogCourseSelect = {
   id: true,
@@ -171,6 +173,11 @@ export class TrainingCatalogService {
                 description: true,
                 descriptionTranslations: true,
                 sortOrder: true,
+                contentType: true,
+                articleContentTranslations: true,
+                documentPageCount: true,
+                videoAsset: { select: { status: true } },
+                documentAsset: { select: { status: true } },
               },
             },
           },
@@ -183,9 +190,40 @@ export class TrainingCatalogService {
     }
 
     const { coverImageAssetId, _count, ...visibleCourse } = course;
+    const sections = visibleCourse.sections.map((section) => ({
+      ...section,
+      lessons: section.lessons.map(
+        ({
+          videoAsset,
+          documentAsset,
+          articleContentTranslations,
+          documentPageCount,
+          ...lesson
+        }) => {
+          const readiness = evaluateTrainingLessonReadiness({
+            contentType: lesson.contentType,
+            videoStatus: videoAsset?.status ?? null,
+            documentStatus: documentAsset?.status ?? null,
+            documentPageCount,
+            articleContentTranslations,
+            quizConfigured: false,
+          });
+          return {
+            ...lesson,
+            contentReady: readiness.ready,
+            mediaReady: readiness.ready,
+            mediaType:
+              lesson.contentType === TrainingLessonContentType.DOCUMENT
+                ? ('PDF_SLIDES' as const)
+                : ('VIDEO' as const),
+          };
+        },
+      ),
+    }));
 
     return {
       ...visibleCourse,
+      sections,
       hasCover: Boolean(coverImageAssetId),
       sectionCount: _count.sections,
       lessonCount: _count.lessons,

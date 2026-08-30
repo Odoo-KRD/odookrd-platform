@@ -11,6 +11,54 @@ const allowed = [
   new RegExp(`^courses/${uuid}/sections/${uuid}$`),
   new RegExp(`^courses/${uuid}/sections/${uuid}/lessons$`),
   new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}$`),
+  new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media$`),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/aws-automated/init$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/aws-automated/complete$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/aws-manual$`,
+  ),
+  new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/local$`),
+  new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/slides$`),
+  new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor$`),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/general$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/content-type$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/content$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/article$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/document$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/review$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/resources$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/resources/reorder$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/resources/${uuid}$`,
+  ),
+
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/thumbnail$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/aws-automated/retry$`,
+  ),
+  new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/video$`),
 ];
 
 export const runtime = "nodejs";
@@ -22,18 +70,24 @@ function allowedPath(path: string): boolean {
 async function proxy(
   request: NextRequest,
   pathSegments: string[],
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
 ) {
   const path = pathSegments.join("/");
   if (!allowedPath(path)) {
     return errorResponse(404, "Not found.");
   }
 
+  const localUpload = method === "PUT" && path.endsWith("/media/local");
+
   if (method !== "GET") {
     if (!isSameOrigin(request)) {
       return errorResponse(403, "Cross-origin requests are not allowed.");
     }
-    if (
+    if (localUpload) {
+      if (request.headers.get("content-type") !== "video/mp4") {
+        return errorResponse(415, "An MP4 request body is required.");
+      }
+    } else if (
       method !== "DELETE" &&
       !request.headers.get("content-type")?.startsWith("application/json")
     ) {
@@ -51,29 +105,48 @@ async function proxy(
     return errorResponse(500, "The portal API is not configured correctly.");
   }
 
-  let body: string | undefined;
-  if (method !== "GET" && method !== "DELETE") {
-    body = await request.text();
-    if (Buffer.byteLength(body, "utf8") > 300_000) {
+  let body: string | ReadableStream<Uint8Array> | undefined;
+  if (localUpload) {
+    body = request.body ?? undefined;
+  } else if (method !== "GET" && method !== "DELETE") {
+    const jsonBody = await request.text();
+    if (Buffer.byteLength(jsonBody, "utf8") > 300_000) {
       return errorResponse(413, "The request body is too large.");
     }
+    body = jsonBody;
+  }
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+  if (localUpload) {
+    headers["Content-Type"] = "video/mp4";
+    for (const name of [
+      "x-odookrd-filename",
+      "x-odookrd-size",
+      "x-odookrd-duration",
+      "x-odookrd-width",
+      "x-odookrd-height",
+    ]) {
+      const value = request.headers.get(name);
+      if (value) headers[name] = value;
+    }
+  } else if (method !== "GET" && method !== "DELETE") {
+    headers["Content-Type"] = "application/json";
   }
 
   let upstream: Response;
   try {
-    upstream = await fetch(new URL(`/v1/training/${path}`, apiBaseUrl), {
+    const init: RequestInit & { duplex?: "half" } = {
       method,
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-        ...(method === "GET" || method === "DELETE"
-          ? {}
-          : { "Content-Type": "application/json" }),
-      },
+      headers,
       ...(body === undefined ? {} : { body }),
+      ...(localUpload ? { duplex: "half" } : {}),
       cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
+      signal: AbortSignal.timeout(localUpload ? 1_800_000 : 15_000),
+    };
+    upstream = await fetch(new URL(`/v1/training/${path}`, apiBaseUrl), init);
   } catch {
     return errorResponse(502, "The API service is temporarily unavailable.");
   }
@@ -94,7 +167,14 @@ type RouteContext = { params: Promise<{ path: string[] }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
-  if (!path.join("/").endsWith("/structure")) {
+  const joined = path.join("/");
+  const editorGet =
+    joined.endsWith("/editor") || joined.endsWith("/editor/review");
+  if (
+    !joined.endsWith("/structure") &&
+    !joined.endsWith("/media") &&
+    !editorGet
+  ) {
     return errorResponse(405, "Method not allowed.");
   }
   return proxy(request, path, "GET");
@@ -112,4 +192,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
   return proxy(request, path, "DELETE");
+}
+
+export async function PUT(request: NextRequest, context: RouteContext) {
+  const { path } = await context.params;
+  return proxy(request, path, "PUT");
 }

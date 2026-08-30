@@ -600,6 +600,12 @@ export type TrainingCourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type TrainingContentStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type TrainingVideoAssetStatus =
   "UPLOADING" | "PROCESSING" | "READY" | "FAILED" | "ARCHIVED";
+export type TrainingVideoDeliveryMode =
+  "AWS_AUTOMATED" | "AWS_MANUAL" | "LOCAL";
+export type TrainingLessonContentType =
+  "VIDEO" | "DOCUMENT" | "ARTICLE" | "QUIZ";
+// Backwards-compatible Stage 3C.2 display contract.
+export type TrainingLessonMediaType = "VIDEO" | "PDF_SLIDES";
 export type TrainingAudienceMode = "ALL_USERS" | "ASSIGNED_USERS";
 export type TrainingUserAccessSource = "PLATFORM" | "COMPANY_ADMIN";
 export type TrainingProgressStatus = "IN_PROGRESS" | "COMPLETED";
@@ -701,6 +707,11 @@ export interface TrainingLesson {
   courseId: string;
   sectionId: string;
   videoAssetId: string | null;
+  contentType: TrainingLessonContentType | null;
+  documentAssetId: string | null;
+  documentPageCount: number | null;
+  articleContentTranslations: LocalizedRichText;
+  contentReady: boolean;
   title: string;
   titleTranslations: LocalizedText;
   description: string | null;
@@ -750,6 +761,10 @@ export interface TrainingCatalogLesson {
   description: string | null;
   descriptionTranslations: LocalizedText;
   sortOrder: number;
+  contentType: TrainingLessonContentType | null;
+  contentReady: boolean;
+  mediaType: TrainingLessonMediaType;
+  mediaReady: boolean;
 }
 
 export interface TrainingCatalogSection {
@@ -873,6 +888,148 @@ export interface TrainingManageableCourse {
   hasAllUsers: boolean;
   hasAssignedUsers: boolean;
   requiresAssignment: boolean;
+}
+
+// Stage 3C.2 / 3C.2R.1 — Training content delivery and advanced lesson editor contracts.
+export interface TrainingVideoMediaAdmin {
+  type: "VIDEO";
+  assetId: string;
+  deliveryMode: TrainingVideoDeliveryMode;
+  status: TrainingVideoAssetStatus;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number | null;
+  processedSizeBytes: number | null;
+  durationSeconds: number | null;
+  width: number | null;
+  height: number | null;
+  failureCode: string | null;
+  failureMessage: string | null;
+  posterFileAssetId: string | null;
+  processingProgress: number | null;
+  processingPhase: "PROCESSING" | "FINALIZING" | null;
+  outputVariants: number[];
+  playbackAvailable: boolean;
+  updatedAt: string;
+  manualPlaybackUrl: string | null;
+}
+
+export interface TrainingDocumentMediaAdmin {
+  type: "DOCUMENT";
+  fileAssetId: string;
+  originalFilename: string;
+  sizeBytes: number;
+  pageCount: number;
+}
+export type TrainingSlideMediaAdmin = TrainingDocumentMediaAdmin;
+
+export interface TrainingLessonMediaAdmin {
+  lessonId: string;
+  contentType: TrainingLessonContentType | null;
+  mediaType: TrainingLessonMediaType;
+  articleContentTranslations: LocalizedRichText;
+  video: TrainingVideoMediaAdmin | null;
+  document: TrainingDocumentMediaAdmin | null;
+  slides: TrainingDocumentMediaAdmin | null;
+}
+
+export interface TrainingAutomatedUploadInit {
+  assetId: string;
+  uploadUrl: string;
+  expiresInSeconds: number;
+  requiredHeaders: { "Content-Type": "video/mp4" };
+}
+
+export interface TrainingCustomerVideoContent {
+  type: "VIDEO";
+  deliveryMode: TrainingVideoDeliveryMode;
+  durationSeconds: number | null;
+  width: number | null;
+  height: number | null;
+  sizeBytes: number | null;
+  processedSizeBytes: number | null;
+  playbackKind: "HLS" | "MP4";
+  playbackPath: string;
+}
+export type TrainingCustomerVideoMedia = TrainingCustomerVideoContent;
+
+export interface TrainingCustomerDocumentContent {
+  type: "DOCUMENT";
+  pageCount: number;
+  sizeBytes: number;
+  contentPath: string;
+}
+export type TrainingCustomerSlideMedia = TrainingCustomerDocumentContent;
+
+export interface TrainingCustomerArticleContent {
+  type: "ARTICLE";
+  contentTranslations: LocalizedRichText;
+}
+
+export type TrainingCustomerLessonContent =
+  | TrainingCustomerVideoContent
+  | TrainingCustomerDocumentContent
+  | TrainingCustomerArticleContent;
+
+export interface TrainingCustomerLessonResource {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  downloadPath: string;
+}
+
+export interface TrainingCustomerLessonDetail {
+  id: string;
+  courseId: string;
+  sectionId: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  richDescriptionTranslations: LocalizedRichText;
+  contentType: TrainingLessonContentType | null;
+  content: TrainingCustomerLessonContent | null;
+  /** Stage 3C.2 compatibility while the learner workspace is refined. */
+  media: TrainingCustomerVideoContent | TrainingCustomerDocumentContent | null;
+  resources: TrainingCustomerLessonResource[];
+}
+
+export type TrainingLessonReadinessBlocker =
+  | "NO_CONTENT"
+  | "VIDEO_NOT_READY"
+  | "DOCUMENT_NOT_READY"
+  | "ARTICLE_EMPTY"
+  | "QUIZ_NOT_CONFIGURED";
+
+export interface TrainingLessonResource {
+  id: string;
+  fileAssetId: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  customerVisible: boolean;
+  sortOrder: number;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  status: FileAssetStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingLessonReview {
+  ready: boolean;
+  blockers: TrainingLessonReadinessBlocker[];
+  resourcesCount: number;
+}
+
+export interface TrainingLessonEditorState {
+  lesson: TrainingLesson;
+  media: TrainingLessonMediaAdmin;
+  resources: TrainingLessonResource[];
+  review: TrainingLessonReview;
 }
 
 // Stage 3B.1 — Shared file/media contracts.

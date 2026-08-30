@@ -3,7 +3,11 @@ import {
   type TrainingCourse,
   type TrainingCourseStructure,
 } from "@odookrd/types";
-import { PageHeading } from "@odookrd/ui";
+import {
+  EditInformationIcon,
+  NavigationArrowIcon,
+  PageHeading,
+} from "@odookrd/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -47,12 +51,17 @@ export default async function TrainingCourseEditorPage({
               href={`/admin/training/courses/${id}`}
               className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"
             >
+              <EditInformationIcon className="me-2 size-4" />
               {training.editMetadata}
             </Link>
             <Link
               href="/admin/training/courses"
               className="inline-flex h-10 items-center rounded-md border border-line px-4 text-sm font-medium text-content hover:bg-surface-subtle"
             >
+              <NavigationArrowIcon
+                direction={locale === "en" ? "left" : "right"}
+                className="me-2 size-4"
+              />
               {training.back}
             </Link>
           </>

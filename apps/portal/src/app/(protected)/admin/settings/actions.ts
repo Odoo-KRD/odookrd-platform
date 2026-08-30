@@ -54,6 +54,14 @@ const SETTING_KEYS_BY_CATEGORY: Record<SettingCategory, readonly string[]> = {
     "trainings.progress.lesson_completion_percentage",
     "trainings.quizzes.enabled",
     "trainings.certificates.enabled",
+    "trainings.video.max_upload_mb",
+    "trainings.video.aws.mediaconvert_role_arn",
+    "trainings.video.aws.mediaconvert_queue_arn",
+    "trainings.video.aws.cloudfront_base_url",
+    "trainings.video.aws.cloudfront_key_pair_id",
+    "trainings.video.aws.cloudfront_private_key_base64",
+    "trainings.video.aws.upload_url_ttl_seconds",
+    "trainings.video.aws.delivery_url_ttl_seconds",
   ],
   files: [
     "files.storage.default_provider",
@@ -103,6 +111,9 @@ const numberKeys = new Set([
   "companies.max_users_per_company",
   "notifications.email.amazon_ses.smtp_port",
   "trainings.progress.lesson_completion_percentage",
+  "trainings.video.aws.delivery_url_ttl_seconds",
+  "trainings.video.aws.upload_url_ttl_seconds",
+  "trainings.video.max_upload_mb",
   "files.upload.max_image_mb",
   "files.upload.max_document_mb",
   "files.upload.max_attachment_mb",
@@ -119,6 +130,7 @@ const secretKeys = new Set([
   "files.aws_s3.access_key_id",
   "files.aws_s3.secret_access_key",
   "files.aws_s3.session_token",
+  "trainings.video.aws.cloudfront_private_key_base64",
 ]);
 
 function isSettingCategory(value: unknown): value is SettingCategory {
@@ -200,7 +212,11 @@ export async function updateSettingsAction(
     }
 
     const selected = formData.get("setting." + key);
-    if (typeof selected !== "string" || selected.length > 8192) {
+    const maximumInputLength =
+      key === "trainings.video.aws.cloudfront_private_key_base64"
+        ? 16384
+        : 8192;
+    if (typeof selected !== "string" || selected.length > maximumInputLength) {
       return {
         message: "A setting contains an invalid value.",
         success: false,

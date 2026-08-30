@@ -12,6 +12,12 @@ import { TrainingCatalogService } from './training-catalog.service';
 import { TrainingController } from './training.controller';
 import { TrainingEntitlementService } from './training-entitlement.service';
 import { TrainingService } from './training.service';
+import { TrainingAwsMediaService } from './training-aws-media.service';
+import { TrainingLocalMediaService } from './training-local-media.service';
+import { TrainingMediaController } from './training-media.controller';
+import { TrainingLessonEditorController } from './training-lesson-editor.controller';
+import { TrainingMediaService } from './training-media.service';
+import { TrainingLessonEditorService } from './training-lesson-editor.service';
 
 @Module({
   imports: [
@@ -25,12 +31,18 @@ import { TrainingService } from './training.service';
     TrainingController,
     TrainingCatalogController,
     TrainingAccessController,
+    TrainingMediaController,
+    TrainingLessonEditorController,
   ],
   providers: [
     TrainingService,
     TrainingEntitlementService,
     TrainingCatalogService,
     TrainingAccessService,
+    TrainingAwsMediaService,
+    TrainingLocalMediaService,
+    TrainingMediaService,
+    TrainingLessonEditorService,
   ],
   exports: [TrainingEntitlementService],
 })

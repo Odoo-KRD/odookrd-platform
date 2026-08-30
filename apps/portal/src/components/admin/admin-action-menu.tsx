@@ -30,6 +30,7 @@ export interface AdminActionMenuItem {
 interface AdminActionMenuProps {
   label: string;
   items: readonly AdminActionMenuItem[];
+  orientation?: "vertical" | "horizontal";
 }
 
 function itemClassName(tone: AdminActionMenuTone): string {
@@ -47,7 +48,11 @@ function itemClassName(tone: AdminActionMenuTone): string {
   return `${base} text-content hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none`;
 }
 
-export function AdminActionMenu({ label, items }: AdminActionMenuProps) {
+export function AdminActionMenu({
+  label,
+  items,
+  orientation = "vertical",
+}: AdminActionMenuProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -245,9 +250,25 @@ export function AdminActionMenu({ label, items }: AdminActionMenuProps) {
         }}
         className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line bg-white text-content transition hover:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-brand/20"
       >
-        <span aria-hidden="true" className="text-xl leading-none">
-          ⋮
-        </span>
+        <svg
+          viewBox="0 0 20 20"
+          aria-hidden="true"
+          className="size-4 fill-current"
+        >
+          {orientation === "horizontal" ? (
+            <>
+              <circle cx="4" cy="10" r="1.5" />
+              <circle cx="10" cy="10" r="1.5" />
+              <circle cx="16" cy="10" r="1.5" />
+            </>
+          ) : (
+            <>
+              <circle cx="10" cy="4" r="1.5" />
+              <circle cx="10" cy="10" r="1.5" />
+              <circle cx="10" cy="16" r="1.5" />
+            </>
+          )}
+        </svg>
       </button>
 
       {menu}

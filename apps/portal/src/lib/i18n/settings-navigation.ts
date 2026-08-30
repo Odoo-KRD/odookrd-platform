@@ -100,6 +100,41 @@ export const settingsNavigationDictionaries: Record<
         label: "بارکردنی ڤیدیۆی ناوخۆیی",
         description: "ڕێگە بە بارکردنی ڤیدیۆ بۆ هەڵگرتنی ناوخۆیی بدە.",
       },
+      "trainings.video.max_upload_mb": {
+        label: "زۆرترین قەبارەی ڤیدیۆ",
+        description: "زۆرترین قەبارەی MP4 بە MB بۆ بارکردنی ناوخۆیی و AWS.",
+      },
+      "trainings.video.aws.mediaconvert_role_arn": {
+        label: "MediaConvert Role ARN",
+        description:
+          "IAM Role ARN کە MediaConvert بۆ خوێندنەوە و نووسین لە S3 بەکاری دەهێنێت.",
+      },
+      "trainings.video.aws.mediaconvert_queue_arn": {
+        label: "MediaConvert Queue ARN",
+        description: "ئارەزوومەندانە؛ Queue ARN ی تایبەت بۆ پرۆسەکردنی ڤیدیۆ.",
+      },
+      "trainings.video.aws.cloudfront_base_url": {
+        label: "CloudFront Base URL",
+        description:
+          "HTTPS base URL ی CloudFront کە bucket ی فێرکاری وەک origin بەکاردەهێنێت.",
+      },
+      "trainings.video.aws.cloudfront_key_pair_id": {
+        label: "CloudFront Key Pair ID",
+        description: "Public key ID ی trusted key group بۆ لینکە واژۆکراوەکان.",
+      },
+      "trainings.video.aws.cloudfront_private_key_base64": {
+        label: "CloudFront Private Key",
+        description:
+          "Private key ی PEM بە Base64؛ بە encrypted شێوە هەڵدەگیرێت و دووبارە پیشان نادرێتەوە.",
+      },
+      "trainings.video.aws.upload_url_ttl_seconds": {
+        label: "ماوەی لینکی بارکردن",
+        description: "ماوەی presigned S3 upload URL بە چرکە.",
+      },
+      "trainings.video.aws.delivery_url_ttl_seconds": {
+        label: "ماوەی لینکی گەیاندن",
+        description: "ماوەی CloudFront signed URL بە چرکە.",
+      },
       "trainings.progress.lesson_completion_percentage": {
         label: "ڕێژەی تەواوکردنی وانە",
         description: "ڕێژەی پێویست بۆ دانانی وانە وەک تەواوکراو.",
@@ -257,6 +292,42 @@ export const settingsNavigationDictionaries: Record<
         label: "رفع الفيديو محلياً",
         description: "السماح برفع الفيديو إلى التخزين المحلي.",
       },
+      "trainings.video.max_upload_mb": {
+        label: "الحد الأقصى للفيديو",
+        description: "الحد الأقصى لحجم MP4 بالميغابايت للرفع المحلي وAWS.",
+      },
+      "trainings.video.aws.mediaconvert_role_arn": {
+        label: "MediaConvert Role ARN",
+        description:
+          "IAM Role ARN الذي يستخدمه MediaConvert للقراءة والكتابة في S3.",
+      },
+      "trainings.video.aws.mediaconvert_queue_arn": {
+        label: "MediaConvert Queue ARN",
+        description: "اختياري؛ Queue ARN مخصص لمعالجة الفيديو.",
+      },
+      "trainings.video.aws.cloudfront_base_url": {
+        label: "CloudFront Base URL",
+        description:
+          "عنوان HTTPS الأساسي لتوزيع CloudFront المرتبط بمخزن التدريب.",
+      },
+      "trainings.video.aws.cloudfront_key_pair_id": {
+        label: "CloudFront Key Pair ID",
+        description:
+          "معرف المفتاح العام في trusted key group لتوقيع روابط التوصيل.",
+      },
+      "trainings.video.aws.cloudfront_private_key_base64": {
+        label: "CloudFront Private Key",
+        description:
+          "مفتاح PEM الخاص بصيغة Base64؛ يُخزن مشفراً ولا يُعرض مجدداً.",
+      },
+      "trainings.video.aws.upload_url_ttl_seconds": {
+        label: "مدة رابط الرفع",
+        description: "مدة صلاحية رابط S3 الموقّع مسبقاً بالثواني.",
+      },
+      "trainings.video.aws.delivery_url_ttl_seconds": {
+        label: "مدة رابط التوصيل",
+        description: "مدة صلاحية رابط CloudFront الموقّع بالثواني.",
+      },
       "trainings.progress.lesson_completion_percentage": {
         label: "نسبة إكمال الدرس",
         description: "النسبة المطلوبة لاعتبار الدرس مكتملاً.",
@@ -411,6 +482,43 @@ export const settingsNavigationDictionaries: Record<
       "trainings.video.local_upload_enabled": {
         label: "Local video uploads",
         description: "Allow video uploads to local storage.",
+      },
+      "trainings.video.max_upload_mb": {
+        label: "Maximum video size",
+        description:
+          "Maximum MP4 size in MB for local and automated AWS uploads.",
+      },
+      "trainings.video.aws.mediaconvert_role_arn": {
+        label: "MediaConvert Role ARN",
+        description:
+          "IAM role ARN that MediaConvert assumes to read and write training objects in S3.",
+      },
+      "trainings.video.aws.mediaconvert_queue_arn": {
+        label: "MediaConvert Queue ARN",
+        description: "Optional custom MediaConvert queue ARN.",
+      },
+      "trainings.video.aws.cloudfront_base_url": {
+        label: "CloudFront Base URL",
+        description:
+          "HTTPS base URL of the CloudFront distribution backed by the training S3 bucket.",
+      },
+      "trainings.video.aws.cloudfront_key_pair_id": {
+        label: "CloudFront Key Pair ID",
+        description:
+          "Public key ID in the trusted key group used for signed delivery.",
+      },
+      "trainings.video.aws.cloudfront_private_key_base64": {
+        label: "CloudFront Private Key",
+        description:
+          "Base64-encoded PEM private key; stored encrypted and never displayed again.",
+      },
+      "trainings.video.aws.upload_url_ttl_seconds": {
+        label: "Upload URL lifetime",
+        description: "Lifetime of direct presigned S3 upload URLs in seconds.",
+      },
+      "trainings.video.aws.delivery_url_ttl_seconds": {
+        label: "Delivery URL lifetime",
+        description: "Lifetime of CloudFront signed resource URLs in seconds.",
       },
       "trainings.progress.lesson_completion_percentage": {
         label: "Lesson completion percentage",
