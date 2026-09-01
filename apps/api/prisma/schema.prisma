@@ -375,7 +375,8 @@ model FileAsset {
   trainingCourseCovers    TrainingCourse[]      @relation("TrainingCourseCoverImage")
   trainingDocumentLessons TrainingVideoLesson[] @relation("TrainingLessonDocumentAsset")
 
-  trainingLessonResources TrainingLessonResource[] @relation("TrainingLessonResourceFile")
+  trainingLessonResources    TrainingLessonResource[]    @relation("TrainingLessonResourceFile")
+  trainingVideoCaptionTracks TrainingVideoCaptionTrack[] @relation("TrainingVideoCaptionFile")
 
   @@unique([storageProvider, storageKey])
   @@index([companyId])
@@ -910,11 +911,50 @@ model TrainingVideoAsset {
   createdAt                 DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt                 DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  lessons TrainingVideoLesson[]
+  lessons       TrainingVideoLesson[]
+  captionTracks TrainingVideoCaptionTrack[]
+  chapters      TrainingVideoChapter[]
 
   @@index([provider, status, createdAt], map: "training_video_assets_provider_status_idx")
   @@index([checksum], map: "training_video_assets_checksum_idx")
   @@map("training_video_assets")
+}
+
+model TrainingVideoCaptionTrack {
+  id           String   @id @default(uuid()) @db.Uuid
+  videoAssetId String   @map("video_asset_id") @db.Uuid
+  fileAssetId  String   @map("file_asset_id") @db.Uuid
+  languageCode String   @map("language_code") @db.VarChar(35)
+  label        String   @db.VarChar(100)
+  isDefault    Boolean  @default(false) @map("is_default")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  videoAsset TrainingVideoAsset @relation(fields: [videoAssetId], references: [id], onDelete: Cascade)
+  fileAsset  FileAsset          @relation("TrainingVideoCaptionFile", fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([videoAssetId, languageCode], map: "training_video_caption_tracks_video_language_unique")
+  @@unique([videoAssetId, fileAssetId], map: "training_video_caption_tracks_video_file_unique")
+  @@index([videoAssetId, sortOrder, id], map: "training_video_caption_tracks_video_order_idx")
+  @@map("training_video_caption_tracks")
+}
+
+model TrainingVideoChapter {
+  id                String   @id @default(uuid()) @db.Uuid
+  videoAssetId      String   @map("video_asset_id") @db.Uuid
+  title             String   @db.VarChar(250)
+  titleTranslations Json     @default("{}") @map("title_translations") @db.JsonB
+  startSeconds      Int      @map("start_seconds")
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  videoAsset TrainingVideoAsset @relation(fields: [videoAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([videoAssetId, startSeconds], map: "training_video_chapters_video_start_unique")
+  @@index([videoAssetId, startSeconds, id], map: "training_video_chapters_video_order_idx")
+  @@map("training_video_chapters")
 }
 
 model TrainingVideoLesson {

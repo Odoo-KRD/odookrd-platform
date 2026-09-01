@@ -1411,6 +1411,56 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
       .catch(() => undefined);
   }
 
+  private async purgeVideoEnrichments(assetId: string): Promise<void> {
+    const captionFiles = await this.prisma.trainingVideoCaptionTrack.findMany({
+      where: { videoAssetId: assetId },
+      select: {
+        fileAsset: {
+          select: {
+            id: true,
+            storageProvider: true,
+            storageKey: true,
+          },
+        },
+      },
+    });
+
+    await this.prisma.$transaction([
+      this.prisma.trainingVideoCaptionTrack.deleteMany({
+        where: { videoAssetId: assetId },
+      }),
+      this.prisma.trainingVideoChapter.deleteMany({
+        where: { videoAssetId: assetId },
+      }),
+    ]);
+
+    for (const track of captionFiles) {
+      const file = track.fileAsset;
+      const remaining = await this.prisma.trainingVideoCaptionTrack.count({
+        where: { fileAssetId: file.id },
+      });
+      if (remaining > 0) continue;
+
+      let removed = true;
+      try {
+        await this.storage.delete(file.storageProvider, file.storageKey);
+      } catch (error) {
+        removed = false;
+        this.logger.warn(
+          `Training caption file ${file.id} could not be removed: ${
+            error instanceof Error ? error.message : 'unknown error'
+          }`,
+        );
+      }
+
+      if (removed) {
+        await this.prisma.fileAsset
+          .delete({ where: { id: file.id } })
+          .catch(() => undefined);
+      }
+    }
+  }
+
   private async permanentlyDeleteVideoAsset(
     asset: Awaited<
       ReturnType<TrainingMediaService['adminLesson']>
@@ -1421,6 +1471,7 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
       where: { videoAssetId: asset.id },
     });
     if (references > 0) return;
+    await this.purgeVideoEnrichments(asset.id);
     if (asset.deliveryMode === TrainingVideoDeliveryMode.LOCAL) {
       await this.local.delete(asset.sourceReference).catch((error: unknown) => {
         this.logger.warn(
@@ -1465,6 +1516,7 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
       },
     });
     if (!asset) return;
+    await this.purgeVideoEnrichments(asset.id);
     await this.prisma.trainingVideoAsset.update({
       where: { id: asset.id },
       data: { status: TrainingVideoAssetStatus.ARCHIVED },

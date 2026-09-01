@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "@vidstack/react/player/styles/default/theme.css";
+import "@vidstack/react/player/styles/default/layouts/video.css";
 import { Noto_Kufi_Arabic, Noto_Sans_Arabic } from "next/font/google";
 
 import { getTextDirection } from "@/lib/i18n/config";

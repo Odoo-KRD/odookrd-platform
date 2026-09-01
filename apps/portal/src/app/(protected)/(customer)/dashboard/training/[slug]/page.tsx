@@ -1,15 +1,40 @@
 import { PERMISSIONS, type TrainingCatalogCourseDetail } from "@odookrd/types";
-import { PageHeading, Panel } from "@odookrd/ui";
+import { NavigationArrowIcon, PageHeading, Panel } from "@odookrd/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { LessonTypeIcon } from "@/components/training/lesson-type-icon";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
+import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
 import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
 import { localizeTrainingText } from "@/lib/training-display";
+
+function CountGlyph({ kind }: { kind: "sections" | "lessons" }) {
+  return kind === "sections" ? (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="size-5 fill-none stroke-current"
+      strokeWidth="1.8"
+    >
+      <path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5" />
+    </svg>
+  ) : (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="size-5 fill-none stroke-current"
+      strokeWidth="1.8"
+    >
+      <path d="M4 5.5h11a3 3 0 0 1 3 3V20H7a3 3 0 0 1-3-3V5.5Z" />
+      <path d="M7 5.5V20M10 9h5M10 13h5" />
+    </svg>
+  );
+}
 
 export default async function CustomerTrainingCoursePage({
   params,
@@ -22,6 +47,8 @@ export default async function CustomerTrainingCoursePage({
     params,
   ]);
   const labels = trainingCustomerDictionaries[locale];
+  const workspace = trainingCustomerWorkspaceDictionaries[locale];
+  const lessonLabels = trainingLessonEditorDictionaries[locale];
 
   let course: TrainingCatalogCourseDetail;
   try {
@@ -39,153 +66,251 @@ export default async function CustomerTrainingCoursePage({
     course.titleTranslations,
     locale,
   );
+  const category = localizeTrainingText(
+    course.category.name,
+    course.category.nameTranslations,
+    locale,
+  );
+  const firstReadyLesson = course.sections
+    .flatMap((section) => section.lessons)
+    .find((lesson) => lesson.contentReady);
 
   return (
     <div className="grid gap-7">
       <PageHeading
         title={title}
-        description={localizeTrainingText(
-          course.category.name,
-          course.category.nameTranslations,
-          locale,
-        )}
+        description={category}
         actions={
           <>
             {hasPermission(session, PERMISSIONS.TRAINING_ASSIGN) ? (
               <Link
                 href="/dashboard/training/manage"
-                className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
+                className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"
               >
                 {labels.manageTraining}
               </Link>
             ) : null}
             <Link
               href="/dashboard/training"
-              className="inline-flex h-10 items-center rounded-md border border-line px-4 text-sm font-medium text-content hover:bg-surface-subtle"
+              className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"
             >
+              <NavigationArrowIcon
+                direction={locale === "en" ? "left" : "right"}
+                className="me-2 size-4"
+              />
               {labels.backToCatalog}
             </Link>
           </>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
-        <Panel className="p-6 sm:p-8">
-          {course.summary ? (
-            <p className="whitespace-pre-line text-sm leading-7 text-content">
-              {localizeTrainingText(
-                course.summary,
-                course.summaryTranslations,
-                locale,
-              )}
-            </p>
-          ) : null}
-          <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted">
-            <span>
-              {course.sectionCount} {labels.sections}
-            </span>
-            <span>
-              {course.lessonCount} {labels.lessons}
-            </span>
-          </div>
-        </Panel>
-
-        <div className="overflow-hidden rounded-md border border-line bg-surface-subtle">
-          {course.hasCover ? (
-            <Image
-              src={`/api/training/catalog/${encodeURIComponent(course.slug)}/cover`}
-              alt=""
-              width={800}
-              height={450}
-              unoptimized
-              className="aspect-video h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex aspect-video items-center justify-center text-sm font-medium text-muted">
-              {labels.navigation}
+      <section className="overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm">
+        <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+          <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand">
+                {category}
+              </span>
+              {firstReadyLesson ? (
+                <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  {workspace.readyContent}
+                </span>
+              ) : null}
             </div>
-          )}
+
+            <h2 className="mt-5 text-2xl font-semibold tracking-tight text-content sm:text-3xl">
+              {title}
+            </h2>
+
+            {course.summary ? (
+              <p className="mt-4 max-w-3xl whitespace-pre-line text-sm leading-7 text-muted sm:text-base">
+                {localizeTrainingText(
+                  course.summary,
+                  course.summaryTranslations,
+                  locale,
+                )}
+              </p>
+            ) : null}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <div className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-subtle px-3 py-2 text-sm text-content">
+                <CountGlyph kind="sections" />
+                <span className="font-semibold">{course.sectionCount}</span>
+                <span className="text-muted">{labels.sections}</span>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-subtle px-3 py-2 text-sm text-content">
+                <CountGlyph kind="lessons" />
+                <span className="font-semibold">{course.lessonCount}</span>
+                <span className="text-muted">{labels.lessons}</span>
+              </div>
+            </div>
+
+            <div className="mt-7">
+              {firstReadyLesson ? (
+                <Link
+                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(firstReadyLesson.id)}`}
+                  className="inline-flex h-11 items-center justify-center rounded-md bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"
+                >
+                  {workspace.startCourse}
+                </Link>
+              ) : (
+                <span className="inline-flex h-11 cursor-not-allowed items-center rounded-md border border-line bg-surface-subtle px-5 text-sm font-medium text-muted">
+                  {workspace.lessonUnavailable}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="min-h-64 bg-surface-subtle lg:min-h-full">
+            {course.hasCover ? (
+              <Image
+                src={`/api/training/catalog/${encodeURIComponent(course.slug)}/cover`}
+                alt=""
+                width={960}
+                height={540}
+                unoptimized
+                className="aspect-video h-full min-h-64 w-full object-cover lg:aspect-auto"
+              />
+            ) : (
+              <div className="flex h-full min-h-64 items-center justify-center px-8 text-center text-sm font-semibold text-muted">
+                {labels.navigation}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
 
       <section className="grid gap-4">
-        <h2 className="text-base font-semibold text-content">
-          {labels.courseOutline}
-        </h2>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
+              {workspace.courseOverview}
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-content">
+              {labels.courseOutline}
+            </h2>
+          </div>
+          <p className="text-sm text-muted">
+            {course.sectionCount} {labels.sections} · {course.lessonCount}{" "}
+            {labels.lessons}
+          </p>
+        </div>
+
         {course.sections.length === 0 ? (
           <Panel className="p-6 text-sm text-muted">
             {labels.noPublishedContent}
           </Panel>
         ) : (
-          course.sections.map((section, sectionIndex) => (
-            <Panel key={section.id} className="p-5 sm:p-6">
-              <div>
-                <p className="text-xs font-medium text-brand">
-                  {labels.sections} {sectionIndex + 1}
-                </p>
-                <h3 className="mt-1 text-base font-semibold text-content">
-                  {localizeTrainingText(
-                    section.title,
-                    section.titleTranslations,
-                    locale,
-                  )}
-                </h3>
-                {section.description ? (
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    {localizeTrainingText(
-                      section.description,
-                      section.descriptionTranslations,
-                      locale,
-                    )}
-                  </p>
-                ) : null}
-              </div>
+          <div className="grid gap-3">
+            {course.sections.map((section, sectionIndex) => {
+              const sectionTitle = localizeTrainingText(
+                section.title,
+                section.titleTranslations,
+                locale,
+              );
 
-              <div className="mt-5 divide-y divide-line border-t border-line">
-                {section.lessons.length === 0 ? (
-                  <p className="py-4 text-sm text-muted">
-                    {labels.noPublishedContent}
-                  </p>
-                ) : (
-                  section.lessons.map((lesson, lessonIndex) => (
-                    <div
-                      key={lesson.id}
-                      className="flex flex-wrap items-center justify-between gap-3 py-4"
+              return (
+                <details
+                  key={section.id}
+                  open
+                  className="group overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm"
+                >
+                  <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:hidden sm:px-6">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
+                      {sectionIndex + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-content sm:text-base">
+                        {sectionTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {section.lessons.length} {labels.lessons}
+                      </p>
+                    </div>
+                    <svg
+                      viewBox="0 0 20 20"
+                      aria-hidden="true"
+                      className="size-4 shrink-0 fill-none stroke-current text-muted transition-transform group-open:rotate-180"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-content">
-                          {lessonIndex + 1}.{" "}
-                          {localizeTrainingText(
+                      <path d="m6 8 4 4 4-4" />
+                    </svg>
+                    <span className="sr-only">{workspace.expandSection}</span>
+                  </summary>
+
+                  <div className="border-t border-line bg-white">
+                    {section.description ? (
+                      <p className="border-b border-line px-5 py-4 text-sm leading-6 text-muted sm:px-6">
+                        {localizeTrainingText(
+                          section.description,
+                          section.descriptionTranslations,
+                          locale,
+                        )}
+                      </p>
+                    ) : null}
+
+                    {section.lessons.length === 0 ? (
+                      <p className="px-5 py-5 text-sm text-muted sm:px-6">
+                        {labels.noPublishedContent}
+                      </p>
+                    ) : (
+                      <div className="divide-y divide-line">
+                        {section.lessons.map((lesson, lessonIndex) => {
+                          const lessonTitle = localizeTrainingText(
                             lesson.title,
                             lesson.titleTranslations,
                             locale,
-                          )}
-                        </p>
-                        <p className="mt-1 text-xs text-muted">
-                          {lesson.contentReady && lesson.contentType
-                            ? trainingLessonEditorDictionaries[locale]
-                                .contentTypes[lesson.contentType]
-                            : labels.mediaComing}
-                        </p>
+                          );
+                          const typeLabel = lesson.contentType
+                            ? lessonLabels.contentTypes[lesson.contentType]
+                            : workspace.lessonUnavailable;
+
+                          return (
+                            <div
+                              key={lesson.id}
+                              className="flex flex-wrap items-center gap-3 px-5 py-4 transition hover:bg-surface-subtle/60 sm:px-6"
+                            >
+                              <LessonTypeIcon
+                                contentType={lesson.contentType}
+                                label={typeLabel}
+                              />
+
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-content">
+                                  <span className="me-1 text-muted">
+                                    {lessonIndex + 1}.
+                                  </span>
+                                  {lessonTitle}
+                                </p>
+                                <p className="mt-1 text-xs text-muted">
+                                  {typeLabel}
+                                </p>
+                              </div>
+
+                              {lesson.contentReady ? (
+                                <Link
+                                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(lesson.id)}`}
+                                  className="inline-flex h-9 shrink-0 items-center rounded-md border border-brand/25 bg-brand-soft px-3 text-xs font-semibold text-brand hover:bg-brand hover:text-white"
+                                >
+                                  {workspace.openLesson}
+                                </Link>
+                              ) : (
+                                <span className="inline-flex h-8 shrink-0 items-center rounded-md border border-line bg-surface-subtle px-2.5 text-xs font-medium text-muted">
+                                  {workspace.lessonUnavailable}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                      {lesson.mediaReady ? (
-                        <Link
-                          href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${lesson.id}`}
-                          className="inline-flex h-8 items-center rounded-md bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
-                        >
-                          {labels.viewCourse}
-                        </Link>
-                      ) : (
-                        <span className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-muted">
-                          {labels.lessons}
-                        </span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </Panel>
-          ))
+                    )}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
         )}
       </section>
     </div>

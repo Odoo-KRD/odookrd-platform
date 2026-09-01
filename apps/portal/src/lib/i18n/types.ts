@@ -253,6 +253,8 @@ export interface PortalDictionary {
     dashboard: string;
     administration: string;
     portal: string;
+    collapseSidebar: string;
+    expandSidebar: string;
   };
   dashboard: {
     title: string;

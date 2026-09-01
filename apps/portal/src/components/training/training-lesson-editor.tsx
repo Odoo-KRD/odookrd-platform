@@ -13,6 +13,7 @@ import { FilePicker } from "@odookrd/ui";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { AdminActionMenu } from "@/components/admin/admin-action-menu";
+import { TrainingVideoEnrichmentSummary } from "@/components/training/training-video-enrichment-summary";
 import { LocalizedTextField } from "@/components/i18n/localized-text-fields";
 import {
   initializeLocalizedRichText,
@@ -1840,6 +1841,14 @@ export function TrainingLessonEditor({
                     </div>
                   </div>
                 </div>
+              ) : null}
+
+              {currentVideo?.status === "READY" ? (
+                <TrainingVideoEnrichmentSummary
+                  courseId={courseId}
+                  sectionId={sectionId}
+                  lessonId={lessonId}
+                />
               ) : null}
 
               {replaceMode && currentVideo?.status === "READY" ? (

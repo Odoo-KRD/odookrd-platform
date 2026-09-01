@@ -7,6 +7,8 @@ export const frontendEn = {
       dashboard: "Dashboard",
       administration: "Company administration",
       portal: "Customer workspace",
+      collapseSidebar: "Collapse sidebar",
+      expandSidebar: "Expand sidebar",
     },
     dashboard: {
       title: "Customer dashboard",

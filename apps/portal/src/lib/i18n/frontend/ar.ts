@@ -7,6 +7,8 @@ export const frontendAr = {
       dashboard: "لوحة المعلومات",
       administration: "إدارة الشركة",
       portal: "مساحة العميل",
+      collapseSidebar: "طي الشريط الجانبي",
+      expandSidebar: "توسيع الشريط الجانبي",
     },
     dashboard: {
       title: "لوحة معلومات العميل",

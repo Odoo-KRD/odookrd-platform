@@ -7,6 +7,8 @@ export const frontendKu = {
       dashboard: "داشبۆرد",
       administration: "بەڕێوەبردنی کۆمپانیا",
       portal: "ژینگەی کڕیار",
+      collapseSidebar: "بچووککردنەوەی مێنیوی لاتەنیشت",
+      expandSidebar: "گەورەکردنەوەی مێنیوی لاتەنیشت",
     },
     dashboard: {
       title: "داشبۆردی کڕیار",

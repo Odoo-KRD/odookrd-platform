@@ -12,6 +12,15 @@ export interface SettingsNavigationDictionary {
     quizzes: string;
     certificates: string;
   };
+  playerSettingsGroups: {
+    delivery: string;
+    player: string;
+    captions: string;
+    reset: string;
+    resetHelp: string;
+    previewTitle: string;
+    previewText: string;
+  };
   fileTabsLabel: string;
   fileTabs: {
     general: string;
@@ -57,6 +66,16 @@ export const settingsNavigationDictionaries: Record<
       quizzes: "تاقیکردنەوەکان",
       certificates: "بڕوانامەکان",
     },
+    playerSettingsGroups: {
+      delivery: "گەیاندنی ڤیدیۆ",
+      player: "پلەیەری ڤیدیۆ",
+      captions: "ڕێکخستنەکانی ژێرنووس",
+      reset: "گەڕاندنەوە بۆ بنەڕەت",
+      resetHelp:
+        "ڕێکخستنەکانی پلەیەر و ژێرنووس بۆ نرخە بنەڕەتییەکان بگەڕێنەوە؛ پاشان پاشەکەوت بکە.",
+      previewTitle: "پێشبینینی ژێرنووس",
+      previewText: "ئەمە نموونەی پیشاندانی ژێرنووسە لە پلەیەری ڤیدیۆ.",
+    },
     fileTabsLabel: "ڕێکخستنەکانی هەڵگرتنی فایل",
     fileTabs: {
       general: "گشتی",
@@ -88,6 +107,86 @@ export const settingsNavigationDictionaries: Record<
       saveBeforeTest: "پێش تاقیکردنەوە، گۆڕانکارییەکانی AWS S3 پاشەکەوت بکە.",
     },
     fieldCopy: {
+      "trainings.player.autoplay": {
+        label: "پێکردنی خۆکار",
+        description:
+          "Start video lessons automatically when learners open them.",
+      },
+      "trainings.player.default_playback_rate": {
+        label: "خێرایی بنەڕەت",
+        description: "Default playback speed for video lessons.",
+      },
+      "trainings.player.seek_seconds": {
+        label: "هەنگاوی بازدان",
+        description: "Seconds used by seek forward/back controls.",
+      },
+      "trainings.player.controls_auto_hide_seconds": {
+        label: "ماوەی شاردنەوەی کۆنترۆڵەکان",
+        description:
+          "Seconds before controls automatically hide while playing.",
+      },
+      "trainings.player.show_fullscreen": {
+        label: "دوگمەی پڕشاشە",
+        description: "Show the fullscreen control.",
+      },
+      "trainings.player.show_volume": {
+        label: "کۆنترۆڵی دەنگ",
+        description: "Show mute and volume controls.",
+      },
+      "trainings.player.show_chapters": {
+        label: "بەشەکانی ڤیدیۆ",
+        description:
+          "Show chapter navigation in the player and learning workspace.",
+      },
+      "trainings.player.show_speed_control": {
+        label: "کۆنترۆڵی خێرایی",
+        description: "Show playback-speed choices.",
+      },
+      "trainings.player.show_quality_selector": {
+        label: "هەڵبژێری کوالێتی",
+        description: "Show HLS quality choices when available.",
+      },
+      "trainings.player.branding.enabled": {
+        label: "براندینگ لە پلەیەر",
+        description: "دەقی براندینگ لە سەر ڤیدیۆ پیشان بدە یان بشارەوە.",
+      },
+      "trainings.player.branding.text": {
+        label: "دەقی براندینگ",
+        description: "دەقی کورت کە لە گوشەی سەرەوەی پلەیەر پیشان دەدرێت.",
+      },
+      "trainings.player.captions.default_behavior": {
+        label: "هەڵسوکەوتی بنەڕەتی ژێرنووس",
+        description:
+          "Keep captions off, use video default, or prefer learner language.",
+      },
+      "trainings.player.captions.font_size": {
+        label: "قەبارەی ژێرنووس",
+        description: "Default caption text size.",
+      },
+      "trainings.player.captions.text_color": {
+        label: "ڕەنگی دەق",
+        description: "Default caption text color.",
+      },
+      "trainings.player.captions.background": {
+        label: "پاشبنەمای ژێرنووس",
+        description: "Background treatment behind caption text.",
+      },
+      "trainings.player.captions.background_opacity": {
+        label: "ناڕوونی پاشبنەما",
+        description: "Caption background opacity from 0 to 100.",
+      },
+      "trainings.player.captions.edge_style": {
+        label: "شێوازی کەنار/سێبەر",
+        description: "Text shadow/edge treatment for readability.",
+      },
+      "trainings.player.captions.position": {
+        label: "شوێنی ژێرنووس",
+        description: "Display captions near the bottom or top.",
+      },
+      "trainings.player.captions.max_width_percent": {
+        label: "زۆرترین پانی",
+        description: "Maximum caption width as a percentage of the video.",
+      },
       "trainings.enabled": {
         label: "فێرکاری ئۆنلاین",
         description: "بەشی فێرکاری ئۆنلاین لە پلاتفۆرمدا چالاک بکە.",
@@ -249,6 +348,16 @@ export const settingsNavigationDictionaries: Record<
       quizzes: "الاختبارات",
       certificates: "الشهادات",
     },
+    playerSettingsGroups: {
+      delivery: "توصيل الفيديو",
+      player: "مشغل الفيديو",
+      captions: "إعدادات الترجمة",
+      reset: "إعادة الإعدادات الافتراضية",
+      resetHelp:
+        "أعد إعدادات المشغل والترجمة إلى القيم الافتراضية ثم احفظ الإعدادات.",
+      previewTitle: "معاينة الترجمة",
+      previewText: "هذا مثال لمظهر الترجمة داخل مشغل الفيديو.",
+    },
     fileTabsLabel: "إعدادات تخزين الملفات",
     fileTabs: {
       general: "عام",
@@ -280,6 +389,86 @@ export const settingsNavigationDictionaries: Record<
       saveBeforeTest: "احفظ تغييرات AWS S3 قبل اختبار الاتصال.",
     },
     fieldCopy: {
+      "trainings.player.autoplay": {
+        label: "التشغيل التلقائي",
+        description:
+          "Start video lessons automatically when learners open them.",
+      },
+      "trainings.player.default_playback_rate": {
+        label: "سرعة التشغيل الافتراضية",
+        description: "Default playback speed for video lessons.",
+      },
+      "trainings.player.seek_seconds": {
+        label: "خطوة التقديم/الترجيع",
+        description: "Seconds used by seek forward/back controls.",
+      },
+      "trainings.player.controls_auto_hide_seconds": {
+        label: "تأخير إخفاء عناصر التحكم",
+        description:
+          "Seconds before controls automatically hide while playing.",
+      },
+      "trainings.player.show_fullscreen": {
+        label: "زر ملء الشاشة",
+        description: "Show the fullscreen control.",
+      },
+      "trainings.player.show_volume": {
+        label: "التحكم بالصوت",
+        description: "Show mute and volume controls.",
+      },
+      "trainings.player.show_chapters": {
+        label: "فصول الفيديو",
+        description:
+          "Show chapter navigation in the player and learning workspace.",
+      },
+      "trainings.player.show_speed_control": {
+        label: "التحكم بالسرعة",
+        description: "Show playback-speed choices.",
+      },
+      "trainings.player.show_quality_selector": {
+        label: "اختيار الجودة",
+        description: "Show HLS quality choices when available.",
+      },
+      "trainings.player.branding.enabled": {
+        label: "علامة المشغل",
+        description: "إظهار أو إخفاء نص العلامة داخل مشغل الفيديو.",
+      },
+      "trainings.player.branding.text": {
+        label: "نص العلامة",
+        description: "النص القصير المعروض في الزاوية العلوية لمشغل الفيديو.",
+      },
+      "trainings.player.captions.default_behavior": {
+        label: "سلوك الترجمة الافتراضي",
+        description:
+          "Keep captions off, use video default, or prefer learner language.",
+      },
+      "trainings.player.captions.font_size": {
+        label: "حجم الترجمة",
+        description: "Default caption text size.",
+      },
+      "trainings.player.captions.text_color": {
+        label: "لون النص",
+        description: "Default caption text color.",
+      },
+      "trainings.player.captions.background": {
+        label: "خلفية الترجمة",
+        description: "Background treatment behind caption text.",
+      },
+      "trainings.player.captions.background_opacity": {
+        label: "شفافية الخلفية",
+        description: "Caption background opacity from 0 to 100.",
+      },
+      "trainings.player.captions.edge_style": {
+        label: "حد/ظل النص",
+        description: "Text shadow/edge treatment for readability.",
+      },
+      "trainings.player.captions.position": {
+        label: "موضع الترجمة",
+        description: "Display captions near the bottom or top.",
+      },
+      "trainings.player.captions.max_width_percent": {
+        label: "أقصى عرض",
+        description: "Maximum caption width as a percentage of the video.",
+      },
       "trainings.enabled": {
         label: "التعلّم الإلكتروني",
         description: "تمكين وحدة التعلّم الإلكتروني على المنصة.",
@@ -440,6 +629,17 @@ export const settingsNavigationDictionaries: Record<
       quizzes: "Quizzes",
       certificates: "Certificates",
     },
+    playerSettingsGroups: {
+      delivery: "Video Delivery",
+      player: "Video Player",
+      captions: "Caption Appearance",
+      reset: "Reset player defaults",
+      resetHelp:
+        "Restore player and caption controls to the OdooKRD defaults, then save settings.",
+      previewTitle: "Caption preview",
+      previewText:
+        "This is a preview of caption appearance in the video player.",
+    },
     fileTabsLabel: "File Storage settings",
     fileTabs: {
       general: "General",
@@ -471,6 +671,87 @@ export const settingsNavigationDictionaries: Record<
       saveBeforeTest: "Save AWS S3 changes before testing the connection.",
     },
     fieldCopy: {
+      "trainings.player.autoplay": {
+        label: "Autoplay",
+        description:
+          "Start video lessons automatically when learners open them.",
+      },
+      "trainings.player.default_playback_rate": {
+        label: "Default playback speed",
+        description: "Default playback speed for video lessons.",
+      },
+      "trainings.player.seek_seconds": {
+        label: "Seek step",
+        description: "Seconds used by seek forward/back controls.",
+      },
+      "trainings.player.controls_auto_hide_seconds": {
+        label: "Controls auto-hide delay",
+        description:
+          "Seconds before controls automatically hide while playing.",
+      },
+      "trainings.player.show_fullscreen": {
+        label: "Fullscreen control",
+        description: "Show the fullscreen control.",
+      },
+      "trainings.player.show_volume": {
+        label: "Volume controls",
+        description: "Show mute and volume controls.",
+      },
+      "trainings.player.show_chapters": {
+        label: "Video chapters",
+        description:
+          "Show chapter navigation in the player and learning workspace.",
+      },
+      "trainings.player.show_speed_control": {
+        label: "Playback speed control",
+        description: "Show playback-speed choices.",
+      },
+      "trainings.player.show_quality_selector": {
+        label: "Quality selector",
+        description: "Show HLS quality choices when available.",
+      },
+      "trainings.player.branding.enabled": {
+        label: "Player branding",
+        description: "Show or hide the branding text over the video player.",
+      },
+      "trainings.player.branding.text": {
+        label: "Branding text",
+        description:
+          "Short branding text displayed in the top corner of the player.",
+      },
+      "trainings.player.captions.default_behavior": {
+        label: "Default caption behavior",
+        description:
+          "Keep captions off, use video default, or prefer learner language.",
+      },
+      "trainings.player.captions.font_size": {
+        label: "Caption size",
+        description: "Default caption text size.",
+      },
+      "trainings.player.captions.text_color": {
+        label: "Caption text color",
+        description: "Default caption text color.",
+      },
+      "trainings.player.captions.background": {
+        label: "Caption background",
+        description: "Background treatment behind caption text.",
+      },
+      "trainings.player.captions.background_opacity": {
+        label: "Background opacity",
+        description: "Caption background opacity from 0 to 100.",
+      },
+      "trainings.player.captions.edge_style": {
+        label: "Caption text edge",
+        description: "Text shadow/edge treatment for readability.",
+      },
+      "trainings.player.captions.position": {
+        label: "Caption position",
+        description: "Display captions near the bottom or top.",
+      },
+      "trainings.player.captions.max_width_percent": {
+        label: "Maximum caption width",
+        description: "Maximum caption width as a percentage of the video.",
+      },
       "trainings.enabled": {
         label: "E-Learning",
         description: "Enable the E-Learning module on the platform.",

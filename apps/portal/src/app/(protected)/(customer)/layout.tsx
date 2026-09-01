@@ -1,6 +1,7 @@
 import { PERMISSIONS, type TrainingCatalogStatus } from "@odookrd/types";
 import { redirect } from "next/navigation";
 
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import {
   AdminNavigation,
   type AdminNavigationItem,
@@ -14,16 +15,22 @@ import { getPortalDictionary } from "@/lib/i18n/portal-server";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getPublicSettings } from "@/lib/public-settings";
 import { getSessionToken, requireSession } from "@/lib/session";
+import { getUserUiPreferences } from "@/lib/user-ui-preferences";
 
 export default async function ProtectedCustomerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [session, { locale, dictionary, portal }, publicSettings] =
-    await Promise.all([
-      requireSession(),
-      getPortalDictionary(),
-      getPublicSettings(),
-    ]);
+  const [
+    session,
+    { locale, dictionary, portal },
+    publicSettings,
+    uiPreferences,
+  ] = await Promise.all([
+    requireSession(),
+    getPortalDictionary(),
+    getPublicSettings(),
+    getUserUiPreferences(),
+  ]);
 
   if (session.user.accountScope !== "COMPANY") {
     redirect("/admin");
@@ -51,7 +58,12 @@ export default async function ProtectedCustomerLayout({
   }
 
   const navigation: AdminNavigationItem[] = [
-    { kind: "item", href: "/dashboard", label: portal.navigation.dashboard },
+    {
+      kind: "item",
+      href: "/dashboard",
+      label: portal.navigation.dashboard,
+      icon: "dashboard",
+    },
   ];
 
   if (hasPermission(session, PERMISSIONS.SERVICES_READ)) {
@@ -59,6 +71,7 @@ export default async function ProtectedCustomerLayout({
       kind: "item",
       href: "/dashboard/services",
       label: frontendTranslations[locale].services.title,
+      icon: "services",
     });
   }
 
@@ -67,6 +80,7 @@ export default async function ProtectedCustomerLayout({
       kind: "item",
       href: "/dashboard/training",
       label: trainingCustomerDictionaries[locale].navigation,
+      icon: "training",
     });
   }
 
@@ -75,11 +89,13 @@ export default async function ProtectedCustomerLayout({
       kind: "item",
       href: "/dashboard/company",
       label: frontendTranslations[locale].workspace.navigation.company,
+      icon: "companies",
     },
     {
       kind: "item",
       href: "/dashboard/profile",
       label: frontendTranslations[locale].workspace.navigation.profile,
+      icon: "users",
     },
   );
 
@@ -88,6 +104,7 @@ export default async function ProtectedCustomerLayout({
       kind: "item",
       href: "/dashboard/notifications",
       label: frontendTranslations[locale].notifications.navigation,
+      icon: "notifications",
     });
   }
 
@@ -96,49 +113,32 @@ export default async function ProtectedCustomerLayout({
       kind: "item",
       href: "/admin",
       label: portal.navigation.administration,
+      icon: "overview",
     });
   }
 
   return (
-    <div className="min-h-screen lg:flex">
-      <aside className="hidden w-64 shrink-0 flex-col border-e border-slate-200 bg-white lg:flex">
-        <div className="border-b border-slate-200 px-6 py-6">
-          <p className="text-lg font-semibold tracking-tight text-slate-900">
-            {publicSettings.siteTitle}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {portal.navigation.portal}
-          </p>
-        </div>
+    <div className="min-h-screen bg-surface-page lg:flex lg:h-screen lg:overflow-hidden">
+      <AdminSidebar
+        siteTitle={publicSettings.siteTitle}
+        administrationLabel={portal.navigation.portal}
+        navigationLabel={portal.navigation.label}
+        entries={navigation}
+        signedInAsLabel={dictionary.workspace.signedInAs}
+        email={session.user.email}
+        initialCollapsed={uiPreferences.sidebarCollapsed}
+        collapseLabel={portal.navigation.collapseSidebar}
+        expandLabel={portal.navigation.expandSidebar}
+      />
 
-        <div className="flex-1 px-3 py-5">
-          <AdminNavigation
-            label={portal.navigation.label}
-            entries={navigation}
-          />
-        </div>
-
-        <div className="border-t border-slate-200 px-5 py-5">
-          <p className="text-xs text-slate-500">
-            {dictionary.workspace.signedInAs}
-          </p>
-          <p
-            dir="ltr"
-            className="mt-2 truncate text-sm font-medium text-slate-800"
-          >
-            {session.user.email}
-          </p>
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
+      <div className="flex min-w-0 flex-1 flex-col lg:h-screen lg:overflow-hidden">
+        <header className="customer-shell-header shrink-0 border-b border-line bg-surface-panel px-5 py-4 sm:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 lg:hidden">
+              <p className="text-sm font-semibold text-content lg:hidden">
                 {publicSettings.siteTitle}
               </p>
-              <p className="mt-1 text-xs text-slate-500 lg:mt-0">
+              <p className="mt-1 text-xs text-muted lg:mt-0">
                 {portal.navigation.portal}
               </p>
             </div>
@@ -155,8 +155,8 @@ export default async function ProtectedCustomerLayout({
             </div>
           </div>
 
-          <details className="mt-4 border-t border-slate-200 pt-3 lg:hidden">
-            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+          <details className="mt-4 border-t border-line pt-3 lg:hidden">
+            <summary className="cursor-pointer text-sm font-medium text-content">
               {portal.navigation.label}
             </summary>
             <div className="mt-3">
@@ -168,7 +168,7 @@ export default async function ProtectedCustomerLayout({
           </details>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 sm:py-10">
+        <main className="customer-shell-main w-full min-w-0 flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
           {children}
         </main>
       </div>

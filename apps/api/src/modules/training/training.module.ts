@@ -17,7 +17,11 @@ import { TrainingLocalMediaService } from './training-local-media.service';
 import { TrainingMediaController } from './training-media.controller';
 import { TrainingLessonEditorController } from './training-lesson-editor.controller';
 import { TrainingMediaService } from './training-media.service';
+import { TrainingPlayerSettingsController } from './training-player-settings.controller';
+import { TrainingPlayerSettingsService } from './training-player-settings.service';
 import { TrainingLessonEditorService } from './training-lesson-editor.service';
+import { TrainingVideoEnrichmentController } from './training-video-enrichment.controller';
+import { TrainingVideoEnrichmentService } from './training-video-enrichment.service';
 
 @Module({
   imports: [
@@ -33,6 +37,8 @@ import { TrainingLessonEditorService } from './training-lesson-editor.service';
     TrainingAccessController,
     TrainingMediaController,
     TrainingLessonEditorController,
+    TrainingPlayerSettingsController,
+    TrainingVideoEnrichmentController,
   ],
   providers: [
     TrainingService,
@@ -43,6 +49,8 @@ import { TrainingLessonEditorService } from './training-lesson-editor.service';
     TrainingLocalMediaService,
     TrainingMediaService,
     TrainingLessonEditorService,
+    TrainingPlayerSettingsService,
+    TrainingVideoEnrichmentService,
   ],
   exports: [TrainingEntitlementService],
 })

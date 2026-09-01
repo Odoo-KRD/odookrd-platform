@@ -59,6 +59,27 @@ const allowed = [
     `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/aws-automated/retry$`,
   ),
   new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/video$`),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/captions$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/captions/${uuid}$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/chapters$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/chapters/${uuid}$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/preview$`,
+  ),
+  new RegExp(
+    `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/preview-resource$`,
+  ),
 ];
 
 export const runtime = "nodejs";
@@ -78,6 +99,12 @@ async function proxy(
   }
 
   const localUpload = method === "PUT" && path.endsWith("/media/local");
+  const captionUpload =
+    method === "POST" && path.endsWith("/media/enrichment/captions");
+  const previewGet =
+    method === "GET" &&
+    (path.endsWith("/media/enrichment/preview") ||
+      path.endsWith("/media/enrichment/preview-resource"));
 
   if (method !== "GET") {
     if (!isSameOrigin(request)) {
@@ -86,6 +113,10 @@ async function proxy(
     if (localUpload) {
       if (request.headers.get("content-type") !== "video/mp4") {
         return errorResponse(415, "An MP4 request body is required.");
+      }
+    } else if (captionUpload) {
+      if (!request.headers.get("content-type")?.startsWith("text/vtt")) {
+        return errorResponse(415, "A WebVTT request body is required.");
       }
     } else if (
       method !== "DELETE" &&
@@ -106,7 +137,7 @@ async function proxy(
   }
 
   let body: string | ReadableStream<Uint8Array> | undefined;
-  if (localUpload) {
+  if (localUpload || captionUpload) {
     body = request.body ?? undefined;
   } else if (method !== "GET" && method !== "DELETE") {
     const jsonBody = await request.text();
@@ -120,6 +151,11 @@ async function proxy(
     Accept: "application/json",
     Authorization: `Bearer ${token}`,
   };
+  if (previewGet) {
+    const range = request.headers.get("range");
+    if (range) headers.Range = range;
+  }
+
   if (localUpload) {
     headers["Content-Type"] = "video/mp4";
     for (const name of [
@@ -128,6 +164,18 @@ async function proxy(
       "x-odookrd-duration",
       "x-odookrd-width",
       "x-odookrd-height",
+    ]) {
+      const value = request.headers.get(name);
+      if (value) headers[name] = value;
+    }
+  } else if (captionUpload) {
+    headers["Content-Type"] = "text/vtt; charset=utf-8";
+    for (const name of [
+      "x-odookrd-filename",
+      "x-odookrd-size",
+      "x-odookrd-caption-language",
+      "x-odookrd-caption-label",
+      "x-odookrd-caption-default",
     ]) {
       const value = request.headers.get(name);
       if (value) headers[name] = value;
@@ -142,13 +190,43 @@ async function proxy(
       method,
       headers,
       ...(body === undefined ? {} : { body }),
-      ...(localUpload ? { duplex: "half" } : {}),
+      ...(localUpload || captionUpload ? { duplex: "half" } : {}),
       cache: "no-store",
-      signal: AbortSignal.timeout(localUpload ? 1_800_000 : 15_000),
+      signal: AbortSignal.timeout(
+        localUpload
+          ? 1_800_000
+          : captionUpload || previewGet
+            ? 120_000
+            : 15_000,
+      ),
     };
-    upstream = await fetch(new URL(`/v1/training/${path}`, apiBaseUrl), init);
+    const upstreamUrl = new URL(`/v1/training/${path}`, apiBaseUrl);
+    if (previewGet) {
+      request.nextUrl.searchParams.forEach((value, key) => {
+        upstreamUrl.searchParams.set(key, value);
+      });
+    }
+    upstream = await fetch(upstreamUrl, init);
   } catch {
     return errorResponse(502, "The API service is temporarily unavailable.");
+  }
+
+  if (previewGet && upstream.body) {
+    const responseHeaders = new Headers({
+      "Content-Type":
+        upstream.headers.get("content-type") ?? "application/octet-stream",
+      "Cache-Control": "private, no-store, max-age=0",
+      "X-Content-Type-Options": "nosniff",
+      "Cross-Origin-Resource-Policy": "same-origin",
+    });
+    for (const name of ["content-length", "content-range", "accept-ranges"]) {
+      const value = upstream.headers.get(name);
+      if (value) responseHeaders.set(name, value);
+    }
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers: responseHeaders,
+    });
   }
 
   const text = await upstream.text();
@@ -173,6 +251,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   if (
     !joined.endsWith("/structure") &&
     !joined.endsWith("/media") &&
+    !joined.endsWith("/media/enrichment") &&
+    !joined.endsWith("/media/enrichment/preview") &&
+    !joined.endsWith("/media/enrichment/preview-resource") &&
     !editorGet
   ) {
     return errorResponse(405, "Method not allowed.");

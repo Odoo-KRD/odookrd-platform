@@ -602,6 +602,42 @@ export type TrainingVideoAssetStatus =
   "UPLOADING" | "PROCESSING" | "READY" | "FAILED" | "ARCHIVED";
 export type TrainingVideoDeliveryMode =
   "AWS_AUTOMATED" | "AWS_MANUAL" | "LOCAL";
+
+export type TrainingPlayerPlaybackRate = "0.75" | "1" | "1.25" | "1.5" | "2";
+export type TrainingCaptionDefaultBehavior =
+  "off" | "video_default" | "prefer_learner_language";
+export type TrainingCaptionFontSize = "small" | "medium" | "large" | "xlarge";
+export type TrainingCaptionTextColor = "white" | "yellow";
+export type TrainingCaptionBackground =
+  "none" | "light" | "medium" | "dark" | "solid";
+export type TrainingCaptionEdgeStyle = "none" | "soft" | "strong";
+export type TrainingCaptionPosition = "bottom" | "top";
+
+export interface TrainingPlayerSettings {
+  autoplay: boolean;
+  defaultPlaybackRate: TrainingPlayerPlaybackRate;
+  seekSeconds: number;
+  controlsAutoHideSeconds: number;
+  showFullscreen: boolean;
+  showVolume: boolean;
+  showChapters: boolean;
+  showSpeedControl: boolean;
+  showQualitySelector: boolean;
+  branding: {
+    enabled: boolean;
+    text: string;
+  };
+  captions: {
+    defaultBehavior: TrainingCaptionDefaultBehavior;
+    fontSize: TrainingCaptionFontSize;
+    textColor: TrainingCaptionTextColor;
+    background: TrainingCaptionBackground;
+    backgroundOpacity: number;
+    edgeStyle: TrainingCaptionEdgeStyle;
+    position: TrainingCaptionPosition;
+    maxWidthPercent: number;
+  };
+}
 export type TrainingLessonContentType =
   "VIDEO" | "DOCUMENT" | "ARTICLE" | "QUIZ";
 // Backwards-compatible Stage 3C.2 display contract.
@@ -940,6 +976,49 @@ export interface TrainingAutomatedUploadInit {
   requiredHeaders: { "Content-Type": "video/mp4" };
 }
 
+export interface TrainingVideoCaptionTrackAdmin {
+  id: string;
+  languageCode: string;
+  label: string;
+  isDefault: boolean;
+  sortOrder: number;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingVideoChapterAdmin {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  startSeconds: number;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingCustomerVideoCaptionTrack {
+  id: string;
+  languageCode: string;
+  label: string;
+  isDefault: boolean;
+  contentPath: string;
+}
+
+export interface TrainingCustomerVideoChapter {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  startSeconds: number;
+}
+
+export interface TrainingCustomerVideoEnrichment {
+  captions: TrainingCustomerVideoCaptionTrack[];
+  chapters: TrainingCustomerVideoChapter[];
+}
+
 export interface TrainingCustomerVideoContent {
   type: "VIDEO";
   deliveryMode: TrainingVideoDeliveryMode;
@@ -952,6 +1031,15 @@ export interface TrainingCustomerVideoContent {
   playbackPath: string;
 }
 export type TrainingCustomerVideoMedia = TrainingCustomerVideoContent;
+
+export interface TrainingVideoEnrichmentAdmin {
+  videoAssetId: string;
+  durationSeconds: number | null;
+  deliveryMode: TrainingVideoDeliveryMode;
+  preview: TrainingCustomerVideoContent;
+  captions: TrainingVideoCaptionTrackAdmin[];
+  chapters: TrainingVideoChapterAdmin[];
+}
 
 export interface TrainingCustomerDocumentContent {
   type: "DOCUMENT";

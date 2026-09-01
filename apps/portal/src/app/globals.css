@@ -68,3 +68,140 @@ button {
 button:disabled {
   cursor: not-allowed;
 }
+
+/* Stage 3C.2R.2C.1 — Professional Course Player */
+.odookrd-video-player {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  aspect-ratio: unset;
+  background: #020617;
+  --media-brand: var(--odookrd-primary);
+  --media-focus-ring-color: var(--odookrd-primary);
+}
+
+.odookrd-video-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #020617;
+}
+
+.course-player-root:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
+}
+
+.course-player-root:fullscreen .odookrd-video-player {
+  height: 100%;
+}
+
+/* Stage 3C.2R.2C.1 — Immersive Course Player route shell */
+body:has(.course-player-root) .customer-shell-header {
+  display: none;
+}
+
+body:has(.course-player-root) .customer-shell-main {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 1024px) {
+  body:has(.course-player-root) {
+    overflow: hidden;
+  }
+
+  body:has(.course-player-root) .app-shell-sidebar {
+    display: none !important;
+  }
+}
+
+/* Media controls stay LTR even when the surrounding application is RTL. */
+.odookrd-video-player {
+  direction: ltr;
+}
+
+/* Stage 3C.2R.2C.2 — Platform video player settings */
+
+/*
+ * OdooKRD uses a predictable training-caption layout instead of accepting
+ * arbitrary horizontal positioning embedded in WebVTT cues.
+ */
+.odookrd-managed-captions {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  box-sizing: border-box;
+  padding: 0 1.5% clamp(1rem, calc(var(--overlay-height) / 100 * 2.5), 1.75rem);
+  text-align: center;
+}
+
+.odookrd-managed-captions[data-position="top"] {
+  justify-content: flex-start;
+  padding-top: clamp(1rem, calc(var(--overlay-height) / 100 * 2.5), 1.75rem);
+  padding-bottom: 0;
+}
+
+.odookrd-managed-captions [data-part="cue-display"] {
+  position: static !important;
+  inset: auto !important;
+  width: fit-content !important;
+  height: auto !important;
+  min-width: 0 !important;
+  max-width: var(--odookrd-caption-max-width, 90%) !important;
+  margin: 0 auto !important;
+  align-self: center !important;
+  transform: none !important;
+  text-align: center !important;
+}
+
+.odookrd-managed-captions [data-part="cue"] {
+  display: inline-block;
+  max-width: 100%;
+  margin-inline: auto;
+  text-align: center !important;
+  direction: inherit;
+  unicode-bidi: plaintext;
+  line-height: var(--cue-line-height) !important;
+}
+
+.odookrd-managed-captions[dir="rtl"] [data-part="cue"],
+.odookrd-managed-captions[dir="rtl"] [data-part="voice"],
+.odookrd-managed-captions[dir="rtl"] [data-part="timed"] {
+  direction: rtl;
+  unicode-bidi: plaintext;
+  text-align: center !important;
+}
+
+.odookrd-managed-captions[dir="ltr"] [data-part="cue"],
+.odookrd-managed-captions[dir="ltr"] [data-part="voice"],
+.odookrd-managed-captions[dir="ltr"] [data-part="timed"] {
+  direction: ltr;
+  unicode-bidi: plaintext;
+  text-align: center !important;
+}
+
+.odookrd-video-player[data-show-speed="false"] .vds-speed-menu,
+.odookrd-video-player[data-show-speed="false"] .vds-speed-slider,
+.odookrd-video-player[data-show-speed="false"] .vds-speed-radio-group {
+  display: none !important;
+}
+
+.odookrd-video-player[data-show-quality="false"] .vds-quality-menu,
+.odookrd-video-player[data-show-quality="false"] .vds-quality-slider,
+.odookrd-video-player[data-show-quality="false"] .vds-quality-radio-group {
+  display: none !important;
+}
+
+.odookrd-video-player[data-show-playback-menu="false"] .vds-playback-menu {
+  display: none !important;
+}
+
+/* Native-caption fallback for platforms that force native text rendering. */
+.odookrd-video-player video::cue {
+  color: #fff;
+  background: rgb(0 0 0 / 0.8);
+}

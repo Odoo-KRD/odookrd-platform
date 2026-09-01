@@ -5,6 +5,7 @@ import type { TrainingLesson } from "@odookrd/types";
 interface LessonTypeIconProps {
   contentType: TrainingLesson["contentType"];
   label: string;
+  variant?: "default" | "dark";
 }
 
 function iconTone(contentType: TrainingLesson["contentType"]): string {
@@ -21,6 +22,22 @@ function iconTone(contentType: TrainingLesson["contentType"]): string {
     return "bg-emerald-50 text-emerald-700 ring-emerald-100";
   }
   return "bg-slate-100 text-slate-500 ring-slate-200";
+}
+
+function darkIconTone(contentType: TrainingLesson["contentType"]): string {
+  if (contentType === "VIDEO") {
+    return "bg-violet-400/10 text-violet-300 ring-violet-300/15";
+  }
+  if (contentType === "DOCUMENT") {
+    return "bg-sky-400/10 text-sky-300 ring-sky-300/15";
+  }
+  if (contentType === "ARTICLE") {
+    return "bg-amber-400/10 text-amber-300 ring-amber-300/15";
+  }
+  if (contentType === "QUIZ") {
+    return "bg-emerald-400/10 text-emerald-300 ring-emerald-300/15";
+  }
+  return "bg-slate-700/70 text-slate-300 ring-white/10";
 }
 
 function LessonTypeGlyph({
@@ -98,15 +115,20 @@ function LessonTypeGlyph({
   );
 }
 
-export function LessonTypeIcon({ contentType, label }: LessonTypeIconProps) {
+export function LessonTypeIcon({
+  contentType,
+  label,
+  variant = "default",
+}: LessonTypeIconProps) {
+  const tone =
+    variant === "dark" ? darkIconTone(contentType) : iconTone(contentType);
+
   return (
     <span
       role="img"
       aria-label={label}
       title={label}
-      className={`inline-flex size-9 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ${iconTone(
-        contentType,
-      )}`}
+      className={`inline-flex size-9 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ${tone}`}
     >
       <LessonTypeGlyph contentType={contentType} />
     </span>

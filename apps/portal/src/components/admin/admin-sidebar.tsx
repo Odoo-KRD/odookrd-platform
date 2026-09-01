@@ -71,7 +71,7 @@ export function AdminSidebar({
 
   return (
     <aside
-      className={`hidden h-screen shrink-0 flex-col overflow-hidden border-e border-line bg-surface-panel transition-[width] duration-200 lg:flex ${
+      className={`app-shell-sidebar hidden h-screen shrink-0 flex-col overflow-hidden border-e border-line bg-surface-panel transition-[width] duration-200 lg:flex ${
         collapsed ? "w-20" : "w-72"
       }`}
     >

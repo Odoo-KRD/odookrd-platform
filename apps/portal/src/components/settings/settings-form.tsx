@@ -18,6 +18,7 @@ import {
 import type { SettingsFormState } from "@/app/(protected)/admin/settings/actions";
 import type { SettingsDictionary } from "@/lib/i18n/settings";
 import type { SettingsNavigationDictionary } from "@/lib/i18n/settings-navigation";
+import { useRouter } from "next/navigation";
 
 type SettingsAction = (
   state: SettingsFormState,
@@ -48,6 +49,12 @@ type TrainingTab =
   "general" | "video" | "progress" | "quizzes" | "certificates";
 type FileTab = "general" | "limits" | "types" | "aws";
 type S3TestState = "idle" | "testing" | "success" | "error";
+type VideoSettingsGroup = "delivery" | "player" | "captions";
+type SettingsControlSnapshot = {
+  name: string;
+  value: string;
+  checked?: boolean;
+};
 
 const imageTypeKeys = new Set([
   "files.types.jpeg_enabled",
@@ -110,6 +117,58 @@ function selectOptions(
       ["LOCAL", "Local"],
     ];
   }
+  if (setting.key === "trainings.player.default_playback_rate")
+    return [
+      ["0.75", "0.75x"],
+      ["1", "1x"],
+      ["1.25", "1.25x"],
+      ["1.5", "1.5x"],
+      ["2", "2x"],
+    ];
+  if (setting.key === "trainings.player.seek_seconds")
+    return [
+      ["5", "5 seconds"],
+      ["10", "10 seconds"],
+      ["15", "15 seconds"],
+      ["30", "30 seconds"],
+    ];
+  if (setting.key === "trainings.player.captions.default_behavior")
+    return [
+      ["off", "Off"],
+      ["video_default", "Video default"],
+      ["prefer_learner_language", "Prefer learner language"],
+    ];
+  if (setting.key === "trainings.player.captions.font_size")
+    return [
+      ["small", "Small"],
+      ["medium", "Medium"],
+      ["large", "Large"],
+      ["xlarge", "Extra large"],
+    ];
+  if (setting.key === "trainings.player.captions.text_color")
+    return [
+      ["white", "White"],
+      ["yellow", "Yellow"],
+    ];
+  if (setting.key === "trainings.player.captions.background")
+    return [
+      ["none", "None"],
+      ["light", "Light"],
+      ["medium", "Medium"],
+      ["dark", "Dark"],
+      ["solid", "Solid"],
+    ];
+  if (setting.key === "trainings.player.captions.edge_style")
+    return [
+      ["none", "None"],
+      ["soft", "Soft"],
+      ["strong", "Strong"],
+    ];
+  if (setting.key === "trainings.player.captions.position")
+    return [
+      ["bottom", "Bottom"],
+      ["top", "Top"],
+    ];
   if (setting.key === "files.storage.default_provider") {
     return [
       ["LOCAL", "Local"],
@@ -147,6 +206,7 @@ function notificationTabFor(setting: ManagedSetting): NotificationTab | null {
 function trainingTabFor(setting: ManagedSetting): TrainingTab | null {
   if (setting.category !== "trainings") return null;
   if (setting.key.startsWith("trainings.video.")) return "video";
+  if (setting.key.startsWith("trainings.player.")) return "video";
   if (setting.key.startsWith("trainings.progress.")) return "progress";
   if (setting.key.startsWith("trainings.quizzes.")) return "quizzes";
   if (setting.key.startsWith("trainings.certificates.")) return "certificates";
@@ -190,6 +250,46 @@ export function SettingsForm({
     success: false,
   });
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const submittedControlsRef = useRef<SettingsControlSnapshot[]>([]);
+  const [openVideoSettingsGroup, setOpenVideoSettingsGroup] =
+    useState<VideoSettingsGroup | null>("player");
+
+  const readCaptionSetting = (key: string, fallback: string): string => {
+    const value = settings.find((setting) => setting.key === key)?.value;
+    return value === null || value === undefined ? fallback : String(value);
+  };
+
+  const [captionPreview, setCaptionPreview] = useState(() => ({
+    font_size: readCaptionSetting(
+      "trainings.player.captions.font_size",
+      "medium",
+    ),
+    text_color: readCaptionSetting(
+      "trainings.player.captions.text_color",
+      "white",
+    ),
+    background: readCaptionSetting(
+      "trainings.player.captions.background",
+      "dark",
+    ),
+    background_opacity: readCaptionSetting(
+      "trainings.player.captions.background_opacity",
+      "75",
+    ),
+    edge_style: readCaptionSetting(
+      "trainings.player.captions.edge_style",
+      "soft",
+    ),
+    position: readCaptionSetting(
+      "trainings.player.captions.position",
+      "bottom",
+    ),
+    max_width_percent: readCaptionSetting(
+      "trainings.player.captions.max_width_percent",
+      "90",
+    ),
+  }));
 
   const availableCategories = useMemo(
     () =>
@@ -247,12 +347,76 @@ export function SettingsForm({
 
   useEffect(() => {
     if (!state.success) return;
-    formRef.current
-      ?.querySelectorAll<HTMLInputElement>('input[type="password"]')
-      .forEach((input) => {
-        input.value = "";
-      });
-  }, [state]);
+
+    const form = formRef.current;
+    if (form) {
+      for (const snapshot of submittedControlsRef.current) {
+        const control = form.elements.namedItem(snapshot.name);
+        if (control instanceof HTMLInputElement) {
+          if (control.type === "checkbox") {
+            control.checked = snapshot.checked === true;
+          } else if (control.type !== "password") {
+            control.value = snapshot.value;
+          }
+        } else if (control instanceof HTMLSelectElement) {
+          control.value = snapshot.value;
+        }
+      }
+
+      form
+        .querySelectorAll<HTMLInputElement>('input[type="password"]')
+        .forEach((input) => {
+          input.value = "";
+        });
+    }
+
+    router.refresh();
+  }, [router, state]);
+
+  function rememberSubmittedControls(
+    event: React.FormEvent<HTMLFormElement>,
+  ): void {
+    submittedControlsRef.current = Array.from(
+      event.currentTarget.querySelectorAll<
+        HTMLInputElement | HTMLSelectElement
+      >('input[name^="setting."], select[name^="setting."]'),
+    )
+      .filter(
+        (control) =>
+          !(control instanceof HTMLInputElement && control.type === "password"),
+      )
+      .map((control) => ({
+        name: control.name,
+        value: control.value,
+        checked:
+          control instanceof HTMLInputElement && control.type === "checkbox"
+            ? control.checked
+            : undefined,
+      }));
+  }
+
+  function updateCaptionPreview(event: React.FormEvent<HTMLFormElement>): void {
+    const target = event.target;
+    if (
+      !(target instanceof HTMLInputElement) &&
+      !(target instanceof HTMLSelectElement)
+    ) {
+      return;
+    }
+
+    const prefix = "setting.trainings.player.captions.";
+    if (!target.name.startsWith(prefix)) return;
+
+    const key = target.name.slice(prefix.length);
+    setCaptionPreview((current) => ({
+      ...current,
+      [key]: target.value,
+    }));
+  }
+
+  function toggleVideoSettingsGroup(group: VideoSettingsGroup): void {
+    setOpenVideoSettingsGroup((current) => (current === group ? null : group));
+  }
 
   function selectCategory(next: SettingCategory): void {
     setCategory(next);
@@ -296,6 +460,50 @@ export function SettingsForm({
       setTrainingTab(key as TrainingTab);
     }
     if (category === "files") setFileTab(key as FileTab);
+  }
+
+  function resetPlayerSettings(): void {
+    const form = formRef.current;
+    if (!form) return;
+    const defaults: Record<string, string | boolean> = {
+      "trainings.player.autoplay": true,
+      "trainings.player.default_playback_rate": "1",
+      "trainings.player.seek_seconds": "10",
+      "trainings.player.controls_auto_hide_seconds": "2",
+      "trainings.player.show_fullscreen": true,
+      "trainings.player.show_volume": true,
+      "trainings.player.show_chapters": true,
+      "trainings.player.show_speed_control": true,
+      "trainings.player.show_quality_selector": true,
+      "trainings.player.branding.enabled": true,
+      "trainings.player.branding.text": "OdooKRD Training",
+      "trainings.player.captions.default_behavior": "prefer_learner_language",
+      "trainings.player.captions.font_size": "medium",
+      "trainings.player.captions.text_color": "white",
+      "trainings.player.captions.background": "dark",
+      "trainings.player.captions.background_opacity": "75",
+      "trainings.player.captions.edge_style": "soft",
+      "trainings.player.captions.position": "bottom",
+      "trainings.player.captions.max_width_percent": "90",
+    };
+    Object.entries(defaults).forEach(([key, value]) => {
+      const input = form.querySelector<HTMLInputElement | HTMLSelectElement>(
+        `[name="setting.${key}"]`,
+      );
+      if (!input) return;
+      if (input instanceof HTMLInputElement && input.type === "checkbox")
+        input.checked = value === true;
+      else input.value = String(value);
+      setCaptionPreview({
+        font_size: "medium",
+        text_color: "white",
+        background: "dark",
+        background_opacity: "75",
+        edge_style: "soft",
+        position: "bottom",
+        max_width_percent: "90",
+      });
+    });
   }
 
   async function testS3Connection(): Promise<void> {
@@ -520,6 +728,23 @@ export function SettingsForm({
   const documentTypes = visibleSettings.filter((setting) =>
     documentTypeKeys.has(setting.key),
   );
+  const playerSettingsGroups =
+    category === "trainings" && trainingTab === "video"
+      ? {
+          delivery: visibleSettings.filter((setting) =>
+            setting.key.startsWith("trainings.video."),
+          ),
+          player: visibleSettings.filter(
+            (setting) =>
+              setting.key.startsWith("trainings.player.") &&
+              !setting.key.startsWith("trainings.player.captions."),
+          ),
+          captions: visibleSettings.filter((setting) =>
+            setting.key.startsWith("trainings.player.captions."),
+          ),
+        }
+      : null;
+
   const awsCredentialSettings = visibleSettings.filter((setting) =>
     awsStoredCredentialKeys.has(setting.key),
   );
@@ -589,14 +814,206 @@ export function SettingsForm({
           </div>
         ) : null}
 
-        <form ref={formRef} action={formAction} className="grid gap-5">
+        <form
+          ref={formRef}
+          action={formAction}
+          onSubmit={rememberSubmittedControls}
+          onChange={updateCaptionPreview}
+          className="grid gap-5"
+        >
           <input type="hidden" name="scope" value={scope} />
           <input type="hidden" name="category" value={category} />
           {companyId ? (
             <input type="hidden" name="companyId" value={companyId} />
           ) : null}
 
-          {category === "files" && fileTab === "types" ? (
+          {playerSettingsGroups ? (
+            <>
+              <section className="overflow-hidden rounded-xl border border-line bg-slate-50/60">
+                <button
+                  type="button"
+                  onClick={() => toggleVideoSettingsGroup("delivery")}
+                  aria-expanded={openVideoSettingsGroup === "delivery"}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-4 text-start sm:px-5"
+                >
+                  <h3 className="text-sm font-semibold text-content">
+                    {navigationLabels.playerSettingsGroups.delivery}
+                  </h3>
+                  <span
+                    aria-hidden="true"
+                    className={`text-muted transition-transform ${
+                      openVideoSettingsGroup === "delivery" ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▾
+                  </span>
+                </button>
+                {openVideoSettingsGroup === "delivery" ? (
+                  <div className="grid gap-4 border-t border-line p-4 sm:p-5">
+                    {playerSettingsGroups.delivery.map((setting) =>
+                      renderSettingCard(setting),
+                    )}
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="overflow-hidden rounded-xl border border-line bg-slate-50/60">
+                <button
+                  type="button"
+                  onClick={() => toggleVideoSettingsGroup("player")}
+                  aria-expanded={openVideoSettingsGroup === "player"}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-4 text-start sm:px-5"
+                >
+                  <h3 className="text-sm font-semibold text-content">
+                    {navigationLabels.playerSettingsGroups.player}
+                  </h3>
+                  <span
+                    aria-hidden="true"
+                    className={`text-muted transition-transform ${
+                      openVideoSettingsGroup === "player" ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▾
+                  </span>
+                </button>
+                {openVideoSettingsGroup === "player" ? (
+                  <div className="grid gap-4 border-t border-line p-4 sm:p-5 md:grid-cols-2">
+                    {playerSettingsGroups.player.map((setting) =>
+                      renderSettingCard(setting, true),
+                    )}
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="overflow-hidden rounded-xl border border-line bg-slate-50/60">
+                <button
+                  type="button"
+                  onClick={() => toggleVideoSettingsGroup("captions")}
+                  aria-expanded={openVideoSettingsGroup === "captions"}
+                  className="flex w-full items-center justify-between gap-4 px-4 py-4 text-start sm:px-5"
+                >
+                  <h3 className="text-sm font-semibold text-content">
+                    {navigationLabels.playerSettingsGroups.captions}
+                  </h3>
+                  <span
+                    aria-hidden="true"
+                    className={`text-muted transition-transform ${
+                      openVideoSettingsGroup === "captions" ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▾
+                  </span>
+                </button>
+
+                {openVideoSettingsGroup === "captions" ? (
+                  <div className="grid gap-4 border-t border-line p-4 sm:p-5">
+                    <div className="rounded-lg border border-line bg-white p-4">
+                      <p className="text-sm font-semibold text-content">
+                        {navigationLabels.playerSettingsGroups.previewTitle}
+                      </p>
+                      <div className="relative mt-3 aspect-video overflow-hidden rounded-lg bg-slate-900">
+                        <div
+                          className={`absolute inset-x-4 flex justify-center ${
+                            captionPreview.position === "top"
+                              ? "top-[8%]"
+                              : "bottom-[8%]"
+                          }`}
+                        >
+                          <span
+                            dir="auto"
+                            style={{
+                              maxWidth: `${Math.max(
+                                40,
+                                Math.min(
+                                  100,
+                                  Number(captionPreview.max_width_percent) ||
+                                    90,
+                                ),
+                              )}%`,
+                              fontSize:
+                                {
+                                  small: "16px",
+                                  medium: "20px",
+                                  large: "26px",
+                                  xlarge: "32px",
+                                }[captionPreview.font_size] ?? "20px",
+                              color:
+                                captionPreview.text_color === "yellow"
+                                  ? "#fde047"
+                                  : "#ffffff",
+                              background:
+                                captionPreview.background === "none"
+                                  ? "transparent"
+                                  : `rgba(0, 0, 0, ${
+                                      captionPreview.background === "solid"
+                                        ? 1
+                                        : (Math.max(
+                                            0,
+                                            Math.min(
+                                              100,
+                                              Number(
+                                                captionPreview.background_opacity,
+                                              ) || 0,
+                                            ),
+                                          ) /
+                                            100) *
+                                          (captionPreview.background === "light"
+                                            ? 0.35
+                                            : captionPreview.background ===
+                                                "medium"
+                                              ? 0.6
+                                              : 1)
+                                    })`,
+                              textShadow:
+                                captionPreview.edge_style === "none"
+                                  ? "none"
+                                  : captionPreview.edge_style === "strong"
+                                    ? "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 3px #000"
+                                    : "0 1px 2px rgba(0,0,0,.95), 0 0 3px rgba(0,0,0,.75)",
+                              padding: "0.3em 0.55em",
+                              lineHeight: 1.25,
+                              textAlign: "center",
+                            }}
+                            className="rounded"
+                          >
+                            {navigationLabels.playerSettingsGroups.previewText}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {playerSettingsGroups.captions.map((setting) =>
+                        renderSettingCard(setting, true),
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              {scope === "PLATFORM" && canManage ? (
+                <section className="rounded-xl border border-line bg-white p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-content">
+                        {navigationLabels.playerSettingsGroups.reset}
+                      </p>
+                      <p className="mt-1 max-w-2xl text-xs leading-5 text-muted">
+                        {navigationLabels.playerSettingsGroups.resetHelp}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetPlayerSettings}
+                      className="inline-flex h-9 items-center rounded-md border border-line bg-white px-3 text-xs font-semibold text-content hover:bg-surface-subtle"
+                    >
+                      {navigationLabels.playerSettingsGroups.reset}
+                    </button>
+                  </div>
+                </section>
+              ) : null}
+            </>
+          ) : category === "files" && fileTab === "types" ? (
             <>
               <section className="rounded-xl border border-line bg-slate-50/60 p-4 sm:p-5">
                 <h3 className="text-sm font-semibold text-content">
