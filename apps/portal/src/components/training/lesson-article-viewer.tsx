@@ -141,7 +141,7 @@ function renderNode(value: unknown, key: string): ReactNode {
 
 export function LessonArticleViewer({ document }: { document: unknown }) {
   return (
-    <article className="rounded-lg border border-line bg-white p-5 text-sm text-content sm:p-7">
+    <article className="h-full min-h-0 overflow-y-auto overscroll-contain rounded-lg border border-line bg-white p-5 text-sm text-content sm:p-7 lg:p-8">
       {renderNode(document, "article")}
     </article>
   );

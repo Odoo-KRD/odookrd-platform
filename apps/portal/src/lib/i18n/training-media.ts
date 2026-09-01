@@ -12,6 +12,7 @@ export interface TrainingMediaDictionary {
   local: string;
   localHelp: string;
   slides: string;
+  chapters: string;
   slidesHelp: string;
   chooseMp4: string;
   choosePdf: string;
@@ -63,6 +64,7 @@ export const trainingMediaDictionaries: Record<
     local: "MP4 ناوخۆیی",
     localHelp: "MP4 لە سێرڤەری پلاتفۆڕم هەڵبگرە و بە HTTP Range بگەیەنە.",
     slides: "سلایدی PDF",
+    chapters: "بەشەکان",
     slidesHelp: "PDF ـێکی تایبەت پەیوەست بکە و لاپەڕە بە لاپەڕە پیشانی بدە.",
     chooseMp4: "هەڵبژاردنی MP4",
     choosePdf: "هەڵبژاردنی PDF",
@@ -108,6 +110,7 @@ export const trainingMediaDictionaries: Record<
     local: "MP4 محلي",
     localHelp: "احفظ MP4 على خادم المنصة وقدمه عبر HTTP Range محمي.",
     slides: "شرائح PDF",
+    chapters: "الفصول",
     slidesHelp: "اربط ملف PDF خاصاً واعرضه صفحة بصفحة.",
     chooseMp4: "اختيار MP4",
     choosePdf: "اختيار PDF",
@@ -156,6 +159,7 @@ export const trainingMediaDictionaries: Record<
     localHelp:
       "Store MP4 on the platform server and deliver it with protected HTTP Range support.",
     slides: "PDF Slides",
+    chapters: "Chapters",
     slidesHelp: "Attach a private PDF and present it page by page.",
     chooseMp4: "Choose MP4",
     choosePdf: "Choose PDF",

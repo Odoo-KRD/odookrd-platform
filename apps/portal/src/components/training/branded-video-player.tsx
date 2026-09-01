@@ -114,6 +114,7 @@ export function BrandedVideoPlayer({
   locale = "en",
   autoPlay = true,
   playerSettings,
+  chapterTrackLabel = "Chapters",
 }: {
   media: TrainingCustomerVideoMedia;
   title?: string;
@@ -121,6 +122,7 @@ export function BrandedVideoPlayer({
   locale?: Locale;
   autoPlay?: boolean;
   playerSettings?: TrainingPlayerSettings;
+  chapterTrackLabel?: string;
 }) {
   const protectedPath = `/api${media.playbackPath}`;
   const [source, setSource] = useState<string | null>(null);
@@ -264,7 +266,7 @@ export function BrandedVideoPlayer({
           <Track
             src={chapterTrack}
             kind="chapters"
-            label="Chapters"
+            label={chapterTrackLabel}
             lang={locale}
             type="vtt"
             default

@@ -29,6 +29,7 @@ export interface TrainingCustomerWorkspaceDictionary {
   exitFullscreen: string;
   collapseCourseSidebar: string;
   expandCourseSidebar: string;
+  closeCourseSidebar: string;
 }
 
 export const trainingCustomerWorkspaceDictionaries: Record<
@@ -64,6 +65,7 @@ export const trainingCustomerWorkspaceDictionaries: Record<
     exitFullscreen: "Exit full screen",
     collapseCourseSidebar: "Collapse course sidebar",
     expandCourseSidebar: "Expand course sidebar",
+    closeCourseSidebar: "Close course sidebar",
   },
   ku: {
     courseLibrary: "کتێبخانەی کۆرسەکان",
@@ -94,6 +96,7 @@ export const trainingCustomerWorkspaceDictionaries: Record<
     exitFullscreen: "دەرچوون لە پڕشاشە",
     collapseCourseSidebar: "بچووککردنەوەی لیستی کۆرس",
     expandCourseSidebar: "کردنەوەی لیستی کۆرس",
+    closeCourseSidebar: "داخستنی لیستی کۆرس",
   },
   ar: {
     courseLibrary: "مكتبة الدورات",
@@ -124,5 +127,6 @@ export const trainingCustomerWorkspaceDictionaries: Record<
     exitFullscreen: "الخروج من ملء الشاشة",
     collapseCourseSidebar: "طي قائمة الدورة",
     expandCourseSidebar: "توسيع قائمة الدورة",
+    closeCourseSidebar: "إغلاق قائمة الدورة",
   },
 };

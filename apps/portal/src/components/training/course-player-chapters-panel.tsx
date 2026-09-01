@@ -80,7 +80,10 @@ export function CoursePlayerChaptersPanel({
                 : "border-transparent hover:bg-white/5"
             }`}
           >
-            <span className="mt-0.5 min-w-12 text-[11px] font-semibold tabular-nums text-slate-400">
+            <span
+              dir="ltr"
+              className="mt-0.5 min-w-12 text-[11px] font-semibold tabular-nums text-slate-400"
+            >
               {formatTime(chapter.startSeconds)}
             </span>
             <span

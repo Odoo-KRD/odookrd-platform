@@ -52,6 +52,7 @@ export function LessonMediaPlayer({
         enrichment={enrichment}
         locale={locale}
         playerSettings={playerSettings}
+        chapterTrackLabel={labels.chapters}
       />
     );
   if (content.type === "DOCUMENT")

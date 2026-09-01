@@ -11,6 +11,7 @@ export interface CoursePlayerShellLabels {
   exitFullscreen: string;
   collapseSidebar: string;
   expandSidebar: string;
+  closeSidebar: string;
   backToCourse: string;
 }
 
@@ -35,38 +36,10 @@ function LessonsIcon() {
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className="size-4 fill-none stroke-current"
+      className="size-4 shrink-0 fill-none stroke-current"
       strokeWidth="1.8"
     >
       <path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5" />
-    </svg>
-  );
-}
-
-function ChaptersIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="size-4 fill-none stroke-current"
-      strokeWidth="1.8"
-    >
-      <path d="M6 5h12M6 12h12M6 19h12" />
-      <path d="M3.5 5h.01M3.5 12h.01M3.5 19h.01" />
-    </svg>
-  );
-}
-
-function ResourcesIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="size-4 fill-none stroke-current"
-      strokeWidth="1.8"
-    >
-      <path d="M7 3.5h6l4 4V20H7z" />
-      <path d="M13 3.5V8h4M9 12h6M9 16h6" />
     </svg>
   );
 }
@@ -115,9 +88,23 @@ function BackIcon() {
   );
 }
 
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="size-4 fill-none stroke-current"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <path d="m7 7 10 10M17 7 7 17" />
+    </svg>
+  );
+}
+
 function CountBadge({ value }: { value: number }) {
   return (
-    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-slate-300">
+    <span className="hidden min-w-5 shrink-0 items-center justify-center rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-slate-300 sm:inline-flex">
       {value}
     </span>
   );
@@ -184,14 +171,13 @@ export function CoursePlayerShell({
       <button
         type="button"
         onClick={() => setActiveTab("lessons")}
-        className={`inline-flex items-center justify-center gap-2 border-b-2 px-3 text-xs font-semibold transition ${
+        className={`inline-flex min-w-0 items-center justify-center gap-1.5 border-b-2 px-2 text-xs font-semibold transition ${
           activeTab === "lessons"
             ? "border-brand bg-white/5 text-white"
             : "border-transparent text-slate-400 hover:bg-white/5 hover:text-white"
         }`}
       >
-        <LessonsIcon />
-        {labels.lessons}
+        <span className="min-w-0 truncate">{labels.lessons}</span>
         <CountBadge value={lessonsCount} />
       </button>
 
@@ -199,14 +185,13 @@ export function CoursePlayerShell({
         <button
           type="button"
           onClick={() => setActiveTab("chapters")}
-          className={`inline-flex items-center justify-center gap-2 border-b-2 px-3 text-xs font-semibold transition ${
+          className={`inline-flex min-w-0 items-center justify-center gap-1.5 border-b-2 px-2 text-xs font-semibold transition ${
             activeTab === "chapters"
               ? "border-brand bg-white/5 text-white"
               : "border-transparent text-slate-400 hover:bg-white/5 hover:text-white"
           }`}
         >
-          <ChaptersIcon />
-          {labels.chapters}
+          <span className="min-w-0 truncate">{labels.chapters}</span>
           <CountBadge value={chaptersCount} />
         </button>
       ) : null}
@@ -214,14 +199,13 @@ export function CoursePlayerShell({
       <button
         type="button"
         onClick={() => setActiveTab("resources")}
-        className={`inline-flex items-center justify-center gap-2 border-b-2 px-3 text-xs font-semibold transition ${
+        className={`inline-flex min-w-0 items-center justify-center gap-1.5 border-b-2 px-2 text-xs font-semibold transition ${
           activeTab === "resources"
             ? "border-brand bg-white/5 text-white"
             : "border-transparent text-slate-400 hover:bg-white/5 hover:text-white"
         }`}
       >
-        <ResourcesIcon />
-        {labels.resources}
+        <span className="min-w-0 truncate">{labels.resources}</span>
         <CountBadge value={resourcesCount} />
       </button>
     </div>
@@ -306,11 +290,22 @@ export function CoursePlayerShell({
           <div className="absolute inset-0 z-40 flex lg:hidden">
             <button
               type="button"
-              aria-label="Close"
+              aria-label={labels.closeSidebar}
               onClick={() => setMobilePanelOpen(false)}
               className="absolute inset-0 bg-black/60"
             />
             <aside className="relative z-10 flex h-full w-[min(88vw,360px)] flex-col bg-slate-900 shadow-2xl">
+              <div className="flex h-11 shrink-0 items-center justify-end border-b border-white/10 px-2">
+                <button
+                  type="button"
+                  onClick={() => setMobilePanelOpen(false)}
+                  aria-label={labels.closeSidebar}
+                  title={labels.closeSidebar}
+                  className="inline-flex size-9 items-center justify-center rounded-md text-slate-300 hover:bg-white/10 hover:text-white"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
               {tabs}
               <div className="min-h-0 flex-1 overflow-y-auto">{panel}</div>
             </aside>

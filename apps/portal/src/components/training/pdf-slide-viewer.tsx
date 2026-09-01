@@ -93,7 +93,7 @@ export function PdfSlideViewer({
         canvas.width = Math.floor(viewport.width * ratio);
         canvas.height = Math.floor(viewport.height * ratio);
         canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
+        canvas.style.height = "auto";
         const context = canvas.getContext("2d");
         if (!context) throw new Error("Canvas is unavailable.");
         context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -108,8 +108,8 @@ export function PdfSlideViewer({
   }, [error, loading, pageNumber]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-surface-subtle">
-      <div className="flex min-h-[420px] items-center justify-center overflow-auto bg-slate-900/95 p-4 sm:p-6">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface-subtle">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto overscroll-contain bg-slate-900/95 p-3 sm:p-6">
         {loading ? (
           <p className="text-sm text-white/75">{labels.loadingSlides}</p>
         ) : error ? (
@@ -118,11 +118,11 @@ export function PdfSlideViewer({
           <canvas
             ref={canvasRef}
             onContextMenu={(event) => event.preventDefault()}
-            className="max-w-full bg-white shadow-xl"
+            className="h-auto max-h-full max-w-full bg-white shadow-xl"
           />
         )}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-white px-4 py-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-line bg-white px-3 py-3 sm:px-4">
         <button
           type="button"
           disabled={pageNumber <= 1 || loading}

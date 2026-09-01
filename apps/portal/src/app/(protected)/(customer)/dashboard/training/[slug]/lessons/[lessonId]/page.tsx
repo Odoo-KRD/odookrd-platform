@@ -191,7 +191,7 @@ function ResourcesPanel({
   const workspace = trainingCustomerWorkspaceDictionaries[locale];
 
   return (
-    <div className="p-4">
+    <div className="box-border w-full ps-4 pe-4 py-4">
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
         {workspace.resources}
       </p>
@@ -219,9 +219,12 @@ function ResourcesPanel({
                       locale,
                     )}
                   </p>
-                  <p className="mt-1 truncate text-[10px] text-slate-500">
+                  <p
+                    dir="auto"
+                    className="mt-1 truncate text-[10px] text-slate-500"
+                  >
                     {resource.originalFilename} ·{" "}
-                    {formatBytes(resource.sizeBytes)}
+                    <span dir="ltr">{formatBytes(resource.sizeBytes)}</span>
                   </p>
                 </div>
               </div>
@@ -354,7 +357,7 @@ export default async function CustomerTrainingLessonPage({
           <span className="rounded-full bg-brand/25 px-2 py-0.5 font-semibold text-brand">
             {typeLabel}
           </span>
-          <span>
+          <span dir="ltr">
             {currentIndex >= 0 ? currentIndex + 1 : 1} / {sequence.length || 1}
           </span>
         </div>
@@ -431,6 +434,7 @@ export default async function CustomerTrainingLessonPage({
           exitFullscreen: workspace.exitFullscreen,
           collapseSidebar: workspace.collapseCourseSidebar,
           expandSidebar: workspace.expandCourseSidebar,
+          closeSidebar: workspace.closeCourseSidebar,
           backToCourse: mediaLabels.backToCourse,
         }}
         lessonsPanel={lessonsPanel}
