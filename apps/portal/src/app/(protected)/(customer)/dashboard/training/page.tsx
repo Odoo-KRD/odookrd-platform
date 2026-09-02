@@ -1,8 +1,13 @@
-import { PERMISSIONS, type TrainingCatalogPage } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  type TrainingCatalogPage,
+  type TrainingContinueLearningResponse,
+} from "@odookrd/types";
 import { EmptyState, PageHeading, Panel } from "@odookrd/ui";
 import Image from "next/image";
 import Link from "next/link";
 
+import { TrainingContinueLearning } from "@/components/training/training-continue-learning";
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
@@ -69,10 +74,17 @@ export default async function CustomerTrainingCatalogPage({
     query.set("categoryId", categoryId);
   }
 
-  const result = await apiRequest<TrainingCatalogPage>(
-    `/training/catalog?${query.toString()}`,
-    { token },
-  );
+  const [result, continueLearning] = await Promise.all([
+    apiRequest<TrainingCatalogPage>(`/training/catalog?${query.toString()}`, {
+      token,
+    }),
+    apiRequest<TrainingContinueLearningResponse>(
+      "/training/progress/continue",
+      {
+        token,
+      },
+    ),
+  ]);
   const canAssign = hasPermission(session, PERMISSIONS.TRAINING_ASSIGN);
 
   const pageHref = (nextOffset: number) => {
@@ -110,6 +122,11 @@ export default async function CustomerTrainingCatalogPage({
         </Panel>
       ) : (
         <>
+          <TrainingContinueLearning
+            items={continueLearning.items}
+            locale={locale}
+          />
+
           <section className="grid gap-4">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>

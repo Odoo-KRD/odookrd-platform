@@ -85,8 +85,18 @@ test("R2D article and PDF lessons remain usable in constrained media viewports",
     /min-h-0 flex-1[\s\S]*overflow-auto overscroll-contain/,
   );
   assert.doesNotMatch(pdfViewer, /min-h-\[420px\]/);
-  assert.match(pdfViewer, /h-auto max-h-full max-w-full/);
-  assert.match(pdfViewer, /canvas\.style\.height = "auto"/);
+  assert.match(pdfViewer, /new ResizeObserver/);
+  assert.match(pdfViewer, /availableWidth \/ baseViewport\.width/);
+  assert.match(pdfViewer, /availableHeight \/ baseViewport\.height/);
+  assert.match(
+    pdfViewer,
+    /canvas\.style\.width = `\$\{Math\.floor\(viewport\.width\)\}px`/,
+  );
+  assert.match(
+    pdfViewer,
+    /canvas\.style\.height = `\$\{Math\.floor\(viewport\.height\)\}px`/,
+  );
+  assert.match(pdfViewer, /block shrink-0 bg-white shadow-2xl/);
 });
 
 test("R2D retains application RTL while media controls remain LTR", () => {

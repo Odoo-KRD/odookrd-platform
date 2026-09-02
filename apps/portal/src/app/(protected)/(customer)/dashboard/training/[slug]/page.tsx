@@ -1,4 +1,8 @@
-import { PERMISSIONS, type TrainingCatalogCourseDetail } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  type TrainingCatalogCourseDetail,
+  type TrainingCourseProgressDetail,
+} from "@odookrd/types";
 import { NavigationArrowIcon, PageHeading, Panel } from "@odookrd/ui";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,11 +55,18 @@ export default async function CustomerTrainingCoursePage({
   const lessonLabels = trainingLessonEditorDictionaries[locale];
 
   let course: TrainingCatalogCourseDetail;
+  let progress: TrainingCourseProgressDetail;
   try {
-    course = await apiRequest<TrainingCatalogCourseDetail>(
-      `/training/catalog/${encodeURIComponent(slug)}`,
-      { token },
-    );
+    [course, progress] = await Promise.all([
+      apiRequest<TrainingCatalogCourseDetail>(
+        `/training/catalog/${encodeURIComponent(slug)}`,
+        { token },
+      ),
+      apiRequest<TrainingCourseProgressDetail>(
+        `/training/progress/courses/${encodeURIComponent(slug)}`,
+        { token },
+      ),
+    ]);
   } catch (error) {
     if (error instanceof ApiRequestError && error.status === 404) notFound();
     throw error;
@@ -74,6 +85,22 @@ export default async function CustomerTrainingCoursePage({
   const firstReadyLesson = course.sections
     .flatMap((section) => section.lessons)
     .find((lesson) => lesson.contentReady);
+  const resumeLesson =
+    course.sections
+      .flatMap((section) => section.lessons)
+      .find((lesson) => lesson.id === progress.resumeLessonId) ??
+    firstReadyLesson;
+  const progressByLesson = new Map(
+    progress.lessons.map(
+      (lessonProgress) => [lessonProgress.lessonId, lessonProgress] as const,
+    ),
+  );
+  const courseActionLabel =
+    progress.status === "COMPLETED"
+      ? workspace.reviewCourse
+      : progress.status === "IN_PROGRESS"
+        ? workspace.continueCourse
+        : workspace.startCourse;
 
   return (
     <div className="grid gap-7">
@@ -145,13 +172,36 @@ export default async function CustomerTrainingCoursePage({
               </div>
             </div>
 
+            {progress.totalLessons > 0 ? (
+              <div className="mt-7 max-w-xl">
+                <div className="mb-2 flex items-center justify-between gap-3 text-xs text-muted">
+                  <span>{workspace.courseProgress}</span>
+                  <span dir="ltr" className="font-semibold text-content">
+                    {progress.percentage}%
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-brand"
+                    style={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-muted">
+                  <span dir="ltr">
+                    {progress.completedLessons} / {progress.totalLessons}
+                  </span>{" "}
+                  {workspace.lessonsCompleted}
+                </p>
+              </div>
+            ) : null}
+
             <div className="mt-7">
-              {firstReadyLesson ? (
+              {resumeLesson ? (
                 <Link
-                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(firstReadyLesson.id)}`}
+                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(resumeLesson.id)}`}
                   className="inline-flex h-11 items-center justify-center rounded-md bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"
                 >
-                  {workspace.startCourse}
+                  {courseActionLabel}
                 </Link>
               ) : (
                 <span className="inline-flex h-11 cursor-not-allowed items-center rounded-md border border-line bg-surface-subtle px-5 text-sm font-medium text-muted">
@@ -266,6 +316,9 @@ export default async function CustomerTrainingCoursePage({
                           const typeLabel = lesson.contentType
                             ? lessonLabels.contentTypes[lesson.contentType]
                             : workspace.lessonUnavailable;
+                          const lessonProgress = progressByLesson.get(
+                            lesson.id,
+                          );
 
                           return (
                             <div
@@ -284,9 +337,19 @@ export default async function CustomerTrainingCoursePage({
                                   </span>
                                   {lessonTitle}
                                 </p>
-                                <p className="mt-1 text-xs text-muted">
-                                  {typeLabel}
-                                </p>
+                                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                                  <span>{typeLabel}</span>
+                                  {lessonProgress?.status === "COMPLETED" ? (
+                                    <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700">
+                                      {workspace.completed}
+                                    </span>
+                                  ) : lessonProgress?.status ===
+                                    "IN_PROGRESS" ? (
+                                    <span className="inline-flex rounded-full bg-brand-soft px-2 py-0.5 font-semibold text-brand">
+                                      {workspace.inProgress}
+                                    </span>
+                                  ) : null}
+                                </div>
                               </div>
 
                               {lesson.contentReady ? (

@@ -2,6 +2,7 @@ import {
   PERMISSIONS,
   type TrainingCatalogCourseDetail,
   type TrainingCatalogLesson,
+  type TrainingCourseProgressDetail,
   type TrainingCustomerLessonDetail,
   type TrainingCustomerVideoEnrichment,
   type TrainingPlayerSettings,
@@ -55,10 +56,12 @@ function Curriculum({
   course,
   currentLessonId,
   locale,
+  progress,
 }: {
   course: TrainingCatalogCourseDetail;
   currentLessonId: string;
   locale: "ku" | "ar" | "en";
+  progress: TrainingCourseProgressDetail;
 }) {
   const workspace = trainingCustomerWorkspaceDictionaries[locale];
   const lessonLabels = trainingLessonEditorDictionaries[locale];
@@ -126,6 +129,9 @@ function Curriculum({
                   lesson.titleTranslations,
                   locale,
                 );
+                const lessonProgress = progress.lessons.find(
+                  (item) => item.lessonId === lesson.id,
+                );
 
                 const row = (
                   <>
@@ -147,6 +153,15 @@ function Curriculum({
                         </span>
                         {title}
                       </p>
+                      {lessonProgress?.status === "COMPLETED" ? (
+                        <p className="mt-0.5 text-[10px] font-semibold text-emerald-400">
+                          {workspace.completed}
+                        </p>
+                      ) : lessonProgress?.status === "IN_PROGRESS" ? (
+                        <p className="mt-0.5 text-[10px] font-semibold text-brand">
+                          {workspace.inProgress}
+                        </p>
+                      ) : null}
                     </div>
                   </>
                 );
@@ -265,25 +280,31 @@ export default async function CustomerTrainingLessonPage({
   let course: TrainingCatalogCourseDetail;
   let enrichment: TrainingCustomerVideoEnrichment;
   let playerSettings: TrainingPlayerSettings;
+  let courseProgress: TrainingCourseProgressDetail;
 
   try {
-    [lesson, course, enrichment, playerSettings] = await Promise.all([
-      apiRequest<TrainingCustomerLessonDetail>(
-        `/training/catalog/${encodeURIComponent(slug)}/lessons/${encodeURIComponent(lessonId)}`,
-        { token },
-      ),
-      apiRequest<TrainingCatalogCourseDetail>(
-        `/training/catalog/${encodeURIComponent(slug)}`,
-        { token },
-      ),
-      apiRequest<TrainingCustomerVideoEnrichment>(
-        `/training/catalog/${encodeURIComponent(slug)}/lessons/${encodeURIComponent(lessonId)}/enrichment`,
-        { token },
-      ),
-      apiRequest<TrainingPlayerSettings>("/training/player-settings", {
-        token,
-      }),
-    ]);
+    [lesson, course, enrichment, playerSettings, courseProgress] =
+      await Promise.all([
+        apiRequest<TrainingCustomerLessonDetail>(
+          `/training/catalog/${encodeURIComponent(slug)}/lessons/${encodeURIComponent(lessonId)}`,
+          { token },
+        ),
+        apiRequest<TrainingCatalogCourseDetail>(
+          `/training/catalog/${encodeURIComponent(slug)}`,
+          { token },
+        ),
+        apiRequest<TrainingCustomerVideoEnrichment>(
+          `/training/catalog/${encodeURIComponent(slug)}/lessons/${encodeURIComponent(lessonId)}/enrichment`,
+          { token },
+        ),
+        apiRequest<TrainingPlayerSettings>("/training/player-settings", {
+          token,
+        }),
+        apiRequest<TrainingCourseProgressDetail>(
+          `/training/progress/courses/${encodeURIComponent(slug)}`,
+          { token },
+        ),
+      ]);
   } catch (error) {
     if (error instanceof ApiRequestError && error.status === 404) notFound();
     throw error;
@@ -325,7 +346,12 @@ export default async function CustomerTrainingLessonPage({
     : workspace.lessonUnavailable;
 
   const lessonsPanel = (
-    <Curriculum course={course} currentLessonId={lesson.id} locale={locale} />
+    <Curriculum
+      course={course}
+      currentLessonId={lesson.id}
+      locale={locale}
+      progress={courseProgress}
+    />
   );
 
   const resourcesPanel = <ResourcesPanel lesson={lesson} locale={locale} />;
@@ -340,9 +366,20 @@ export default async function CustomerTrainingLessonPage({
       />
     ) : undefined;
 
+  const currentLessonProgress =
+    courseProgress.lessons.find((item) => item.lessonId === lesson.id) ?? null;
+
   const media = (
     <LessonMediaPlayer
+      key={lesson.id}
       lesson={lesson}
+      courseSlug={course.slug}
+      progress={currentLessonProgress}
+      progressLabels={{
+        completed: workspace.completed,
+        markAsComplete: workspace.markAsComplete,
+        markingComplete: workspace.markingComplete,
+      }}
       labels={mediaLabels}
       locale={locale}
       enrichment={enrichment}

@@ -1077,6 +1077,8 @@ model TrainingLessonProgress {
   status                  TrainingProgressStatus @default(IN_PROGRESS)
   lastPositionSeconds     Int                    @default(0) @map("last_position_seconds")
   furthestPositionSeconds Int                    @default(0) @map("furthest_position_seconds")
+  lastPageNumber          Int                    @default(0) @map("last_page_number")
+  furthestPageNumber      Int                    @default(0) @map("furthest_page_number")
   startedAt               DateTime               @default(now()) @map("started_at") @db.Timestamptz(6)
   completedAt             DateTime?              @map("completed_at") @db.Timestamptz(6)
   lastAccessedAt          DateTime               @default(now()) @map("last_accessed_at") @db.Timestamptz(6)

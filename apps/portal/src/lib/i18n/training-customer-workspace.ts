@@ -30,6 +30,17 @@ export interface TrainingCustomerWorkspaceDictionary {
   collapseCourseSidebar: string;
   expandCourseSidebar: string;
   closeCourseSidebar: string;
+  continueLearning: string;
+  continueLearningDescription: string;
+  continueCourse: string;
+  reviewCourse: string;
+  courseProgress: string;
+  lessonsCompleted: string;
+  completed: string;
+  inProgress: string;
+  notStarted: string;
+  markAsComplete: string;
+  markingComplete: string;
 }
 
 export const trainingCustomerWorkspaceDictionaries: Record<
@@ -66,6 +77,17 @@ export const trainingCustomerWorkspaceDictionaries: Record<
     collapseCourseSidebar: "Collapse course sidebar",
     expandCourseSidebar: "Expand course sidebar",
     closeCourseSidebar: "Close course sidebar",
+    continueLearning: "Continue learning",
+    continueLearningDescription: "Pick up where you left off.",
+    continueCourse: "Continue course",
+    reviewCourse: "Review course",
+    courseProgress: "Course progress",
+    lessonsCompleted: "lessons completed",
+    completed: "Completed",
+    inProgress: "In progress",
+    notStarted: "Not started",
+    markAsComplete: "Mark as complete",
+    markingComplete: "Saving...",
   },
   ku: {
     courseLibrary: "کتێبخانەی کۆرسەکان",
@@ -97,6 +119,17 @@ export const trainingCustomerWorkspaceDictionaries: Record<
     collapseCourseSidebar: "بچووککردنەوەی لیستی کۆرس",
     expandCourseSidebar: "کردنەوەی لیستی کۆرس",
     closeCourseSidebar: "داخستنی لیستی کۆرس",
+    continueLearning: "بەردەوامبوون لە فێربوون",
+    continueLearningDescription: "لەو شوێنەوە بەردەوام بە کە وەستابوویت.",
+    continueCourse: "بەردەوامبوون لە کۆرس",
+    reviewCourse: "پێداچوونەوەی کۆرس",
+    courseProgress: "پێشکەوتنی کۆرس",
+    lessonsCompleted: "وانە تەواوکراوە",
+    completed: "تەواوکراو",
+    inProgress: "لە بەردەوامیدایە",
+    notStarted: "دەست پێ نەکراوە",
+    markAsComplete: "وەک تەواوکراو دیاری بکە",
+    markingComplete: "پاشەکەوتکردن...",
   },
   ar: {
     courseLibrary: "مكتبة الدورات",
@@ -128,5 +161,16 @@ export const trainingCustomerWorkspaceDictionaries: Record<
     collapseCourseSidebar: "طي قائمة الدورة",
     expandCourseSidebar: "توسيع قائمة الدورة",
     closeCourseSidebar: "إغلاق قائمة الدورة",
+    continueLearning: "متابعة التعلم",
+    continueLearningDescription: "تابع من حيث توقفت.",
+    continueCourse: "متابعة الدورة",
+    reviewCourse: "مراجعة الدورة",
+    courseProgress: "تقدم الدورة",
+    lessonsCompleted: "دروس مكتملة",
+    completed: "مكتمل",
+    inProgress: "قيد التقدم",
+    notStarted: "لم يبدأ",
+    markAsComplete: "تحديد كمكتمل",
+    markingComplete: "جارٍ الحفظ...",
   },
 };

@@ -19,6 +19,8 @@ import { TrainingLessonEditorController } from './training-lesson-editor.control
 import { TrainingMediaService } from './training-media.service';
 import { TrainingPlayerSettingsController } from './training-player-settings.controller';
 import { TrainingPlayerSettingsService } from './training-player-settings.service';
+import { TrainingProgressController } from './training-progress.controller';
+import { TrainingProgressService } from './training-progress.service';
 import { TrainingLessonEditorService } from './training-lesson-editor.service';
 import { TrainingVideoEnrichmentController } from './training-video-enrichment.controller';
 import { TrainingVideoEnrichmentService } from './training-video-enrichment.service';
@@ -38,6 +40,7 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
     TrainingMediaController,
     TrainingLessonEditorController,
     TrainingPlayerSettingsController,
+    TrainingProgressController,
     TrainingVideoEnrichmentController,
   ],
   providers: [
@@ -50,6 +53,7 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
     TrainingMediaService,
     TrainingLessonEditorService,
     TrainingPlayerSettingsService,
+    TrainingProgressService,
     TrainingVideoEnrichmentService,
   ],
   exports: [TrainingEntitlementService],

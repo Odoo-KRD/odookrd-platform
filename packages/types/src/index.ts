@@ -1085,6 +1085,58 @@ export interface TrainingCustomerLessonDetail {
   resources: TrainingCustomerLessonResource[];
 }
 
+// Stage 3C.3 — Persistent learner progress and Continue Learning.
+export type TrainingLearningStatus = "NOT_STARTED" | TrainingProgressStatus;
+
+export interface TrainingLessonProgressState {
+  courseId: string;
+  lessonId: string;
+  contentType: TrainingLessonContentType;
+  status: TrainingLearningStatus;
+  lastPositionSeconds: number;
+  furthestPositionSeconds: number;
+  lastPageNumber: number;
+  furthestPageNumber: number;
+  completedAt: string | null;
+  lastAccessedAt: string | null;
+}
+
+export interface TrainingCourseProgressSummary {
+  courseId: string;
+  slug: string;
+  status: TrainingLearningStatus;
+  completedLessons: number;
+  totalLessons: number;
+  percentage: number;
+  resumeLessonId: string | null;
+  lastAccessedAt: string | null;
+}
+
+export interface TrainingCourseProgressDetail extends TrainingCourseProgressSummary {
+  lessons: TrainingLessonProgressState[];
+}
+
+export interface TrainingContinueLearningItem {
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+    titleTranslations: LocalizedText;
+    hasCover: boolean;
+    category: TrainingCatalogCategory;
+  };
+  progress: TrainingCourseProgressDetail;
+}
+
+export interface TrainingContinueLearningResponse {
+  items: TrainingContinueLearningItem[];
+}
+
+export interface TrainingLessonProgressUpdate {
+  positionSeconds?: number;
+  pageNumber?: number;
+}
+
 export type TrainingLessonReadinessBlocker =
   | "NO_CONTENT"
   | "VIDEO_NOT_READY"

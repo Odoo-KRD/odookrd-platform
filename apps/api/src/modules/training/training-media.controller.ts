@@ -290,6 +290,50 @@ export class TrainingMediaController {
     result.stream.pipe(response);
   }
 
+  @Get('catalog/:slug/lessons/:lessonId/article-assets/:fileId')
+  @RequirePermissions(PERMISSIONS.TRAINING_READ)
+  async openArticleAsset(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('slug') slug: string,
+    @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const result = await this.media.openArticleAsset(
+      principal,
+      slug,
+      lessonId,
+      fileId,
+    );
+
+    const safeAsciiName = result.filename
+      .replace(/[^\x20-\x7e]/g, '_')
+      .replace(/["\\;]/g, '_');
+    const encodedName = encodeURIComponent(result.filename);
+    const disposition = result.inline ? 'inline' : 'attachment';
+
+    response.status(200);
+    response.setHeader('Content-Type', result.mimeType);
+    response.setHeader('Content-Length', String(result.sizeBytes));
+    response.setHeader('X-File-SHA256', result.sha256);
+    response.setHeader('Cache-Control', 'private, no-store, max-age=0');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    response.setHeader(
+      'Content-Disposition',
+      `${disposition}; filename="${safeAsciiName}"; filename*=UTF-8''${encodedName}`,
+    );
+
+    if (result.mimeType === 'image/svg+xml') {
+      response.setHeader(
+        'Content-Security-Policy',
+        "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+      );
+    }
+
+    result.stream.pipe(response);
+  }
+
   @Get('catalog/:slug/lessons/:lessonId/resources/:resourceId')
   @RequirePermissions(PERMISSIONS.TRAINING_READ)
   async openResource(

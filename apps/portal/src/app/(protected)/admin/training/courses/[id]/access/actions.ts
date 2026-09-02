@@ -122,7 +122,6 @@ export async function updateCompanyAccessAction(
 export async function deleteCompanyAccessAction(
   courseId: string,
   accessId: string,
-  _formData: FormData,
 ): Promise<never> {
   return mutate(courseId, (token) =>
     apiRequest(`/training/access/courses/${courseId}/companies/${accessId}`, {
@@ -193,7 +192,6 @@ export async function updateServiceAccessAction(
 export async function deleteServiceAccessAction(
   courseId: string,
   accessId: string,
-  _formData: FormData,
 ): Promise<never> {
   return mutate(courseId, (token) =>
     apiRequest(`/training/access/courses/${courseId}/services/${accessId}`, {
@@ -264,7 +262,6 @@ export async function updateUserAccessAction(
 export async function deleteUserAccessAction(
   courseId: string,
   accessId: string,
-  _formData: FormData,
 ): Promise<never> {
   return mutate(courseId, (token) =>
     apiRequest(`/training/access/courses/${courseId}/users/${accessId}`, {

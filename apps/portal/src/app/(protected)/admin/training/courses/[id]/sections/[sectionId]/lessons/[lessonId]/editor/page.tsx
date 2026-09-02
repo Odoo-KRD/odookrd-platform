@@ -72,6 +72,7 @@ export default async function TrainingLessonEditorPage({
         }
       />
       <TrainingLessonEditor
+        key={lessonId}
         courseId={id}
         sectionId={sectionId}
         lessonId={lessonId}

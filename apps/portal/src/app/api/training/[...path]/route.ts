@@ -5,6 +5,7 @@ import { errorResponse, isSameOrigin } from "@/lib/security";
 
 const uuid =
   "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+const courseSlug = "[a-z0-9]+(?:-[a-z0-9]+)*";
 const allowed = [
   new RegExp(`^courses/${uuid}/structure$`),
   new RegExp(`^courses/${uuid}/sections$`),
@@ -80,6 +81,11 @@ const allowed = [
   new RegExp(
     `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/enrichment/preview-resource$`,
   ),
+  new RegExp(`^progress/continue$`),
+  new RegExp(`^progress/courses/${courseSlug}$`),
+  new RegExp(`^progress/courses/${courseSlug}/lessons/${uuid}$`),
+  new RegExp(`^progress/courses/${courseSlug}/lessons/${uuid}/start$`),
+  new RegExp(`^progress/courses/${courseSlug}/lessons/${uuid}/complete$`),
 ];
 
 export const runtime = "nodejs";
@@ -254,6 +260,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     !joined.endsWith("/media/enrichment") &&
     !joined.endsWith("/media/enrichment/preview") &&
     !joined.endsWith("/media/enrichment/preview-resource") &&
+    !joined.startsWith("progress/") &&
     !editorGet
   ) {
     return errorResponse(405, "Method not allowed.");

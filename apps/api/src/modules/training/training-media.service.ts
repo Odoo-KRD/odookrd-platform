@@ -839,6 +839,57 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  async openArticleAsset(
+    principal: AuthenticatedPrincipal,
+    slug: string,
+    lessonId: string,
+    fileId: string,
+  ) {
+    const lesson = await this.customerLesson(principal, slug, lessonId);
+
+    if (
+      lesson.contentType !== TrainingLessonContentType.ARTICLE ||
+      !this.articleReferencesFile(lesson.articleContentTranslations, fileId)
+    ) {
+      throw new NotFoundException('Training Article asset was not found.');
+    }
+
+    const asset = await this.prisma.fileAsset.findFirst({
+      where: {
+        id: fileId,
+        status: FileAssetStatus.READY,
+        kind: { in: [FileAssetKind.IMAGE, FileAssetKind.ATTACHMENT] },
+      },
+      select: {
+        kind: true,
+        storageProvider: true,
+        storageKey: true,
+        originalFilename: true,
+        mimeType: true,
+        sizeBytes: true,
+        sha256: true,
+      },
+    });
+
+    if (!asset) {
+      throw new NotFoundException('Training Article asset was not found.');
+    }
+
+    const stream = await this.storage.open(
+      asset.storageProvider,
+      asset.storageKey,
+    );
+
+    return {
+      stream,
+      filename: asset.originalFilename,
+      mimeType: asset.mimeType,
+      sizeBytes: asset.sizeBytes,
+      sha256: asset.sha256,
+      inline: asset.kind === FileAssetKind.IMAGE,
+    };
+  }
+
   async openCustomerResource(
     principal: AuthenticatedPrincipal,
     slug: string,
@@ -1530,6 +1581,42 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
         );
       });
     }
+  }
+
+  private articleReferencesFile(
+    value: unknown,
+    fileId: string,
+    depth = 0,
+  ): boolean {
+    if (depth > 50 || !value || typeof value !== 'object') return false;
+
+    if (Array.isArray(value)) {
+      return value.some((item) =>
+        this.articleReferencesFile(item, fileId, depth + 1),
+      );
+    }
+
+    const record = value as Record<string, unknown>;
+    const attrs =
+      record.attrs && typeof record.attrs === 'object'
+        ? (record.attrs as Record<string, unknown>)
+        : null;
+
+    if (attrs) {
+      for (const field of ['src', 'href'] as const) {
+        const candidate = attrs[field];
+        if (
+          typeof candidate === 'string' &&
+          candidate === `/api/files/${fileId}/content`
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return Object.values(record).some((nested) =>
+      this.articleReferencesFile(nested, fileId, depth + 1),
+    );
   }
 
   private async assertAdminLessonExists(

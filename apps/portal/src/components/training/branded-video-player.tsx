@@ -20,7 +20,13 @@ import {
   DefaultVideoLayout,
 } from "@vidstack/react/player/layouts/default";
 import Hls from "hls.js";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 
 function chapterTitle(
   chapter: TrainingCustomerVideoEnrichment["chapters"][number],
@@ -115,6 +121,8 @@ export function BrandedVideoPlayer({
   autoPlay = true,
   playerSettings,
   chapterTrackLabel = "Chapters",
+  initialPositionSeconds = 0,
+  onProgress,
 }: {
   media: TrainingCustomerVideoMedia;
   title?: string;
@@ -123,8 +131,11 @@ export function BrandedVideoPlayer({
   autoPlay?: boolean;
   playerSettings?: TrainingPlayerSettings;
   chapterTrackLabel?: string;
+  initialPositionSeconds?: number;
+  onProgress?: (positionSeconds: number) => void;
 }) {
   const protectedPath = `/api${media.playbackPath}`;
+  const hostRef = useRef<HTMLDivElement>(null);
   const [source, setSource] = useState<string | null>(null);
   const settings: TrainingPlayerSettings = playerSettings ?? {
     autoplay: true,
@@ -163,6 +174,76 @@ export function BrandedVideoPlayer({
       cancelled = true;
     };
   }, [protectedPath]);
+
+  useEffect(() => {
+    if (!source || !onProgress) return;
+
+    let video: HTMLVideoElement | null = null;
+    let poll: number | null = null;
+    let resumeApplied = false;
+    let lastReported = Math.max(0, Math.floor(initialPositionSeconds));
+
+    const applyResume = () => {
+      if (!video || resumeApplied || initialPositionSeconds <= 0) return;
+      if (video.readyState < 1) return;
+
+      const duration = Number.isFinite(video.duration) ? video.duration : null;
+      const target =
+        duration && duration > 1
+          ? Math.min(initialPositionSeconds, Math.max(0, duration - 1))
+          : initialPositionSeconds;
+
+      try {
+        video.currentTime = Math.max(0, target);
+        resumeApplied = true;
+      } catch {
+        // The provider may not be seekable until a later media event.
+      }
+    };
+
+    const report = (force = false) => {
+      if (!video || !Number.isFinite(video.currentTime)) return;
+      const position = Math.max(0, Math.floor(video.currentTime));
+      if (!force && Math.abs(position - lastReported) < 10) return;
+      lastReported = position;
+      onProgress(position);
+    };
+
+    const reportProgress = () => report(false);
+    const reportForced = () => report(true);
+
+    const attach = () => {
+      const candidate = hostRef.current?.querySelector("video") ?? null;
+      if (!candidate || candidate === video) return;
+      video = candidate;
+      video.addEventListener("loadedmetadata", applyResume);
+      video.addEventListener("canplay", applyResume);
+      video.addEventListener("timeupdate", reportProgress);
+      video.addEventListener("pause", reportForced);
+      video.addEventListener("ended", reportForced);
+      applyResume();
+
+      if (poll !== null) {
+        window.clearInterval(poll);
+        poll = null;
+      }
+    };
+
+    attach();
+    if (!video) poll = window.setInterval(attach, 100);
+
+    return () => {
+      if (poll !== null) window.clearInterval(poll);
+      if (video) {
+        report(true);
+        video.removeEventListener("loadedmetadata", applyResume);
+        video.removeEventListener("canplay", applyResume);
+        video.removeEventListener("timeupdate", reportProgress);
+        video.removeEventListener("pause", reportForced);
+        video.removeEventListener("ended", reportForced);
+      }
+    };
+  }, [initialPositionSeconds, onProgress, source]);
 
   const preferredCaptionId = useMemo(() => {
     const captions = enrichment?.captions ?? [];
@@ -226,75 +307,77 @@ export function BrandedVideoPlayer({
   }
 
   return (
-    <MediaPlayer
-      dir="ltr"
-      title={title}
-      autoPlay={autoPlay && settings.autoplay}
-      playbackRate={Number(settings.defaultPlaybackRate)}
-      controlsDelay={settings.controlsAutoHideSeconds * 1000}
-      src={{
-        src: source,
-        type:
-          media.playbackKind === "HLS"
-            ? "application/vnd.apple.mpegurl"
-            : "video/mp4",
-      }}
-      playsInline
-      load="eager"
-      onContextMenu={(event) => event.preventDefault()}
-      onProviderChange={configureProvider}
-      className="odookrd-video-player"
-      data-show-speed={String(settings.showSpeedControl)}
-      data-show-quality={String(settings.showQualitySelector)}
-      data-show-playback-menu={String(
-        settings.showSpeedControl || settings.showQualitySelector,
-      )}
-    >
-      <MediaProvider>
-        {(enrichment?.captions ?? []).map((track) => (
-          <Track
-            key={track.id}
-            src={new URL(`/api${track.contentPath}`, source).href}
-            kind="subtitles"
-            label={track.label}
-            lang={track.languageCode}
-            type="vtt"
-            default={track.id === preferredCaptionId}
-          />
-        ))}
-        {chapterTrack && settings.showChapters ? (
-          <Track
-            src={chapterTrack}
-            kind="chapters"
-            label={chapterTrackLabel}
-            lang={locale}
-            type="vtt"
-            default
-          />
-        ) : null}
-      </MediaProvider>
-
-      <DefaultVideoLayout
-        icons={defaultLayoutIcons}
-        colorScheme="dark"
-        hideQualityBitrate
-        smallLayoutWhen={false}
-        seekStep={settings.seekSeconds}
-        slots={{
-          captions: <ManagedCaptions settings={settings.captions} />,
-          fullscreenButton: settings.showFullscreen ? undefined : null,
-          muteButton: settings.showVolume ? undefined : null,
-          volumeSlider: settings.showVolume ? undefined : null,
-          chaptersMenu: settings.showChapters ? undefined : null,
-          chapterTitle: settings.showChapters ? undefined : null,
+    <div ref={hostRef} className="h-full w-full">
+      <MediaPlayer
+        dir="ltr"
+        title={title}
+        autoPlay={autoPlay && settings.autoplay}
+        playbackRate={Number(settings.defaultPlaybackRate)}
+        controlsDelay={settings.controlsAutoHideSeconds * 1000}
+        src={{
+          src: source,
+          type:
+            media.playbackKind === "HLS"
+              ? "application/vnd.apple.mpegurl"
+              : "video/mp4",
         }}
-      />
+        playsInline
+        load="eager"
+        onContextMenu={(event) => event.preventDefault()}
+        onProviderChange={configureProvider}
+        className="odookrd-video-player"
+        data-show-speed={String(settings.showSpeedControl)}
+        data-show-quality={String(settings.showQualitySelector)}
+        data-show-playback-menu={String(
+          settings.showSpeedControl || settings.showQualitySelector,
+        )}
+      >
+        <MediaProvider>
+          {(enrichment?.captions ?? []).map((track) => (
+            <Track
+              key={track.id}
+              src={new URL(`/api${track.contentPath}`, source).href}
+              kind="subtitles"
+              label={track.label}
+              lang={track.languageCode}
+              type="vtt"
+              default={track.id === preferredCaptionId}
+            />
+          ))}
+          {chapterTrack && settings.showChapters ? (
+            <Track
+              src={chapterTrack}
+              kind="chapters"
+              label={chapterTrackLabel}
+              lang={locale}
+              type="vtt"
+              default
+            />
+          ) : null}
+        </MediaProvider>
 
-      {settings.branding.enabled && settings.branding.text.trim() ? (
-        <div className="pointer-events-none absolute start-4 top-4 z-20 max-w-[70%] truncate rounded-md bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-          {settings.branding.text}
-        </div>
-      ) : null}
-    </MediaPlayer>
+        <DefaultVideoLayout
+          icons={defaultLayoutIcons}
+          colorScheme="dark"
+          hideQualityBitrate
+          smallLayoutWhen={false}
+          seekStep={settings.seekSeconds}
+          slots={{
+            captions: <ManagedCaptions settings={settings.captions} />,
+            fullscreenButton: settings.showFullscreen ? undefined : null,
+            muteButton: settings.showVolume ? undefined : null,
+            volumeSlider: settings.showVolume ? undefined : null,
+            chaptersMenu: settings.showChapters ? undefined : null,
+            chapterTitle: settings.showChapters ? undefined : null,
+          }}
+        />
+
+        {settings.branding.enabled && settings.branding.text.trim() ? (
+          <div className="pointer-events-none absolute start-4 top-4 z-20 max-w-[70%] truncate rounded-md bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+            {settings.branding.text}
+          </div>
+        ) : null}
+      </MediaPlayer>
+    </div>
   );
 }

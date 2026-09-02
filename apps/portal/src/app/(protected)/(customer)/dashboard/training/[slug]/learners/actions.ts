@@ -108,7 +108,6 @@ export async function removeCompanyLearnerAction(
   courseId: string,
   slug: string,
   accessId: string,
-  _formData: FormData,
 ): Promise<never> {
   if (!uuid.test(accessId)) {
     redirect(

@@ -142,9 +142,7 @@ export async function updateRoleAction(
 }
 
 export async function deleteRoleAction(
-  roleId: string,
-  _previousState: FormState,
-  _formData: FormData,
+  roleId: string
 ): Promise<FormState> {
   const { session, token } = await getAdminApiContext(PERMISSIONS.ROLES_MANAGE);
 
