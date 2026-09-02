@@ -13,12 +13,17 @@ import {
   FileAssetStatus,
   TrainingContentStatus,
   TrainingLessonContentType,
+  TrainingQuizAttemptStatus,
+  TrainingQuizPlacement,
+  TrainingQuizStatus,
+  TrainingQuizVersionStatus,
 } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { FileStorageService } from '../files/storage/file-storage.service';
 import type { ListTrainingCatalogQueryDto } from './dto/training-catalog.dto';
 import { TrainingEntitlementService } from './training-entitlement.service';
+import { TrainingLearningGateService } from './training-learning-gate.service';
 import { evaluateTrainingLessonReadiness } from './training-lesson-readiness';
 
 const catalogCourseSelect = {
@@ -56,6 +61,7 @@ export class TrainingCatalogService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly entitlements: TrainingEntitlementService,
+    private readonly gate: TrainingLearningGateService,
     private readonly storage: FileStorageService,
   ) {}
 
@@ -178,6 +184,44 @@ export class TrainingCatalogService {
                 documentPageCount: true,
                 videoAsset: { select: { status: true } },
                 documentAsset: { select: { status: true } },
+                quiz: {
+                  select: {
+                    id: true,
+                    status: true,
+                    requiredToContinue: true,
+                    versions: {
+                      where: {
+                        status: TrainingQuizVersionStatus.PUBLISHED,
+                      },
+                      orderBy: { version: 'desc' },
+                      take: 1,
+                      select: {
+                        _count: { select: { questions: true } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        quizzes: {
+          where: {
+            placement: TrainingQuizPlacement.COURSE_FINAL,
+            status: TrainingQuizStatus.PUBLISHED,
+          },
+          take: 1,
+          select: {
+            id: true,
+            title: true,
+            titleTranslations: true,
+            requiredForCompletion: true,
+            versions: {
+              where: { status: TrainingQuizVersionStatus.PUBLISHED },
+              orderBy: { version: 'desc' },
+              take: 1,
+              select: {
+                _count: { select: { questions: true } },
               },
             },
           },
@@ -189,8 +233,16 @@ export class TrainingCatalogService {
       throw new NotFoundException('Training course was not found.');
     }
 
-    const { coverImageAssetId, _count, ...visibleCourse } = course;
-    const sections = visibleCourse.sections.map((section) => ({
+    const gate = await this.gate.courseState(context, course.id);
+    const {
+      coverImageAssetId,
+      _count,
+      sections: rawSections,
+      quizzes,
+      ...visibleCourse
+    } = course;
+
+    const sections = rawSections.map((section) => ({
       ...section,
       lessons: section.lessons.map(
         ({
@@ -198,32 +250,75 @@ export class TrainingCatalogService {
           documentAsset,
           articleContentTranslations,
           documentPageCount,
+          quiz,
           ...lesson
         }) => {
+          const quizConfigured =
+            quiz?.status === TrainingQuizStatus.PUBLISHED &&
+            (quiz.versions[0]?._count.questions ?? 0) > 0;
           const readiness = evaluateTrainingLessonReadiness({
             contentType: lesson.contentType,
             videoStatus: videoAsset?.status ?? null,
             documentStatus: documentAsset?.status ?? null,
             documentPageCount,
             articleContentTranslations,
-            quizConfigured: false,
+            quizConfigured,
           });
+
           return {
             ...lesson,
+            quizId: quiz?.id ?? null,
+            requiredToContinue:
+              quizConfigured && quiz?.requiredToContinue === true,
             contentReady: readiness.ready,
+            locked: Boolean(gate.lockedByLessonId[lesson.id]),
+            lockedByQuizId: gate.lockedByLessonId[lesson.id] ?? null,
             mediaReady: readiness.ready,
             mediaType:
               lesson.contentType === TrainingLessonContentType.DOCUMENT
                 ? ('PDF_SLIDES' as const)
-                : ('VIDEO' as const),
+                : lesson.contentType === TrainingLessonContentType.QUIZ
+                  ? ('QUIZ' as const)
+                  : ('VIDEO' as const),
           };
         },
       ),
     }));
 
+    const finalQuizRecord =
+      quizzes.find((quiz) => (quiz.versions[0]?._count.questions ?? 0) > 0) ??
+      null;
+
+    let finalQuizPassed = false;
+    if (finalQuizRecord) {
+      const passed = await this.prisma.trainingQuizAttempt.findFirst({
+        where: {
+          companyId: context.companyId,
+          userId: context.userId,
+          courseId: course.id,
+          quizId: finalQuizRecord.id,
+          status: TrainingQuizAttemptStatus.PASSED,
+        },
+        select: { id: true },
+      });
+      finalQuizPassed = Boolean(passed);
+    }
+
+    const finalQuiz = finalQuizRecord
+      ? {
+          id: finalQuizRecord.id,
+          title: finalQuizRecord.title,
+          titleTranslations: finalQuizRecord.titleTranslations,
+          requiredForCompletion: finalQuizRecord.requiredForCompletion,
+          available: gate.requiredLearningCompleted || finalQuizPassed,
+          passed: finalQuizPassed,
+        }
+      : null;
+
     return {
       ...visibleCourse,
       sections,
+      finalQuiz,
       hasCover: Boolean(coverImageAssetId),
       sectionCount: _count.sections,
       lessonCount: _count.lessons,

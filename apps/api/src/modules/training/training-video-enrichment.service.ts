@@ -34,6 +34,7 @@ import type {
 } from './dto/training-video-enrichment.dto';
 import { TrainingAwsMediaService } from './training-aws-media.service';
 import { TrainingEntitlementService } from './training-entitlement.service';
+import { TrainingLearningGateService } from './training-learning-gate.service';
 import {
   TrainingLocalMediaService,
   type TrainingVideoRange,
@@ -67,6 +68,7 @@ export class TrainingVideoEnrichmentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly entitlements: TrainingEntitlementService,
+    private readonly gate: TrainingLearningGateService,
     private readonly storage: FileStorageService,
     private readonly local: TrainingLocalMediaService,
     private readonly aws: TrainingAwsMediaService,
@@ -802,10 +804,9 @@ export class TrainingVideoEnrichmentService {
     slug: string,
     lessonId: string,
   ) {
-    const { courseId } = await this.entitlements.assertEntitledCourseBySlug(
-      principal,
-      slug,
-    );
+    const { context, courseId } =
+      await this.entitlements.assertEntitledCourseBySlug(principal, slug);
+    await this.gate.assertLessonAccessibleInCourse(context, courseId, lessonId);
     const lesson = await this.prisma.trainingVideoLesson.findFirst({
       where: {
         id: lessonId,

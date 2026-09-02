@@ -26,6 +26,8 @@ import {
   FileAssetStatus,
   TrainingContentStatus,
   TrainingLessonContentType,
+  TrainingQuizStatus,
+  TrainingQuizVersionStatus,
   TrainingStorageProvider,
   TrainingVideoAssetStatus,
   TrainingVideoDeliveryMode,
@@ -44,6 +46,7 @@ import type {
 } from './dto/training-media.dto';
 import { TrainingAwsMediaService } from './training-aws-media.service';
 import { TrainingEntitlementService } from './training-entitlement.service';
+import { TrainingLearningGateService } from './training-learning-gate.service';
 import {
   TrainingLocalMediaService,
   type TrainingVideoRange,
@@ -102,6 +105,7 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly entitlements: TrainingEntitlementService,
+    private readonly gate: TrainingLearningGateService,
     private readonly settings: SettingsService,
     private readonly storage: FileStorageService,
     private readonly local: TrainingLocalMediaService,
@@ -793,7 +797,14 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
             type: 'ARTICLE' as const,
             contentTranslations: lesson.articleContentTranslations,
           }
-        : media;
+        : lesson.contentType === TrainingLessonContentType.QUIZ &&
+            lesson.quiz?.status === TrainingQuizStatus.PUBLISHED &&
+            (lesson.quiz.versions[0]?._count.questions ?? 0) > 0
+          ? {
+              type: 'QUIZ' as const,
+              quizId: lesson.quiz.id,
+            }
+          : media;
     const resources = await this.prisma.trainingLessonResource.findMany({
       where: {
         lessonId: lesson.id,
@@ -1170,10 +1181,9 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
     slug: string,
     lessonId: string,
   ) {
-    const { courseId } = await this.entitlements.assertEntitledCourseBySlug(
-      principal,
-      slug,
-    );
+    const { context, courseId } =
+      await this.entitlements.assertEntitledCourseBySlug(principal, slug);
+    await this.gate.assertLessonAccessibleInCourse(context, courseId, lessonId);
     const lesson = await this.prisma.trainingVideoLesson.findFirst({
       where: {
         id: lessonId,
@@ -1204,6 +1214,22 @@ export class TrainingMediaService implements OnModuleInit, OnModuleDestroy {
             sizeBytes: true,
             sha256: true,
             status: true,
+          },
+        },
+        quiz: {
+          select: {
+            id: true,
+            status: true,
+            versions: {
+              where: {
+                status: TrainingQuizVersionStatus.PUBLISHED,
+              },
+              orderBy: { version: 'desc' },
+              take: 1,
+              select: {
+                _count: { select: { questions: true } },
+              },
+            },
           },
         },
       },

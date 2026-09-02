@@ -13,6 +13,8 @@ import {
   FileAssetStatus,
   TrainingContentStatus,
   TrainingLessonContentType,
+  TrainingQuizStatus,
+  TrainingQuizVersionStatus,
 } from '../../generated/prisma/enums';
 import { normalizeLocalizedText } from '../../i18n/localized-content';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -48,6 +50,17 @@ const editorLessonSelect = {
   updatedAt: true,
   videoAsset: { select: { status: true } },
   documentAsset: { select: { status: true } },
+  quiz: {
+    select: {
+      status: true,
+      versions: {
+        where: { status: TrainingQuizVersionStatus.PUBLISHED },
+        orderBy: { version: 'desc' },
+        take: 1,
+        select: { id: true, _count: { select: { questions: true } } },
+      },
+    },
+  },
 } satisfies Prisma.TrainingVideoLessonSelect;
 
 const resourceSelect = {
@@ -192,6 +205,7 @@ export class TrainingLessonEditorService {
     const hasPrimaryContent =
       Boolean(existing.videoAssetId) ||
       Boolean(existing.documentAssetId) ||
+      Boolean(existing.quiz) ||
       this.hasJsonContent(existing.articleContentTranslations);
     if (hasPrimaryContent && !input.confirmDetach) {
       throw new ConflictException(
@@ -570,7 +584,10 @@ export class TrainingLessonEditorService {
       documentStatus: lesson.documentAsset?.status ?? null,
       documentPageCount: lesson.documentPageCount,
       articleContentTranslations: lesson.articleContentTranslations,
-      quizConfigured: false,
+      quizConfigured:
+        lesson.quiz?.status === TrainingQuizStatus.PUBLISHED &&
+        Boolean(lesson.quiz.versions[0]) &&
+        (lesson.quiz.versions[0]?._count.questions ?? 0) > 0,
     });
   }
 
@@ -579,9 +596,10 @@ export class TrainingLessonEditorService {
     media: Awaited<ReturnType<TrainingMediaService['getAdminMedia']>>,
     resources: ResourceRecord[],
   ) {
-    const { videoAsset, documentAsset, ...visibleLesson } = lesson;
+    const { videoAsset, documentAsset, quiz, ...visibleLesson } = lesson;
     void videoAsset;
     void documentAsset;
+    void quiz;
     const review = this.review(lesson);
     return {
       lesson: { ...visibleLesson, contentReady: review.ready },

@@ -15,6 +15,7 @@ import { CourseStructureEditor } from "@/components/training/course-structure-ed
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingQuizDictionaries } from "@/lib/i18n/training-quiz";
 
 export default async function TrainingCourseEditorPage({
   params,
@@ -47,6 +48,12 @@ export default async function TrainingCourseEditorPage({
         description={training.editor.professionalHint}
         actions={
           <>
+            <Link
+              href={`/admin/training/courses/${id}/final-quiz`}
+              className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"
+            >
+              {trainingQuizDictionaries[locale].finalQuiz}
+            </Link>
             <Link
               href={`/admin/training/courses/${id}`}
               className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"

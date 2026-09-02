@@ -13,6 +13,7 @@ import { FilePicker } from "@odookrd/ui";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { AdminActionMenu } from "@/components/admin/admin-action-menu";
+import { TrainingQuizBuilder } from "@/components/training/training-quiz-builder";
 import { TrainingVideoEnrichmentSummary } from "@/components/training/training-video-enrichment-summary";
 import { LocalizedTextField } from "@/components/i18n/localized-text-fields";
 import {
@@ -2104,9 +2105,14 @@ export function TrainingLessonEditor({
           ) : null}
 
           {editor.lesson.contentType === "QUIZ" ? (
-            <section className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
-              {labels.content.quizReserved}
-            </section>
+            <TrainingQuizBuilder
+              target={{ kind: "lesson", courseId, sectionId, lessonId }}
+              locale={contentDictionary.locale}
+              contentDictionary={contentDictionary}
+              onChanged={async () => {
+                setEditor(await jsonRequest<TrainingLessonEditorState>(base));
+              }}
+            />
           ) : null}
         </div>
       ) : null}

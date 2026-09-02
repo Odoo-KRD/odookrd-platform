@@ -641,7 +641,7 @@ export interface TrainingPlayerSettings {
 export type TrainingLessonContentType =
   "VIDEO" | "DOCUMENT" | "ARTICLE" | "QUIZ";
 // Backwards-compatible Stage 3C.2 display contract.
-export type TrainingLessonMediaType = "VIDEO" | "PDF_SLIDES";
+export type TrainingLessonMediaType = "VIDEO" | "PDF_SLIDES" | "QUIZ";
 export type TrainingAudienceMode = "ALL_USERS" | "ASSIGNED_USERS";
 export type TrainingUserAccessSource = "PLATFORM" | "COMPANY_ADMIN";
 export type TrainingProgressStatus = "IN_PROGRESS" | "COMPLETED";
@@ -653,6 +653,71 @@ export type TrainingQuizQuestionType =
 export type TrainingQuizAttemptStatus =
   "IN_PROGRESS" | "SUBMITTED" | "PASSED" | "FAILED" | "EXPIRED";
 export type TrainingCertificateStatus = "ACTIVE" | "REVOKED";
+
+export interface TrainingQuizAdminOption {
+  id: string;
+  text: string;
+  textTranslations: LocalizedText;
+  isCorrect: boolean;
+  sortOrder: number;
+}
+
+export interface TrainingQuizAdminQuestion {
+  id: string;
+  type: TrainingQuizQuestionType;
+  prompt: string;
+  promptTranslations: LocalizedText;
+  explanation: string | null;
+  explanationTranslations: LocalizedText;
+  points: number;
+  sortOrder: number;
+  options: TrainingQuizAdminOption[];
+}
+
+export interface TrainingQuizAdminVersion {
+  id: string;
+  version: number;
+  status: TrainingQuizVersionStatus;
+  passPercentage: number;
+  maxAttempts: number | null;
+  timeLimitSeconds: number | null;
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
+  revealAnswers: boolean;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  questions: TrainingQuizAdminQuestion[];
+}
+
+export interface TrainingQuizAdminQuiz {
+  id: string;
+  courseId: string;
+  sectionId: string | null;
+  lessonId: string | null;
+  placement: TrainingQuizPlacement;
+  title: string;
+  titleTranslations: LocalizedText;
+  instructions: string | null;
+  instructionTranslations: LocalizedText;
+  status: TrainingQuizStatus;
+  requiredForCompletion: boolean;
+  requiredToContinue: boolean;
+  draftVersion: TrainingQuizAdminVersion | null;
+  publishedVersion: TrainingQuizAdminVersion | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingQuizAdminState {
+  target: {
+    placement: TrainingQuizPlacement;
+    courseId: string;
+    sectionId: string | null;
+    lessonId: string | null;
+  };
+  quiz: TrainingQuizAdminQuiz | null;
+}
 
 export interface TrainingFoundationCapabilities {
   enabled: boolean;
@@ -798,7 +863,11 @@ export interface TrainingCatalogLesson {
   descriptionTranslations: LocalizedText;
   sortOrder: number;
   contentType: TrainingLessonContentType | null;
+  quizId: string | null;
+  requiredToContinue: boolean;
   contentReady: boolean;
+  locked: boolean;
+  lockedByQuizId: string | null;
   mediaType: TrainingLessonMediaType;
   mediaReady: boolean;
 }
@@ -813,8 +882,18 @@ export interface TrainingCatalogSection {
   lessons: TrainingCatalogLesson[];
 }
 
+export interface TrainingCatalogFinalQuiz {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  requiredForCompletion: boolean;
+  available: boolean;
+  passed: boolean;
+}
+
 export interface TrainingCatalogCourseDetail extends TrainingCatalogCourse {
   sections: TrainingCatalogSection[];
+  finalQuiz: TrainingCatalogFinalQuiz | null;
 }
 
 export interface TrainingCatalogStatus {
@@ -1049,6 +1128,11 @@ export interface TrainingCustomerDocumentContent {
 }
 export type TrainingCustomerSlideMedia = TrainingCustomerDocumentContent;
 
+export interface TrainingCustomerQuizContent {
+  type: "QUIZ";
+  quizId: string;
+}
+
 export interface TrainingCustomerArticleContent {
   type: "ARTICLE";
   contentTranslations: LocalizedRichText;
@@ -1057,7 +1141,8 @@ export interface TrainingCustomerArticleContent {
 export type TrainingCustomerLessonContent =
   | TrainingCustomerVideoContent
   | TrainingCustomerDocumentContent
-  | TrainingCustomerArticleContent;
+  | TrainingCustomerArticleContent
+  | TrainingCustomerQuizContent;
 
 export interface TrainingCustomerLessonResource {
   id: string;
@@ -1195,4 +1280,101 @@ export interface FileAsset {
   updatedAt: string;
   deletedAt: string | null;
   contentPath: string;
+}
+
+// Stage 3C.4 Pass 2 — Learner quiz attempts and assessment.
+export interface TrainingQuizLearnerSummary {
+  id: string;
+  courseId: string;
+  lessonId: string | null;
+  placement: TrainingQuizPlacement;
+  title: string;
+  titleTranslations: LocalizedText;
+  instructions: string | null;
+  instructionTranslations: LocalizedText;
+  requiredForCompletion: boolean;
+  requiredToContinue: boolean;
+  version: number;
+  passPercentage: number;
+  maxAttempts: number | null;
+  attemptsUsed: number;
+  attemptsRemaining: number | null;
+  timeLimitSeconds: number | null;
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
+  revealAnswers: boolean;
+  questionCount: number;
+  totalPoints: number;
+  activeAttemptId: string | null;
+  activeAttemptExpiresAt: string | null;
+}
+
+export interface TrainingQuizLearnerOption {
+  id: string;
+  text: string;
+  textTranslations: LocalizedText;
+  isCorrect: boolean | null;
+}
+
+export interface TrainingQuizLearnerQuestion {
+  id: string;
+  type: TrainingQuizQuestionType;
+  prompt: string;
+  promptTranslations: LocalizedText;
+  explanation: string | null;
+  explanationTranslations: LocalizedText;
+  points: number;
+  selectedOptionIds: string[];
+  isCorrect: boolean | null;
+  pointsAwarded: number | null;
+  options: TrainingQuizLearnerOption[];
+}
+
+export interface TrainingQuizLearnerAttempt {
+  id: string;
+  quizId: string;
+  quizVersionId: string;
+  quizVersion: number;
+  courseId: string;
+  lessonId: string | null;
+  placement: TrainingQuizPlacement;
+  title: string;
+  titleTranslations: LocalizedText;
+  instructions: string | null;
+  instructionTranslations: LocalizedText;
+  attemptNumber: number;
+  status: TrainingQuizAttemptStatus;
+  passPercentage: number;
+  maxAttempts: number | null;
+  timeLimitSeconds: number | null;
+  revealAnswers: boolean;
+  score: number | null;
+  maxScore: number | null;
+  percentage: number | null;
+  startedAt: string;
+  submittedAt: string | null;
+  expiresAt: string | null;
+  questions: TrainingQuizLearnerQuestion[];
+}
+
+export interface TrainingQuizAttemptHistoryItem {
+  id: string;
+  attemptNumber: number;
+  status: TrainingQuizAttemptStatus;
+  version: number;
+  passPercentage: number;
+  score: number | null;
+  maxScore: number | null;
+  percentage: number | null;
+  startedAt: string;
+  submittedAt: string | null;
+  expiresAt: string | null;
+}
+
+export interface TrainingQuizAttemptHistory {
+  items: TrainingQuizAttemptHistoryItem[];
+}
+
+export interface TrainingQuizAnswerInput {
+  selectedOptionIds: string[];
 }

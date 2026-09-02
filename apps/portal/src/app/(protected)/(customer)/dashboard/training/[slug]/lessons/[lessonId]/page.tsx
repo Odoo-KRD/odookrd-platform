@@ -18,6 +18,7 @@ import { LessonTypeIcon } from "@/components/training/lesson-type-icon";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
+import { trainingAssessmentDictionaries } from "@/lib/i18n/training-assessment";
 import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
 import { trainingMediaDictionaries } from "@/lib/i18n/training-media";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
@@ -64,6 +65,7 @@ function Curriculum({
   progress: TrainingCourseProgressDetail;
 }) {
   const workspace = trainingCustomerWorkspaceDictionaries[locale];
+  const assessment = trainingAssessmentDictionaries[locale];
   const lessonLabels = trainingLessonEditorDictionaries[locale];
 
   return (
@@ -132,6 +134,7 @@ function Curriculum({
                 const lessonProgress = progress.lessons.find(
                   (item) => item.lessonId === lesson.id,
                 );
+                const accessible = lesson.contentReady && !lesson.locked;
 
                 const row = (
                   <>
@@ -161,12 +164,16 @@ function Curriculum({
                         <p className="mt-0.5 text-[10px] font-semibold text-brand">
                           {workspace.inProgress}
                         </p>
+                      ) : lesson.locked ? (
+                        <p className="mt-0.5 text-[10px] font-semibold text-amber-300">
+                          {assessment.locked}
+                        </p>
                       ) : null}
                     </div>
                   </>
                 );
 
-                return lesson.contentReady ? (
+                return accessible ? (
                   <Link
                     key={lesson.id}
                     href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(lesson.id)}`}
@@ -262,7 +269,7 @@ function readyLessons(
 ): TrainingCatalogLesson[] {
   return course.sections
     .flatMap((section) => section.lessons)
-    .filter((lesson) => lesson.contentReady);
+    .filter((lesson) => lesson.contentReady && !lesson.locked);
 }
 
 export default async function CustomerTrainingLessonPage({
@@ -321,6 +328,7 @@ export default async function CustomerTrainingLessonPage({
 
   const mediaLabels = trainingMediaDictionaries[locale];
   const workspace = trainingCustomerWorkspaceDictionaries[locale];
+  const assessment = trainingAssessmentDictionaries[locale];
   const lessonLabels = trainingLessonEditorDictionaries[locale];
   const courseTitle = localizeTrainingText(
     course.title,
@@ -447,6 +455,19 @@ export default async function CustomerTrainingLessonPage({
             className="inline-flex h-8 items-center rounded-md bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
           >
             {workspace.nextLesson}
+            <NavigationArrowIcon
+              direction={locale === "en" ? "right" : "left"}
+              className="ms-2 size-3.5"
+            />
+          </Link>
+        ) : course.finalQuiz?.available ? (
+          <Link
+            href={`/dashboard/training/${encodeURIComponent(course.slug)}/final-quiz`}
+            className="inline-flex h-8 items-center rounded-md bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
+          >
+            {course.finalQuiz.passed
+              ? assessment.reviewFinalQuiz
+              : assessment.openFinalQuiz}
             <NavigationArrowIcon
               direction={locale === "en" ? "right" : "left"}
               className="ms-2 size-3.5"

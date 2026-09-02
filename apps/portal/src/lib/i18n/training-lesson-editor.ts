@@ -315,7 +315,7 @@ export const trainingLessonEditorDictionaries: Record<
           "Attach a ready PDF document with a valid page count.",
         ARTICLE_EMPTY: "Add article content.",
         QUIZ_NOT_CONFIGURED:
-          "Quiz configuration is not available in this stage.",
+          "Publish a valid quiz version before publishing this lesson.",
       },
     },
     errors: {
@@ -491,7 +491,8 @@ export const trainingLessonEditorDictionaries: Record<
         VIDEO_NOT_READY: "ڤیدیۆیەکی ئامادە ببەستەوە.",
         DOCUMENT_NOT_READY: "PDF ـێکی ئامادە و ژمارەی پەڕەی دروست ببەستەوە.",
         ARTICLE_EMPTY: "ناوەڕۆکی وتار زیاد بکە.",
-        QUIZ_NOT_CONFIGURED: "ڕێکخستنی Quiz لەم قۆناغەدا بەردەست نییە.",
+        QUIZ_NOT_CONFIGURED:
+          "پێش بڵاوکردنەوەی وانەکە، وەشانێکی دروستی تاقیکردنەوە بڵاوبکەرەوە.",
       },
     },
     errors: {
@@ -661,7 +662,8 @@ export const trainingLessonEditorDictionaries: Record<
         VIDEO_NOT_READY: "أرفق فيديو جاهزاً.",
         DOCUMENT_NOT_READY: "أرفق مستند PDF جاهزاً بعدد صفحات صحيح.",
         ARTICLE_EMPTY: "أضف محتوى المقال.",
-        QUIZ_NOT_CONFIGURED: "إعداد الاختبار غير متاح في هذه المرحلة.",
+        QUIZ_NOT_CONFIGURED:
+          "انشر إصداراً صالحاً من الاختبار قبل نشر هذا الدرس.",
       },
     },
     errors: {

@@ -21,6 +21,11 @@ import { TrainingPlayerSettingsController } from './training-player-settings.con
 import { TrainingPlayerSettingsService } from './training-player-settings.service';
 import { TrainingProgressController } from './training-progress.controller';
 import { TrainingProgressService } from './training-progress.service';
+import { TrainingLearningGateService } from './training-learning-gate.service';
+import { TrainingQuizAdminController } from './training-quiz-admin.controller';
+import { TrainingQuizAttemptController } from './training-quiz-attempt.controller';
+import { TrainingQuizAdminService } from './training-quiz-admin.service';
+import { TrainingQuizAttemptService } from './training-quiz-attempt.service';
 import { TrainingLessonEditorService } from './training-lesson-editor.service';
 import { TrainingVideoEnrichmentController } from './training-video-enrichment.controller';
 import { TrainingVideoEnrichmentService } from './training-video-enrichment.service';
@@ -41,6 +46,8 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
     TrainingLessonEditorController,
     TrainingPlayerSettingsController,
     TrainingProgressController,
+    TrainingQuizAdminController,
+    TrainingQuizAttemptController,
     TrainingVideoEnrichmentController,
   ],
   providers: [
@@ -54,6 +61,9 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
     TrainingLessonEditorService,
     TrainingPlayerSettingsService,
     TrainingProgressService,
+    TrainingLearningGateService,
+    TrainingQuizAdminService,
+    TrainingQuizAttemptService,
     TrainingVideoEnrichmentService,
   ],
   exports: [TrainingEntitlementService],

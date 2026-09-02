@@ -10,6 +10,8 @@ import {
   TrainingContentStatus,
   TrainingLessonContentType,
   TrainingProgressStatus,
+  TrainingQuizStatus,
+  TrainingQuizVersionStatus,
   TrainingVideoAssetStatus,
 } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
@@ -19,6 +21,7 @@ import {
   type CustomerTrainingContext,
   TrainingEntitlementService,
 } from './training-entitlement.service';
+import { TrainingLearningGateService } from './training-learning-gate.service';
 import { evaluateTrainingLessonReadiness } from './training-lesson-readiness';
 import {
   calculateTrainingProgressPercentage,
@@ -61,6 +64,7 @@ interface ResolvedProgressLesson {
     documentAsset: {
       status: FileAssetStatus;
     } | null;
+    quizConfigured: boolean;
   };
 }
 
@@ -69,6 +73,7 @@ export class TrainingProgressService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly entitlements: TrainingEntitlementService,
+    private readonly gate: TrainingLearningGateService,
   ) {}
 
   async continueLearning(principal: AuthenticatedPrincipal) {
@@ -446,6 +451,73 @@ export class TrainingProgressService {
     });
   }
 
+  async completeQuizLesson(
+    principal: AuthenticatedPrincipal,
+    slug: string,
+    lessonId: string,
+  ) {
+    const resolved = await this.resolveLesson(principal, slug, lessonId);
+
+    if (resolved.lesson.contentType !== TrainingLessonContentType.QUIZ) {
+      throw new BadRequestException(
+        'Only quiz lessons support scored quiz completion.',
+      );
+    }
+
+    const now = new Date();
+
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.trainingLessonProgress.findUnique({
+        where: {
+          userId_lessonId: {
+            userId: resolved.context.userId,
+            lessonId,
+          },
+        },
+      });
+
+      if (existing && existing.companyId !== resolved.context.companyId) {
+        throw new NotFoundException('Training lesson was not found.');
+      }
+
+      const progress = existing
+        ? await tx.trainingLessonProgress.update({
+            where: { id: existing.id },
+            data: {
+              status: TrainingProgressStatus.COMPLETED,
+              completedAt: existing.completedAt ?? now,
+              lastAccessedAt: now,
+            },
+          })
+        : await tx.trainingLessonProgress.create({
+            data: {
+              companyId: resolved.context.companyId,
+              userId: resolved.context.userId,
+              courseId: resolved.courseId,
+              lessonId,
+              status: TrainingProgressStatus.COMPLETED,
+              completedAt: now,
+              lastAccessedAt: now,
+            },
+          });
+
+      await this.syncCourseProgress(
+        tx,
+        resolved.context,
+        resolved.courseId,
+        lessonId,
+        now,
+      );
+
+      return this.lessonState(
+        resolved.courseId,
+        lessonId,
+        resolved.lesson.contentType,
+        progress,
+      );
+    });
+  }
+
   private async resolveLesson(
     principal: AuthenticatedPrincipal,
     slug: string,
@@ -477,6 +549,21 @@ export class TrainingProgressService {
             status: true,
           },
         },
+        quiz: {
+          select: {
+            status: true,
+            versions: {
+              where: {
+                status: TrainingQuizVersionStatus.PUBLISHED,
+              },
+              orderBy: { version: 'desc' },
+              take: 1,
+              select: {
+                _count: { select: { questions: true } },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -484,21 +571,24 @@ export class TrainingProgressService {
       throw new NotFoundException('Training lesson was not found.');
     }
 
+    const quizConfigured =
+      lesson.quiz?.status === TrainingQuizStatus.PUBLISHED &&
+      (lesson.quiz.versions[0]?._count.questions ?? 0) > 0;
+
     const readiness = evaluateTrainingLessonReadiness({
       contentType: lesson.contentType,
       videoStatus: lesson.videoAsset?.status ?? null,
       documentStatus: lesson.documentAsset?.status ?? null,
       documentPageCount: lesson.documentPageCount,
       articleContentTranslations: lesson.articleContentTranslations,
-      quizConfigured: false,
+      quizConfigured,
     });
 
-    if (
-      !readiness.ready ||
-      lesson.contentType === TrainingLessonContentType.QUIZ
-    ) {
+    if (!readiness.ready) {
       throw new NotFoundException('Training lesson was not found.');
     }
+
+    await this.gate.assertLessonAccessibleInCourse(context, courseId, lessonId);
 
     return {
       context,
@@ -515,6 +605,7 @@ export class TrainingProgressService {
         documentAsset: lesson.documentAsset
           ? { status: lesson.documentAsset.status }
           : null,
+        quizConfigured,
       },
     };
   }
@@ -537,6 +628,21 @@ export class TrainingProgressService {
         articleContentTranslations: true,
         videoAsset: { select: { status: true } },
         documentAsset: { select: { status: true } },
+        quiz: {
+          select: {
+            status: true,
+            versions: {
+              where: {
+                status: TrainingQuizVersionStatus.PUBLISHED,
+              },
+              orderBy: { version: 'desc' },
+              take: 1,
+              select: {
+                _count: { select: { questions: true } },
+              },
+            },
+          },
+        },
         section: { select: { sortOrder: true } },
       },
     });
@@ -550,7 +656,9 @@ export class TrainingProgressService {
           documentStatus: lesson.documentAsset?.status ?? null,
           documentPageCount: lesson.documentPageCount,
           articleContentTranslations: lesson.articleContentTranslations,
-          quizConfigured: false,
+          quizConfigured:
+            lesson.quiz?.status === TrainingQuizStatus.PUBLISHED &&
+            (lesson.quiz.versions[0]?._count.questions ?? 0) > 0,
         }).ready;
       })
       .map((lesson) => ({
@@ -695,9 +803,14 @@ export class TrainingProgressService {
           ? 'IN_PROGRESS'
           : 'NOT_STARTED';
 
+    const gate = await this.gate.courseState(context, courseId);
+    const accessibleIds = new Set(
+      readyIds.filter((lessonId) => !gate.lockedByLessonId[lessonId]),
+    );
+
     const preferredResume =
       courseProgress?.lastLessonId &&
-      readyIds.includes(courseProgress.lastLessonId) &&
+      accessibleIds.has(courseProgress.lastLessonId) &&
       progressByLesson.get(courseProgress.lastLessonId)?.status !==
         TrainingProgressStatus.COMPLETED
         ? courseProgress.lastLessonId
@@ -705,11 +818,14 @@ export class TrainingProgressService {
     const firstIncomplete =
       readyLessons.find(
         (lesson) =>
+          accessibleIds.has(lesson.id) &&
           progressByLesson.get(lesson.id)?.status !==
-          TrainingProgressStatus.COMPLETED,
+            TrainingProgressStatus.COMPLETED,
       )?.id ?? null;
+    const firstAccessible =
+      readyLessons.find((lesson) => accessibleIds.has(lesson.id))?.id ?? null;
     const resumeLessonId =
-      preferredResume ?? firstIncomplete ?? readyLessons[0]?.id ?? null;
+      preferredResume ?? firstIncomplete ?? firstAccessible;
 
     const latestLessonAccess = progressRows.reduce<Date | null>(
       (latest, progress) =>

@@ -52,6 +52,22 @@ const allowed = [
   new RegExp(
     `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/editor/resources/${uuid}$`,
   ),
+  new RegExp(`^courses/${uuid}/sections/${uuid}/lessons/${uuid}/quiz$`),
+  new RegExp(`^courses/${uuid}/final-quiz$`),
+  new RegExp(`^quizzes/${uuid}/draft-from-published$`),
+  new RegExp(`^quizzes/${uuid}/questions$`),
+  new RegExp(`^quizzes/${uuid}/questions/reorder$`),
+  new RegExp(`^quizzes/${uuid}/questions/${uuid}$`),
+  new RegExp(`^quizzes/${uuid}/publish$`),
+  // Stage 3C.4 Pass 2 learner quiz paths.
+  new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}$`),
+  new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}/attempts$`),
+  new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}/attempts/${uuid}$`),
+  new RegExp(
+    `^catalog/${courseSlug}/quizzes/${uuid}/attempts/${uuid}/answers/${uuid}$`,
+  ),
+  new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}/attempts/${uuid}/submit$`),
+  new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}/history$`),
 
   new RegExp(
     `^courses/${uuid}/sections/${uuid}/lessons/${uuid}/media/thumbnail$`,
@@ -254,6 +270,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const joined = path.join("/");
   const editorGet =
     joined.endsWith("/editor") || joined.endsWith("/editor/review");
+  const quizGet = joined.endsWith("/quiz") || joined.endsWith("/final-quiz");
+  const learnerQuizGet =
+    new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}$`).test(joined) ||
+    new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}/attempts/${uuid}$`).test(
+      joined,
+    ) ||
+    new RegExp(`^catalog/${courseSlug}/quizzes/${uuid}/history$`).test(joined);
   if (
     !joined.endsWith("/structure") &&
     !joined.endsWith("/media") &&
@@ -261,7 +284,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     !joined.endsWith("/media/enrichment/preview") &&
     !joined.endsWith("/media/enrichment/preview-resource") &&
     !joined.startsWith("progress/") &&
-    !editorGet
+    !editorGet &&
+    !quizGet &&
+    !learnerQuizGet
   ) {
     return errorResponse(405, "Method not allowed.");
   }

@@ -984,6 +984,7 @@ model TrainingVideoLesson {
   resources             TrainingLessonResource[]
   progress              TrainingLessonProgress[]
   lastForCourseProgress TrainingCourseProgress[] @relation("TrainingCourseProgressLastLesson")
+  quiz                  TrainingQuiz?
 
   @@index([courseId, status, id], map: "training_video_lessons_course_status_idx")
   @@index([sectionId, status, sortOrder, id], map: "training_video_lessons_section_sort_idx")
@@ -1124,6 +1125,7 @@ model TrainingQuiz {
   id                      String                @id @default(uuid()) @db.Uuid
   courseId                String                @map("course_id") @db.Uuid
   sectionId               String?               @map("section_id") @db.Uuid
+  lessonId                String?               @unique @map("lesson_id") @db.Uuid
   placement               TrainingQuizPlacement
   title                   String                @db.VarChar(250)
   titleTranslations       Json                  @default("{}") @map("title_translations") @db.JsonB
@@ -1137,6 +1139,7 @@ model TrainingQuiz {
 
   course   TrainingCourse        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   section  TrainingSection?      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  lesson   TrainingVideoLesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   versions TrainingQuizVersion[]
   attempts TrainingQuizAttempt[]
 

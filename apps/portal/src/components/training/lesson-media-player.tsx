@@ -15,6 +15,7 @@ import type { TrainingMediaDictionary } from "@/lib/i18n/training-media";
 import { BrandedVideoPlayer } from "./branded-video-player";
 import { LessonArticleViewer } from "./lesson-article-viewer";
 import { PdfSlideViewer } from "./pdf-slide-viewer";
+import { TrainingQuizPlayer } from "./training-quiz-player";
 
 function hasRenderableArticleNode(value: unknown, depth = 0): boolean {
   if (depth > 40 || !value || typeof value !== "object") return false;
@@ -198,6 +199,16 @@ export function LessonMediaPlayer({
       <div className="rounded-lg border border-line bg-white p-8 text-center text-sm text-muted">
         {labels.lessonUnavailable}
       </div>
+    );
+  }
+
+  if (content.type === "QUIZ") {
+    return (
+      <TrainingQuizPlayer
+        courseSlug={courseSlug}
+        quizId={content.quizId}
+        locale={locale}
+      />
     );
   }
 

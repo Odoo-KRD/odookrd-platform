@@ -13,6 +13,7 @@ import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
+import { trainingAssessmentDictionaries } from "@/lib/i18n/training-assessment";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
 import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
 import { localizeTrainingText } from "@/lib/training-display";
@@ -52,6 +53,7 @@ export default async function CustomerTrainingCoursePage({
   ]);
   const labels = trainingCustomerDictionaries[locale];
   const workspace = trainingCustomerWorkspaceDictionaries[locale];
+  const assessment = trainingAssessmentDictionaries[locale];
   const lessonLabels = trainingLessonEditorDictionaries[locale];
 
   let course: TrainingCatalogCourseDetail;
@@ -84,12 +86,16 @@ export default async function CustomerTrainingCoursePage({
   );
   const firstReadyLesson = course.sections
     .flatMap((section) => section.lessons)
-    .find((lesson) => lesson.contentReady);
+    .find((lesson) => lesson.contentReady && !lesson.locked);
   const resumeLesson =
     course.sections
       .flatMap((section) => section.lessons)
-      .find((lesson) => lesson.id === progress.resumeLessonId) ??
-    firstReadyLesson;
+      .find(
+        (lesson) =>
+          lesson.id === progress.resumeLessonId &&
+          lesson.contentReady &&
+          !lesson.locked,
+      ) ?? firstReadyLesson;
   const progressByLesson = new Map(
     progress.lessons.map(
       (lessonProgress) => [lessonProgress.lessonId, lessonProgress] as const,
@@ -319,6 +325,8 @@ export default async function CustomerTrainingCoursePage({
                           const lessonProgress = progressByLesson.get(
                             lesson.id,
                           );
+                          const accessible =
+                            lesson.contentReady && !lesson.locked;
 
                           return (
                             <div
@@ -349,10 +357,20 @@ export default async function CustomerTrainingCoursePage({
                                       {workspace.inProgress}
                                     </span>
                                   ) : null}
+                                  {lesson.requiredToContinue ? (
+                                    <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700">
+                                      {assessment.requiredToContinue}
+                                    </span>
+                                  ) : null}
+                                  {lesson.locked ? (
+                                    <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">
+                                      {assessment.locked}
+                                    </span>
+                                  ) : null}
                                 </div>
                               </div>
 
-                              {lesson.contentReady ? (
+                              {accessible ? (
                                 <Link
                                   href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(lesson.id)}`}
                                   className="inline-flex h-9 shrink-0 items-center rounded-md border border-brand/25 bg-brand-soft px-3 text-xs font-semibold text-brand hover:bg-brand hover:text-white"
@@ -361,7 +379,9 @@ export default async function CustomerTrainingCoursePage({
                                 </Link>
                               ) : (
                                 <span className="inline-flex h-8 shrink-0 items-center rounded-md border border-line bg-surface-subtle px-2.5 text-xs font-medium text-muted">
-                                  {workspace.lessonUnavailable}
+                                  {lesson.locked
+                                    ? assessment.locked
+                                    : workspace.lessonUnavailable}
                                 </span>
                               )}
                             </div>
@@ -376,6 +396,62 @@ export default async function CustomerTrainingCoursePage({
           </div>
         )}
       </section>
+
+      {course.finalQuiz ? (
+        <section className="rounded-xl border border-line bg-surface-panel p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand">
+                  {assessment.finalAssessment}
+                </span>
+                {course.finalQuiz.requiredForCompletion ? (
+                  <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                    {assessment.requiredForCompletion}
+                  </span>
+                ) : null}
+                {course.finalQuiz.passed ? (
+                  <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                    {assessment.finalQuizPassed}
+                  </span>
+                ) : null}
+              </div>
+
+              <h2 className="mt-3 text-lg font-semibold text-content">
+                {localizeTrainingText(
+                  course.finalQuiz.title,
+                  course.finalQuiz.titleTranslations,
+                  locale,
+                )}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                {course.finalQuiz.passed
+                  ? assessment.finalQuizPassed
+                  : course.finalQuiz.available
+                    ? assessment.finalQuizReady
+                    : assessment.completeLessonsToUnlock}
+              </p>
+            </div>
+
+            <div className="shrink-0">
+              {course.finalQuiz.available ? (
+                <Link
+                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/final-quiz`}
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-hover"
+                >
+                  {course.finalQuiz.passed
+                    ? assessment.reviewFinalQuiz
+                    : assessment.openFinalQuiz}
+                </Link>
+              ) : (
+                <span className="inline-flex h-10 cursor-not-allowed items-center rounded-md border border-line bg-surface-subtle px-4 text-sm font-medium text-muted">
+                  {assessment.locked}
+                </span>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
