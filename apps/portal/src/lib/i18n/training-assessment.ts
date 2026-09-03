@@ -11,6 +11,10 @@ export interface TrainingAssessmentDictionary {
   reviewFinalQuiz: string;
   requiredForCompletion: string;
   backToCourse: string;
+  courseCompleted: string;
+  courseCompletedDescription: string;
+  completedOn: string;
+  finalScore: string;
 }
 
 export const trainingAssessmentDictionaries: Record<
@@ -29,6 +33,11 @@ export const trainingAssessmentDictionaries: Record<
     reviewFinalQuiz: "Review final quiz",
     requiredForCompletion: "Required for completion",
     backToCourse: "Back to course",
+    courseCompleted: "Course completed",
+    courseCompletedDescription:
+      "You have completed all required learning for this course.",
+    completedOn: "Completed on",
+    finalScore: "Final score",
   },
   ku: {
     locked: "داخراوە",
@@ -42,6 +51,11 @@ export const trainingAssessmentDictionaries: Record<
     reviewFinalQuiz: "پێداچوونەوەی تاقیکردنەوەی کۆتایی",
     requiredForCompletion: "پێویستە بۆ تەواوکردن",
     backToCourse: "گەڕانەوە بۆ کۆرس",
+    courseCompleted: "کۆرس تەواو کرا",
+    courseCompletedDescription:
+      "هەموو فێربوونە پێویستەکانی ئەم کۆرسە تەواو کردووە.",
+    completedOn: "تەواوکرا لە",
+    finalScore: "نمرەی کۆتایی",
   },
   ar: {
     locked: "مقفل",
@@ -54,5 +68,10 @@ export const trainingAssessmentDictionaries: Record<
     reviewFinalQuiz: "مراجعة الاختبار النهائي",
     requiredForCompletion: "مطلوب لإكمال الدورة",
     backToCourse: "العودة إلى الدورة",
+    courseCompleted: "تم إكمال الدورة",
+    courseCompletedDescription:
+      "لقد أكملت جميع متطلبات التعلم المطلوبة لهذه الدورة.",
+    completedOn: "تاريخ الإكمال",
+    finalScore: "النتيجة النهائية",
   },
 };

@@ -291,10 +291,18 @@ function courseInput(formData: FormData, requireSlug: boolean) {
   const summary = optionalLocalized(formData, "summary", 2000);
   const status = formData.get("status");
   const order = sortOrder(formData);
+  const certificateEnabled = formData.get("certificateEnabled") === "on";
+  const rawTemplate = formData.get("certificateTemplateId");
+  const certificateTemplateId =
+    typeof rawTemplate === "string" &&
+    rawTemplate.trim() &&
+    uuidPattern.test(rawTemplate)
+      ? rawTemplate
+      : null;
 
   if (
     typeof categoryId !== "string" ||
-    !/^[0-9a-f-]{36}$/i.test(categoryId) ||
+    !uuidPattern.test(categoryId) ||
     (requireSlug &&
       (typeof slug !== "string" ||
         !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
@@ -302,7 +310,8 @@ function courseInput(formData: FormData, requireSlug: boolean) {
     !title ||
     !summary ||
     order === null ||
-    (status !== "DRAFT" && status !== "PUBLISHED" && status !== "ARCHIVED")
+    (status !== "DRAFT" && status !== "PUBLISHED" && status !== "ARCHIVED") ||
+    (certificateEnabled && !certificateTemplateId)
   ) {
     return null;
   }
@@ -316,6 +325,8 @@ function courseInput(formData: FormData, requireSlug: boolean) {
     summaryTranslations: summary.translations,
     status: status satisfies TrainingCourseStatus,
     sortOrder: order,
+    certificateEnabled,
+    certificateTemplateId,
   };
 }
 

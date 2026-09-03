@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsObject,
@@ -204,6 +205,14 @@ export class CreateTrainingCourseDto {
   coverImageAssetId?: string | null;
 
   @IsOptional()
+  @IsBoolean()
+  certificateEnabled?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  certificateTemplateId?: string | null;
+
+  @IsOptional()
   @IsEnum(TrainingCourseStatus)
   status?: TrainingCourseStatus;
 
@@ -249,6 +258,14 @@ export class UpdateTrainingCourseDto {
   @IsOptional()
   @IsUUID()
   coverImageAssetId?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  certificateEnabled?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  certificateTemplateId?: string | null;
 
   @IsOptional()
   @IsEnum(TrainingCourseStatus)

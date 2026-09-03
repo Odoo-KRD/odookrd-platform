@@ -60,6 +60,8 @@ const courseSelect = {
   summaryTranslations: true,
   thumbnailUrl: true,
   coverImageAssetId: true,
+  certificateEnabled: true,
+  certificateTemplateId: true,
   status: true,
   sortOrder: true,
   publishedAt: true,
@@ -470,6 +472,23 @@ export class TrainingService {
         );
       }
 
+      if (input.certificateEnabled) {
+        if (!input.certificateTemplateId) {
+          throw new BadRequestException(
+            'Choose an active certificate template before enabling certificates.',
+          );
+        }
+        await this.assertActiveCertificateTemplate(
+          transaction,
+          input.certificateTemplateId,
+        );
+      } else if (input.certificateTemplateId) {
+        await this.assertCertificateTemplateExists(
+          transaction,
+          input.certificateTemplateId,
+        );
+      }
+
       const duplicate = await transaction.trainingCourse.findUnique({
         where: { slug: input.slug },
         select: { id: true },
@@ -497,6 +516,8 @@ export class TrainingService {
           ),
           thumbnailUrl: this.optionalText(input.thumbnailUrl),
           coverImageAssetId: input.coverImageAssetId ?? null,
+          certificateEnabled: input.certificateEnabled ?? false,
+          certificateTemplateId: input.certificateTemplateId ?? null,
           status,
           sortOrder: input.sortOrder ?? 0,
           publishedAt:
@@ -560,6 +581,33 @@ export class TrainingService {
         );
       }
 
+      const nextCertificateEnabled =
+        input.certificateEnabled ?? existing.certificateEnabled;
+      const nextCertificateTemplateId =
+        input.certificateTemplateId !== undefined
+          ? input.certificateTemplateId
+          : existing.certificateTemplateId;
+
+      if (nextCertificateEnabled) {
+        if (!nextCertificateTemplateId) {
+          throw new BadRequestException(
+            'Choose an active certificate template before enabling certificates.',
+          );
+        }
+        await this.assertActiveCertificateTemplate(
+          transaction,
+          nextCertificateTemplateId,
+        );
+      } else if (
+        input.certificateTemplateId !== undefined &&
+        input.certificateTemplateId !== null
+      ) {
+        await this.assertCertificateTemplateExists(
+          transaction,
+          input.certificateTemplateId,
+        );
+      }
+
       const nextStatus = input.status ?? existing.status;
       const publishedAt =
         nextStatus === TrainingCourseStatus.PUBLISHED
@@ -602,6 +650,12 @@ export class TrainingService {
           ...(input.coverImageAssetId !== undefined
             ? { coverImageAssetId: input.coverImageAssetId }
             : {}),
+          ...(input.certificateEnabled !== undefined
+            ? { certificateEnabled: input.certificateEnabled }
+            : {}),
+          ...(input.certificateTemplateId !== undefined
+            ? { certificateTemplateId: input.certificateTemplateId }
+            : {}),
           ...(input.status !== undefined
             ? { status: input.status, publishedAt }
             : {}),
@@ -623,6 +677,8 @@ export class TrainingService {
             categoryId: updated.categoryId,
             status: updated.status,
             sortOrder: updated.sortOrder,
+            certificateEnabled: updated.certificateEnabled,
+            certificateTemplateId: updated.certificateTemplateId,
           },
         },
       });
@@ -1350,6 +1406,38 @@ export class TrainingService {
       throw new BadRequestException('Duplicate identifiers are not allowed.');
     }
     return unique;
+  }
+
+  private async assertActiveCertificateTemplate(
+    client:
+      | Pick<PrismaService, 'trainingCertificateTemplate'>
+      | Pick<Prisma.TransactionClient, 'trainingCertificateTemplate'>,
+    templateId: string,
+  ): Promise<void> {
+    const template = await client.trainingCertificateTemplate.findFirst({
+      where: { id: templateId, active: true },
+      select: { id: true },
+    });
+    if (!template) {
+      throw new BadRequestException(
+        'Certificate template must be active and available.',
+      );
+    }
+  }
+
+  private async assertCertificateTemplateExists(
+    client:
+      | Pick<PrismaService, 'trainingCertificateTemplate'>
+      | Pick<Prisma.TransactionClient, 'trainingCertificateTemplate'>,
+    templateId: string,
+  ): Promise<void> {
+    const template = await client.trainingCertificateTemplate.findUnique({
+      where: { id: templateId },
+      select: { id: true },
+    });
+    if (!template) {
+      throw new BadRequestException('Certificate template was not found.');
+    }
   }
 
   private async assertCourseCoverImageAsset(

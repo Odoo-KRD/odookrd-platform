@@ -9,6 +9,14 @@ import { TrainingAccessController } from './training-access.controller';
 import { TrainingAccessService } from './training-access.service';
 import { TrainingCatalogController } from './training-catalog.controller';
 import { TrainingCatalogService } from './training-catalog.service';
+import {
+  TrainingCertificateAdminController,
+  TrainingCertificateController,
+  TrainingCertificateTemplateController,
+} from './training-certificate.controller';
+import { TrainingCertificateService } from './training-certificate.service';
+import { TrainingCourseCompletionController } from './training-course-completion.controller';
+import { TrainingCourseCompletionService } from './training-course-completion.service';
 import { TrainingController } from './training.controller';
 import { TrainingEntitlementService } from './training-entitlement.service';
 import { TrainingService } from './training.service';
@@ -41,6 +49,10 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
   controllers: [
     TrainingController,
     TrainingCatalogController,
+    TrainingCertificateTemplateController,
+    TrainingCertificateController,
+    TrainingCertificateAdminController,
+    TrainingCourseCompletionController,
     TrainingAccessController,
     TrainingMediaController,
     TrainingLessonEditorController,
@@ -54,6 +66,8 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
     TrainingService,
     TrainingEntitlementService,
     TrainingCatalogService,
+    TrainingCertificateService,
+    TrainingCourseCompletionService,
     TrainingAccessService,
     TrainingAwsMediaService,
     TrainingLocalMediaService,

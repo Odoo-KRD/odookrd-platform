@@ -278,6 +278,14 @@ enum TrainingCertificateStatus {
   @@map("training_certificate_status")
 }
 
+enum TrainingCertificateTemplateStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+
+  @@map("training_certificate_template_status")
+}
+
 model Company {
   id               String        @id @default(uuid()) @db.Uuid
   name             String        @db.VarChar(200)
@@ -375,8 +383,11 @@ model FileAsset {
   trainingCourseCovers    TrainingCourse[]      @relation("TrainingCourseCoverImage")
   trainingDocumentLessons TrainingVideoLesson[] @relation("TrainingLessonDocumentAsset")
 
-  trainingLessonResources    TrainingLessonResource[]    @relation("TrainingLessonResourceFile")
-  trainingVideoCaptionTracks TrainingVideoCaptionTrack[] @relation("TrainingVideoCaptionFile")
+  trainingLessonResources                TrainingLessonResource[]      @relation("TrainingLessonResourceFile")
+  trainingVideoCaptionTracks             TrainingVideoCaptionTrack[]   @relation("TrainingVideoCaptionFile")
+  trainingCertificateTemplateLogos       TrainingCertificateTemplate[] @relation("TrainingCertificateTemplateLogo")
+  trainingCertificateTemplateBackgrounds TrainingCertificateTemplate[] @relation("TrainingCertificateTemplateBackground")
+  trainingCertificateTemplateSignatures  TrainingCertificateTemplate[] @relation("TrainingCertificateTemplateSignature")
 
   @@unique([storageProvider, storageKey])
   @@index([companyId])
@@ -805,25 +816,42 @@ model TrainingCategory {
 }
 
 model TrainingCertificateTemplate {
-  id                  String   @id @default(uuid()) @db.Uuid
-  key                 String   @unique @db.VarChar(100)
-  name                String   @db.VarChar(200)
-  titleTranslations   Json     @default("{}") @map("title_translations") @db.JsonB
-  bodyTranslations    Json     @default("{}") @map("body_translations") @db.JsonB
-  logoReference       String?  @map("logo_reference") @db.VarChar(2048)
-  backgroundReference String?  @map("background_reference") @db.VarChar(2048)
-  signatoryName       String?  @map("signatory_name") @db.VarChar(200)
-  signatoryTitle      String?  @map("signatory_title") @db.VarChar(200)
-  signatureReference  String?  @map("signature_reference") @db.VarChar(2048)
-  primaryColor        String   @default("#714b67") @map("primary_color") @db.VarChar(7)
-  active              Boolean  @default(true)
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                    String                            @id @default(uuid()) @db.Uuid
+  key                   String                            @unique @db.VarChar(100)
+  name                  String                            @db.VarChar(200)
+  titleTranslations     Json                              @default("{}") @map("title_translations") @db.JsonB
+  introTranslations     Json                              @default("{}") @map("intro_translations") @db.JsonB
+  bodyTranslations      Json                              @default("{}") @map("body_translations") @db.JsonB
+  logoReference         String?                           @map("logo_reference") @db.VarChar(2048)
+  backgroundReference   String?                           @map("background_reference") @db.VarChar(2048)
+  signatoryName         String?                           @map("signatory_name") @db.VarChar(200)
+  signatoryTitle        String?                           @map("signatory_title") @db.VarChar(200)
+  signatureReference    String?                           @map("signature_reference") @db.VarChar(2048)
+  primaryColor          String                            @default("#714b67") @map("primary_color") @db.VarChar(7)
+  active                Boolean                           @default(true)
+  status                TrainingCertificateTemplateStatus @default(ACTIVE)
+  isDefault             Boolean                           @default(false) @map("is_default")
+  backgroundPresetKey   String?                           @map("background_preset_key") @db.VarChar(80)
+  layoutVersion         Int                               @default(1) @map("layout_version")
+  layoutConfig          Json                              @default("{}") @map("layout_config") @db.JsonB
+  logoFileAssetId       String?                           @map("logo_file_asset_id") @db.Uuid
+  backgroundFileAssetId String?                           @map("background_file_asset_id") @db.Uuid
+  signatureFileAssetId  String?                           @map("signature_file_asset_id") @db.Uuid
+  createdAt             DateTime                          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                          @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  courses      TrainingCourse[]
-  certificates TrainingCertificate[]
+  logoFileAsset       FileAsset?            @relation("TrainingCertificateTemplateLogo", fields: [logoFileAssetId], references: [id], onDelete: SetNull)
+  backgroundFileAsset FileAsset?            @relation("TrainingCertificateTemplateBackground", fields: [backgroundFileAssetId], references: [id], onDelete: SetNull)
+  signatureFileAsset  FileAsset?            @relation("TrainingCertificateTemplateSignature", fields: [signatureFileAssetId], references: [id], onDelete: SetNull)
+  courses             TrainingCourse[]
+  certificates        TrainingCertificate[]
 
   @@index([active, name], map: "training_certificate_templates_active_name_idx")
+  @@index([status, name], map: "training_certificate_templates_status_name_idx")
+  @@index([backgroundPresetKey], map: "training_certificate_templates_background_preset_idx")
+  @@index([logoFileAssetId], map: "training_certificate_templates_logo_file_asset_idx")
+  @@index([backgroundFileAssetId], map: "training_certificate_templates_background_file_asset_idx")
+  @@index([signatureFileAssetId], map: "training_certificate_templates_signature_file_asset_idx")
   @@map("training_certificate_templates")
 }
 
@@ -1302,6 +1330,8 @@ model TrainingCertificate {
   pdfStorageProvider      TrainingStorageProvider?  @map("pdf_storage_provider")
   pdfStorageReference     String?                   @map("pdf_storage_reference") @db.VarChar(2048)
   pdfChecksum             String?                   @map("pdf_checksum") @db.VarChar(128)
+  templateLayoutVersion   Int                       @default(1) @map("template_layout_version")
+  templateSnapshot        Json                      @default("{}") @map("template_snapshot") @db.JsonB
   revokedAt               DateTime?                 @map("revoked_at") @db.Timestamptz(6)
   revocationReason        String?                   @map("revocation_reason") @db.VarChar(1000)
   createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)

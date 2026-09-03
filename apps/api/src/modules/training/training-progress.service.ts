@@ -21,6 +21,7 @@ import {
   type CustomerTrainingContext,
   TrainingEntitlementService,
 } from './training-entitlement.service';
+import { TrainingCourseCompletionService } from './training-course-completion.service';
 import { TrainingLearningGateService } from './training-learning-gate.service';
 import { evaluateTrainingLessonReadiness } from './training-lesson-readiness';
 import {
@@ -74,6 +75,7 @@ export class TrainingProgressService {
     private readonly prisma: PrismaService,
     private readonly entitlements: TrainingEntitlementService,
     private readonly gate: TrainingLearningGateService,
+    private readonly completions: TrainingCourseCompletionService,
   ) {}
 
   async continueLearning(principal: AuthenticatedPrincipal) {
@@ -704,6 +706,11 @@ export class TrainingProgressService {
     const completedLessons = lessonProgress.filter(
       (item) => item.status === TrainingProgressStatus.COMPLETED,
     ).length;
+    const shouldReconcileCompletion = lessonProgress.some(
+      (item) =>
+        item.lessonId === lastLessonId &&
+        item.status === TrainingProgressStatus.COMPLETED,
+    );
     const status =
       readyIds.length > 0 && completedLessons === readyIds.length
         ? TrainingProgressStatus.COMPLETED
@@ -737,6 +744,10 @@ export class TrainingProgressService {
           lastAccessedAt: now,
         },
       });
+
+      if (shouldReconcileCompletion) {
+        await this.completions.reconcileForContext(context, courseId, now, tx);
+      }
       return;
     }
 
@@ -751,6 +762,10 @@ export class TrainingProgressService {
         lastAccessedAt: now,
       },
     });
+
+    if (shouldReconcileCompletion) {
+      await this.completions.reconcileForContext(context, courseId, now, tx);
+    }
   }
 
   private async buildCourseProgress(

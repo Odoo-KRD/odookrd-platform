@@ -3,6 +3,7 @@
 import type {
   TrainingCategory,
   TrainingCategoryStatus,
+  TrainingCertificateTemplate,
   TrainingContentStatus,
   TrainingCourse,
   TrainingCourseStatus,
@@ -17,6 +18,7 @@ import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import { CourseCoverField } from "@/components/training/course-cover-field";
 import type { FormState } from "@/lib/forms";
 import type { TrainingDictionary } from "@/lib/i18n/training";
+import type { TrainingCertificateDictionary } from "@/lib/i18n/training-certificates";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 type TrainingFormAction = (
@@ -160,6 +162,8 @@ export function TrainingCourseForm({
   categories,
   initial,
   cancelHref,
+  certificateTemplates = [],
+  certificateLabels,
 }: {
   action: TrainingFormAction;
   labels: TrainingDictionary;
@@ -167,6 +171,8 @@ export function TrainingCourseForm({
   categories: TrainingCategory[];
   initial?: TrainingCourse;
   cancelHref: string;
+  certificateTemplates?: TrainingCertificateTemplate[];
+  certificateLabels?: TrainingCertificateDictionary;
 }) {
   const [state, formAction, pending] = useActionState(action, {
     message: null,
@@ -236,6 +242,46 @@ export function TrainingCourseForm({
         currentFileId={initial?.coverImageAssetId ?? null}
         onBusyChange={setCoverBusy}
       />
+
+      {initial && certificateLabels ? (
+        <section className="grid gap-4 rounded-lg border border-line bg-surface-subtle/40 p-4">
+          <div>
+            <h3 className="text-sm font-semibold text-content">
+              {certificateLabels.certificateSettings}
+            </h3>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {certificateLabels.certificateSettingsHelp}
+            </p>
+          </div>
+
+          <label className="inline-flex items-center gap-3 text-sm font-medium text-content">
+            <input
+              type="checkbox"
+              name="certificateEnabled"
+              defaultChecked={initial.certificateEnabled}
+              className="size-4 accent-brand"
+            />
+            {certificateLabels.enableCertificates}
+          </label>
+
+          <label className="grid max-w-xl gap-2 text-sm font-medium">
+            {certificateLabels.certificateTemplate}
+            <select
+              name="certificateTemplateId"
+              defaultValue={initial.certificateTemplateId ?? ""}
+              className={inputClassName}
+            >
+              <option value="">{certificateLabels.noTemplate}</option>
+              {certificateTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                  {template.active ? "" : ` — ${certificateLabels.inactive}`}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
+      ) : null}
 
       <div className="grid gap-5 sm:grid-cols-2">
         <label className="grid gap-2 text-sm font-medium">

@@ -17,6 +17,8 @@ export interface AdminNavigationLabels {
   training: string;
   trainingCourses: string;
   trainingCategories: string;
+  trainingCertificateTemplates: string;
+  trainingCertificates: string;
   notifications: string;
   deliveryLog: string;
   providerStatus: string;
@@ -130,6 +132,16 @@ export function buildAdminNavigation(
           kind: "item",
           href: "/admin/training/categories",
           label: labels.trainingCategories,
+        },
+        {
+          kind: "item",
+          href: "/admin/training/certificate-templates",
+          label: labels.trainingCertificateTemplates,
+        },
+        {
+          kind: "item",
+          href: "/admin/training/certificates",
+          label: labels.trainingCertificates,
         },
       ],
     });

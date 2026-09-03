@@ -653,6 +653,7 @@ export type TrainingQuizQuestionType =
 export type TrainingQuizAttemptStatus =
   "IN_PROGRESS" | "SUBMITTED" | "PASSED" | "FAILED" | "EXPIRED";
 export type TrainingCertificateStatus = "ACTIVE" | "REVOKED";
+export type TrainingCertificateTemplateStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
 
 export interface TrainingQuizAdminOption {
   id: string;
@@ -753,6 +754,8 @@ export interface TrainingCourse {
   summaryTranslations: LocalizedText;
   thumbnailUrl: string | null;
   coverImageAssetId: string | null;
+  certificateEnabled: boolean;
+  certificateTemplateId: string | null;
   status: TrainingCourseStatus;
   sortOrder: number;
   publishedAt: string | null;
@@ -1184,6 +1187,125 @@ export interface TrainingLessonProgressState {
   furthestPageNumber: number;
   completedAt: string | null;
   lastAccessedAt: string | null;
+}
+
+// Stage 3C.5A — Immutable learner course completion.
+export type TrainingCertificateFontFamily =
+  "SANS" | "SERIF" | "ARABIC_SANS" | "ARABIC_NASKH";
+export type TrainingCertificateTextAlign = "left" | "center" | "right";
+
+export interface TrainingCertificateLayoutElement {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  fontFamily: TrainingCertificateFontFamily;
+  fontWeight: number;
+  color: string;
+  align: TrainingCertificateTextAlign;
+  visible: boolean;
+}
+
+export interface TrainingCertificateLayoutConfig {
+  version: 1;
+  elements: {
+    logo: TrainingCertificateLayoutElement;
+    title: TrainingCertificateLayoutElement;
+    intro: TrainingCertificateLayoutElement;
+    learnerName: TrainingCertificateLayoutElement;
+    body: TrainingCertificateLayoutElement;
+    courseTitle: TrainingCertificateLayoutElement;
+    details: TrainingCertificateLayoutElement;
+    score: TrainingCertificateLayoutElement;
+    signature: TrainingCertificateLayoutElement;
+    signatoryName: TrainingCertificateLayoutElement;
+    signatoryTitle: TrainingCertificateLayoutElement;
+    certificateNumber: TrainingCertificateLayoutElement;
+    verificationCode: TrainingCertificateLayoutElement;
+  };
+}
+
+export interface TrainingCertificateBackgroundPreset {
+  key: string;
+  name: string;
+  description: string;
+  artworkPath: string;
+}
+
+export interface TrainingCertificateTemplate {
+  id: string;
+  key: string;
+  name: string;
+  titleTranslations: LocalizedText;
+  introTranslations: LocalizedText;
+  bodyTranslations: LocalizedText;
+  logoFileAssetId: string | null;
+  backgroundFileAssetId: string | null;
+  signatureFileAssetId: string | null;
+  signatoryName: string | null;
+  signatoryTitle: string | null;
+  primaryColor: string;
+  active: boolean;
+  status: TrainingCertificateTemplateStatus;
+  isDefault: boolean;
+  backgroundPresetKey: string | null;
+  layoutVersion: number;
+  layoutConfig: TrainingCertificateLayoutConfig;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingCertificateSummary {
+  id: string;
+  completionId: string;
+  companyId: string;
+  userId: string;
+  courseId: string;
+  certificateNumber: string;
+  learnerName: string;
+  learnerEmail: string;
+  companyName: string;
+  courseTitle: string;
+  courseTitleTranslations: LocalizedText;
+  locale: Locale;
+  scorePercentage: number | null;
+  status: TrainingCertificateStatus;
+  issuedAt: string;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  revocationReason: string | null;
+  downloadPath: string;
+}
+
+export interface TrainingCertificateCourseStatus {
+  courseId: string;
+  certificateEnabled: boolean;
+  templateAvailable: boolean;
+  eligible: boolean;
+  certificateName: string | null;
+  issued: TrainingCertificateSummary | null;
+}
+
+export interface TrainingCertificatePage {
+  items: TrainingCertificateSummary[];
+  pagination: Pagination;
+}
+
+export interface TrainingCertificateTemplatePage {
+  items: TrainingCertificateTemplate[];
+  pagination: Pagination;
+}
+
+export interface TrainingCourseCompletionStatus {
+  courseId: string;
+  completed: boolean;
+  completion: {
+    id: string;
+    completedAt: string;
+    finalScorePercentage: number | null;
+    recordedAt: string;
+  } | null;
 }
 
 export interface TrainingCourseProgressSummary {

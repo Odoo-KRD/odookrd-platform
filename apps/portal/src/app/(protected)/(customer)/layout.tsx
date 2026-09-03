@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/api";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { frontendTranslations } from "@/lib/i18n/frontend";
 import { getPortalDictionary } from "@/lib/i18n/portal-server";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getPublicSettings } from "@/lib/public-settings";
 import { getSessionToken, requireSession } from "@/lib/session";
@@ -81,6 +82,14 @@ export default async function ProtectedCustomerLayout({
       href: "/dashboard/training",
       label: trainingCustomerDictionaries[locale].navigation,
       icon: "training",
+    });
+  }
+
+  if (hasPermission(session, PERMISSIONS.TRAINING_READ)) {
+    navigation.push({
+      kind: "item",
+      href: "/dashboard/training/certificates",
+      label: trainingCertificateDictionaries[locale].certificatesNavigation,
     });
   }
 

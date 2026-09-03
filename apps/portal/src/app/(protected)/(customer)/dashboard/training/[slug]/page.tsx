@@ -1,6 +1,8 @@
 import {
   PERMISSIONS,
   type TrainingCatalogCourseDetail,
+  type TrainingCertificateCourseStatus,
+  type TrainingCourseCompletionStatus,
   type TrainingCourseProgressDetail,
 } from "@odookrd/types";
 import { NavigationArrowIcon, PageHeading, Panel } from "@odookrd/ui";
@@ -9,8 +11,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LessonTypeIcon } from "@/components/training/lesson-type-icon";
+import { TrainingCertificateIssuer } from "@/components/training/training-certificate-issuer";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
+import { formatDate } from "@/lib/format";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
 import { trainingAssessmentDictionaries } from "@/lib/i18n/training-assessment";
@@ -58,17 +63,29 @@ export default async function CustomerTrainingCoursePage({
 
   let course: TrainingCatalogCourseDetail;
   let progress: TrainingCourseProgressDetail;
+  let completionStatus: TrainingCourseCompletionStatus;
+  let certificateStatus: TrainingCertificateCourseStatus;
   try {
-    [course, progress] = await Promise.all([
-      apiRequest<TrainingCatalogCourseDetail>(
-        `/training/catalog/${encodeURIComponent(slug)}`,
-        { token },
-      ),
-      apiRequest<TrainingCourseProgressDetail>(
-        `/training/progress/courses/${encodeURIComponent(slug)}`,
-        { token },
-      ),
-    ]);
+    [course, progress, completionStatus, certificateStatus] = await Promise.all(
+      [
+        apiRequest<TrainingCatalogCourseDetail>(
+          `/training/catalog/${encodeURIComponent(slug)}`,
+          { token },
+        ),
+        apiRequest<TrainingCourseProgressDetail>(
+          `/training/progress/courses/${encodeURIComponent(slug)}`,
+          { token },
+        ),
+        apiRequest<TrainingCourseCompletionStatus>(
+          `/training/completions/courses/${encodeURIComponent(slug)}`,
+          { token },
+        ),
+        apiRequest<TrainingCertificateCourseStatus>(
+          `/training/certificates/courses/${encodeURIComponent(slug)}`,
+          { token },
+        ),
+      ],
+    );
   } catch (error) {
     if (error instanceof ApiRequestError && error.status === 404) notFound();
     throw error;
@@ -102,11 +119,14 @@ export default async function CustomerTrainingCoursePage({
     ),
   );
   const courseActionLabel =
-    progress.status === "COMPLETED"
+    completionStatus.completed || progress.status === "COMPLETED"
       ? workspace.reviewCourse
       : progress.status === "IN_PROGRESS"
         ? workspace.continueCourse
         : workspace.startCourse;
+  const courseActionLesson = completionStatus.completed
+    ? firstReadyLesson
+    : resumeLesson;
 
   return (
     <div className="grid gap-7">
@@ -202,9 +222,9 @@ export default async function CustomerTrainingCoursePage({
             ) : null}
 
             <div className="mt-7">
-              {resumeLesson ? (
+              {courseActionLesson ? (
                 <Link
-                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(resumeLesson.id)}`}
+                  href={`/dashboard/training/${encodeURIComponent(course.slug)}/lessons/${encodeURIComponent(courseActionLesson.id)}`}
                   className="inline-flex h-11 items-center justify-center rounded-md bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"
                 >
                   {courseActionLabel}
@@ -235,6 +255,62 @@ export default async function CustomerTrainingCoursePage({
           </div>
         </div>
       </section>
+
+      {completionStatus.completion ? (
+        <section className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  className="size-5 fill-none stroke-current"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m5 12 4 4L19 6" />
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <p className="text-base font-semibold text-emerald-900">
+                  {assessment.courseCompleted}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-emerald-800/80">
+                  {assessment.courseCompletedDescription}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-emerald-800">
+                  <span>
+                    {assessment.completedOn}:{" "}
+                    {formatDate(
+                      completionStatus.completion.completedAt,
+                      locale,
+                    )}
+                  </span>
+                  {completionStatus.completion.finalScorePercentage !== null ? (
+                    <span>
+                      {assessment.finalScore}:{" "}
+                      <span dir="ltr">
+                        {completionStatus.completion.finalScorePercentage}%
+                      </span>
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {completionStatus.completed &&
+      (certificateStatus.certificateEnabled || certificateStatus.issued) ? (
+        <TrainingCertificateIssuer
+          slug={course.slug}
+          locale={locale}
+          status={certificateStatus}
+          labels={trainingCertificateDictionaries[locale]}
+        />
+      ) : null}
 
       <section className="grid gap-4">
         <div className="flex flex-wrap items-end justify-between gap-3">

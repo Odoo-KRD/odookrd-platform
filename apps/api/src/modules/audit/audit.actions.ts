@@ -59,6 +59,10 @@ export const AUDIT_ACTIONS = {
   TRAINING_QUIZ_CREATED: 'training.quiz.created',
   TRAINING_QUIZ_UPDATED: 'training.quiz.updated',
   TRAINING_COURSE_COMPLETED: 'training.course.completed',
+  TRAINING_CERTIFICATE_TEMPLATE_CREATED:
+    'training.certificate_template.created',
+  TRAINING_CERTIFICATE_TEMPLATE_UPDATED:
+    'training.certificate_template.updated',
   TRAINING_CERTIFICATE_ISSUED: 'training.certificate.issued',
   TRAINING_CERTIFICATE_REVOKED: 'training.certificate.revoked',
 } as const;

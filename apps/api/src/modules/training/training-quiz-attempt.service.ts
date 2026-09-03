@@ -17,6 +17,7 @@ import {
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import type { SaveTrainingQuizAnswerDto } from './dto/training-quiz-attempt.dto';
+import { TrainingCourseCompletionService } from './training-course-completion.service';
 import { TrainingEntitlementService } from './training-entitlement.service';
 import { TrainingLearningGateService } from './training-learning-gate.service';
 import { TrainingProgressService } from './training-progress.service';
@@ -33,6 +34,7 @@ export class TrainingQuizAttemptService {
     private readonly entitlements: TrainingEntitlementService,
     private readonly gate: TrainingLearningGateService,
     private readonly progress: TrainingProgressService,
+    private readonly completions: TrainingCourseCompletionService,
   ) {}
 
   async getQuiz(
@@ -357,6 +359,15 @@ export class TrainingQuizAttemptService {
           slug,
           attempt.quiz.lessonId,
         );
+      } else if (
+        attempt.status === TrainingQuizAttemptStatus.PASSED &&
+        attempt.quiz.placement === TrainingQuizPlacement.COURSE_FINAL
+      ) {
+        await this.completions.reconcileForContext(
+          context,
+          courseId,
+          context.now,
+        );
       }
       return this.presentAttempt(attempt);
     }
@@ -452,6 +463,15 @@ export class TrainingQuizAttemptService {
         principal,
         slug,
         attempt.quiz.lessonId,
+      );
+    } else if (
+      attempt.status === TrainingQuizAttemptStatus.PASSED &&
+      attempt.quiz.placement === TrainingQuizPlacement.COURSE_FINAL
+    ) {
+      await this.completions.reconcileForContext(
+        context,
+        courseId,
+        context.now,
       );
     }
 

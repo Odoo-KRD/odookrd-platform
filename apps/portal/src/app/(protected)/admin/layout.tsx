@@ -1,3 +1,20 @@
+import "@fontsource/noto-sans/400.css";
+import "@fontsource/noto-sans/500.css";
+import "@fontsource/noto-sans/600.css";
+import "@fontsource/noto-sans/700.css";
+import "@fontsource/noto-serif/400.css";
+import "@fontsource/noto-serif/500.css";
+import "@fontsource/noto-serif/600.css";
+import "@fontsource/noto-serif/700.css";
+import "@fontsource/noto-sans-arabic/400.css";
+import "@fontsource/noto-sans-arabic/500.css";
+import "@fontsource/noto-sans-arabic/600.css";
+import "@fontsource/noto-sans-arabic/700.css";
+import "@fontsource/noto-naskh-arabic/400.css";
+import "@fontsource/noto-naskh-arabic/500.css";
+import "@fontsource/noto-naskh-arabic/600.css";
+import "@fontsource/noto-naskh-arabic/700.css";
+
 import { redirect } from "next/navigation";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -14,6 +31,7 @@ import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
 import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { trainingDictionaries } from "@/lib/i18n/training";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
@@ -54,6 +72,10 @@ export default async function ProtectedAdminLayout({
     training: trainingDictionaries[locale].navigation,
     trainingCourses: trainingDictionaries[locale].coursesNavigation,
     trainingCategories: trainingDictionaries[locale].categoriesNavigation,
+    trainingCertificateTemplates:
+      trainingCertificateDictionaries[locale].templatesNavigation,
+    trainingCertificates:
+      trainingCertificateDictionaries[locale].administrationNavigation,
     notifications: notificationLabels.navigation,
     deliveryLog: notificationLabels.deliveryLog,
     providerStatus: notificationLabels.providerStatus,

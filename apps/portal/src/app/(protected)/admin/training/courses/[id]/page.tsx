@@ -2,6 +2,7 @@ import {
   PERMISSIONS,
   type PaginatedResult,
   type TrainingCategory,
+  type TrainingCertificateTemplatePage,
   type TrainingCourse,
 } from "@odookrd/types";
 import { PageHeading, Panel } from "@odookrd/ui";
@@ -11,6 +12,7 @@ import { redirect } from "next/navigation";
 import { TrainingCourseForm } from "@/components/training/training-forms";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
 
@@ -32,12 +34,16 @@ export default async function TrainingCoursePage({
     redirect("/dashboard");
   }
 
-  const [course, categories] = await Promise.all([
+  const [course, categories, certificateTemplates] = await Promise.all([
     apiRequest<TrainingCourse>(`/training/courses/${encodeURIComponent(id)}`, {
       token,
     }),
     apiRequest<PaginatedResult<TrainingCategory>>(
       "/training/categories?limit=100&offset=0",
+      { token },
+    ),
+    apiRequest<TrainingCertificateTemplatePage>(
+      "/training/certificate-templates?limit=100&offset=0",
       { token },
     ),
   ]);
@@ -81,6 +87,8 @@ export default async function TrainingCoursePage({
           categories={categories.items}
           initial={course}
           cancelHref="/admin/training/courses"
+          certificateTemplates={certificateTemplates.items}
+          certificateLabels={trainingCertificateDictionaries[locale]}
         />
       </Panel>
     </div>
