@@ -23,6 +23,7 @@ export const PERMISSIONS = {
   TRAINING_MANAGE: "training.manage",
   TRAINING_ASSIGN: "training.assign",
   TRAINING_PROGRESS_READ: "training.progress.read",
+  TRAINING_REPORTS_READ: "training.reports.read",
 
   AUDIT_LOGS_READ: "audit_logs.read",
 } as const;
@@ -1500,3 +1501,124 @@ export interface TrainingQuizAttemptHistory {
 export interface TrainingQuizAnswerInput {
   selectedOptionIds: string[];
 }
+
+// Stage 3C.6A — Training reporting and analytics contracts.
+export interface TrainingReportCompanyOption {
+  id: string;
+  name: string;
+  nameTranslations: LocalizedText;
+  status: CompanyStatus;
+}
+
+export interface TrainingReportCategoryOption {
+  id: string;
+  name: string;
+  nameTranslations: LocalizedText;
+}
+
+export interface TrainingReportCourseOption {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  status: TrainingCourseStatus;
+  category: TrainingReportCategoryOption;
+}
+
+export interface TrainingReportOptions {
+  companies: TrainingReportCompanyOption[];
+  categories: TrainingReportCategoryOption[];
+  courses: TrainingReportCourseOption[];
+}
+
+export interface TrainingReportOverview {
+  activeLearners: number;
+  coursesEngaged: number;
+  completions: number;
+  quizAttempts: number;
+  quizPassRate: number | null;
+  quizAverageScore: number | null;
+  certificatesIssued: number;
+  activeCertificates: number;
+  revokedCertificates: number;
+}
+
+export interface TrainingReportCourseRow {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  status: TrainingCourseStatus;
+  category: TrainingReportCategoryOption;
+  engagedLearners: number;
+  completions: number;
+  quizAttempts: number;
+  quizPasses: number;
+  quizPassRate: number | null;
+  quizAverageScore: number | null;
+  certificatesIssued: number;
+  latestActivityAt: string | null;
+}
+
+export interface TrainingReportLearnerRow {
+  id: string;
+  email: string;
+  learnerName: string;
+  company: {
+    id: string;
+    name: string;
+    nameTranslations: LocalizedText;
+  };
+  coursesEngaged: number;
+  completedCourses: number;
+  quizAttempts: number;
+  quizPassRate: number | null;
+  quizAverageScore: number | null;
+  certificatesIssued: number;
+  latestActivityAt: string | null;
+}
+
+export interface TrainingReportQuizRow {
+  id: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  placement: TrainingQuizPlacement;
+  status: TrainingQuizStatus;
+  course: {
+    id: string;
+    title: string;
+    titleTranslations: LocalizedText;
+  };
+  learners: number;
+  attempts: number;
+  passed: number;
+  failed: number;
+  passRate: number | null;
+  averagePercentage: number | null;
+  latestAttemptAt: string | null;
+}
+
+export interface TrainingReportCertificateRow {
+  id: string;
+  certificateNumber: string;
+  learnerName: string;
+  learnerEmail: string;
+  companyName: string;
+  courseTitle: string;
+  courseTitleTranslations: LocalizedText;
+  scorePercentage: number | null;
+  status: TrainingCertificateStatus;
+  issuedAt: string;
+  revokedAt: string | null;
+}
+
+export interface TrainingReportPage<T> {
+  items: T[];
+  pagination: Pagination;
+}
+
+export type TrainingReportCoursePage =
+  TrainingReportPage<TrainingReportCourseRow>;
+export type TrainingReportLearnerPage =
+  TrainingReportPage<TrainingReportLearnerRow>;
+export type TrainingReportQuizPage = TrainingReportPage<TrainingReportQuizRow>;
+export type TrainingReportCertificatePage =
+  TrainingReportPage<TrainingReportCertificateRow>;

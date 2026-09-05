@@ -30,6 +30,7 @@ const COMPANY_ROLE_PERMISSION_KEYS = new Set([
   'training.read',
   'training.assign',
   'training.progress.read',
+  'training.reports.read',
 ]);
 
 const ROLE_SELECT = {

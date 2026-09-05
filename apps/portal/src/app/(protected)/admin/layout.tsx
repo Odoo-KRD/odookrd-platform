@@ -32,6 +32,7 @@ import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { trainingDictionaries } from "@/lib/i18n/training";
 import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
+import { trainingReportsDictionaries } from "@/lib/i18n/training-reports";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
@@ -76,6 +77,7 @@ export default async function ProtectedAdminLayout({
       trainingCertificateDictionaries[locale].templatesNavigation,
     trainingCertificates:
       trainingCertificateDictionaries[locale].administrationNavigation,
+    trainingReports: trainingReportsDictionaries[locale].navigation,
     notifications: notificationLabels.navigation,
     deliveryLog: notificationLabels.deliveryLog,
     providerStatus: notificationLabels.providerStatus,

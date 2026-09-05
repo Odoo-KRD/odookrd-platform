@@ -18,6 +18,7 @@ const administrativePermissions = new Set<string>([
   PERMISSIONS.TRAINING_MANAGE,
   PERMISSIONS.TRAINING_ASSIGN,
   PERMISSIONS.TRAINING_PROGRESS_READ,
+  PERMISSIONS.TRAINING_REPORTS_READ,
 ]);
 
 export function hasPermission(

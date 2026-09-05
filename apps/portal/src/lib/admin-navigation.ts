@@ -19,6 +19,7 @@ export interface AdminNavigationLabels {
   trainingCategories: string;
   trainingCertificateTemplates: string;
   trainingCertificates: string;
+  trainingReports: string;
   notifications: string;
   deliveryLog: string;
   providerStatus: string;
@@ -113,37 +114,51 @@ export function buildAdminNavigation(
     });
   }
 
+  const trainingChildren: AdminNavigationEntry[] = [];
+
   if (
     session.user.accountScope === "PLATFORM" &&
     hasPermission(session, PERMISSIONS.TRAINING_MANAGE)
   ) {
+    trainingChildren.push(
+      {
+        kind: "item",
+        href: "/admin/training/courses",
+        label: labels.trainingCourses,
+      },
+      {
+        kind: "item",
+        href: "/admin/training/categories",
+        label: labels.trainingCategories,
+      },
+      {
+        kind: "item",
+        href: "/admin/training/certificate-templates",
+        label: labels.trainingCertificateTemplates,
+      },
+      {
+        kind: "item",
+        href: "/admin/training/certificates",
+        label: labels.trainingCertificates,
+      },
+    );
+  }
+
+  if (hasPermission(session, PERMISSIONS.TRAINING_REPORTS_READ)) {
+    trainingChildren.push({
+      kind: "item",
+      href: "/admin/training/reports",
+      label: labels.trainingReports,
+    });
+  }
+
+  if (trainingChildren.length > 0) {
     entries.push({
       kind: "group",
       id: "training",
       label: labels.training,
       icon: "training",
-      children: [
-        {
-          kind: "item",
-          href: "/admin/training/courses",
-          label: labels.trainingCourses,
-        },
-        {
-          kind: "item",
-          href: "/admin/training/categories",
-          label: labels.trainingCategories,
-        },
-        {
-          kind: "item",
-          href: "/admin/training/certificate-templates",
-          label: labels.trainingCertificateTemplates,
-        },
-        {
-          kind: "item",
-          href: "/admin/training/certificates",
-          label: labels.trainingCertificates,
-        },
-      ],
+      children: trainingChildren,
     });
   }
 

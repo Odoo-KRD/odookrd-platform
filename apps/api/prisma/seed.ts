@@ -124,6 +124,12 @@ const permissions = [
     name: 'Read training progress',
     description: 'View training progress within the authorized scope.',
   },
+  {
+    key: 'training.reports.read',
+    name: 'Read training reports',
+    description:
+      'View training reporting and analytics within the authorized scope.',
+  },
 ] as const;
 
 const roles = [
@@ -155,6 +161,7 @@ const roles = [
       'training.manage',
       'training.assign',
       'training.progress.read',
+      'training.reports.read',
     ],
   },
   {
@@ -181,6 +188,7 @@ const roles = [
       'training.read',
       'training.assign',
       'training.progress.read',
+      'training.reports.read',
     ],
   },
   {
