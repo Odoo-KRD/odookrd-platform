@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import type { ApiLocale } from '../../i18n/types';
+import { renderCorporateEmail } from '../notifications/email-template-layout';
 interface InvitationCopy {
   subject: string;
   greeting: string;
@@ -53,7 +54,40 @@ export class InvitationTemplateService {
       '',
       copy.ignore,
     ].join('\n');
-    return { subject: copy.subject, emailBody: body, whatsappBody: body };
+    const emailCopy = {
+      ku: {
+        eyebrow: 'بانگهێشتی پۆرتاڵ',
+        activate: 'چالاککردنی هەژمار',
+        fallback: 'ئەگەر دوگمەکە کار نەکرد، ئەم بەستەرە بەکاربهێنە:',
+      },
+      ar: {
+        eyebrow: 'دعوة إلى البوابة',
+        activate: 'تفعيل الحساب',
+        fallback: 'إذا لم يعمل الزر، استخدم الرابط التالي:',
+      },
+      en: {
+        eyebrow: 'Portal invitation',
+        activate: 'Activate account',
+        fallback: 'If the button does not work, use this link:',
+      },
+    }[locale];
+    const emailHtml = renderCorporateEmail({
+      locale,
+      preview: copy.introduction,
+      eyebrow: emailCopy.eyebrow,
+      title: copy.subject,
+      paragraphs: [copy.greeting, copy.introduction],
+      action: { label: emailCopy.activate, url: link },
+      notice: { label: copy.expiration, value: expiresAt.toISOString() },
+      fallbackLabel: emailCopy.fallback,
+      footer: copy.ignore,
+    });
+    return {
+      subject: copy.subject,
+      emailBody: body,
+      emailHtml,
+      whatsappBody: body,
+    };
   }
   private invitationLink(token: string): string {
     const configured =

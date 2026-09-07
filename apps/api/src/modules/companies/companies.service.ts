@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import {
   BadRequestException,
   ConflictException,
@@ -124,6 +126,7 @@ export class CompaniesService {
     this.assertPlatformScope(principal);
 
     const name = this.normalizeName(dto.name);
+    const slug = this.createSlug(name);
 
     return this.prisma.$transaction(async (tx) => {
       const company = await tx.company.create({
@@ -137,6 +140,7 @@ export class CompaniesService {
                 ),
               }),
           name,
+          slug,
         },
         select: {
           id: true,
@@ -170,6 +174,7 @@ export class CompaniesService {
     companyId: string,
     dto: UpdateCompanyDto,
   ): Promise<CompanyResponse> {
+    this.assertPlatformScope(principal);
     if (
       principal.accountScope === AccountScope.COMPANY &&
       principal.companyId !== companyId
@@ -570,6 +575,18 @@ export class CompaniesService {
         'Platform scope is required for this operation.',
       );
     }
+  }
+
+  private createSlug(name: string): string {
+    const base =
+      name
+        .normalize('NFKD')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 140) || 'company';
+
+    return `${base}-${randomUUID().slice(0, 8)}`;
   }
 
   private normalizeName(name: string): string {

@@ -1,18 +1,22 @@
 import { PERMISSIONS, type CustomerAccountProfile } from "@odookrd/types";
-import { Badge, PageHeading, Panel } from "@odookrd/ui";
+import { Badge } from "@odookrd/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CustomerProfileEditor } from "@/components/customer/customer-profile-editor";
 import { apiRequest } from "@/lib/api";
-import { getCustomerApiContext, hasAdminAccess } from "@/lib/authorization";
+import {
+  getCustomerAccountApiContext,
+  hasAdminAccess,
+  hasPermission,
+} from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
+import { customerDashboardV2Dictionaries } from "@/lib/i18n/customer-dashboard-v2";
 import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
 
 export default async function CustomerProfilePage() {
-  const [{ session, token }, { locale, workspace }] = await Promise.all([
-    getCustomerApiContext(PERMISSIONS.COMPANIES_READ),
-    getFrontendDictionary(),
-  ]);
+  const [{ session, token }, { locale, dictionary, workspace }] =
+    await Promise.all([getCustomerAccountApiContext(), getFrontendDictionary()]);
   const profile = await apiRequest<CustomerAccountProfile>(
     "/workspace/profile",
     { token },
@@ -25,96 +29,111 @@ export default async function CustomerProfilePage() {
     notFound();
   }
 
-  return (
-    <div className="grid gap-7">
-      <PageHeading
-        title={workspace.profile.title}
-        description={workspace.profile.description}
-      />
+  const labels = customerDashboardV2Dictionaries[locale].profile;
+  const canReadCompany = hasPermission(session, PERMISSIONS.COMPANIES_READ);
 
-      <Panel className="p-6 sm:p-8">
-        <dl className="grid gap-7 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.email}
-            </dt>
-            <dd
-              dir="ltr"
-              className="mt-2 break-all text-sm font-medium text-slate-900"
-            >
-              {profile.email}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.company}
-            </dt>
-            <dd className="mt-2 text-sm font-medium text-slate-900">
-              <Link href="/dashboard/company" className="hover:text-[#714b67]">
-                {profile.company.name}
-              </Link>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.role}
-            </dt>
-            <dd className="mt-2 text-sm font-medium text-slate-900">
-              {hasAdminAccess(session)
-                ? workspace.profile.companyAdministrator
-                : workspace.profile.companyUser}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.accountStatus}
-            </dt>
-            <dd className="mt-2">
-              <Badge
-                tone={
-                  profile.status === "ACTIVE"
-                    ? "success"
-                    : profile.status === "ARCHIVED"
-                      ? "neutral"
-                      : "warning"
-                }
-              >
-                {workspace.profile.statusLabels[profile.status]}
-              </Badge>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.emailVerification}
-            </dt>
-            <dd className="mt-2">
-              <Badge tone={profile.emailVerifiedAt ? "success" : "neutral"}>
-                {profile.emailVerifiedAt
-                  ? workspace.profile.verified
-                  : workspace.profile.notVerified}
-              </Badge>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.joined}
-            </dt>
-            <dd className="mt-2 text-sm font-medium text-slate-900">
-              {formatDate(profile.createdAt, locale)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium text-slate-500">
-              {workspace.profile.lastActivity}
-            </dt>
-            <dd className="mt-2 text-sm font-medium text-slate-900">
-              {profile.lastSeenAt
-                ? formatDate(profile.lastSeenAt, locale)
-                : "—"}
-            </dd>
-          </div>
-        </dl>
-      </Panel>
+  return (
+    <div className="grid gap-6 sm:gap-7">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
+          {labels.eyebrow}
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-content sm:text-3xl">
+          {labels.title}
+        </h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted sm:text-base">
+          {labels.description}
+        </p>
+      </header>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)]">
+        <CustomerProfileEditor
+          initialProfile={profile}
+          locale={locale}
+          languageLabel={dictionary.common.language}
+          labels={labels}
+        />
+
+        <aside className="h-fit rounded-xl border border-line bg-surface-panel p-5 shadow-sm sm:p-6">
+          <h2 className="text-base font-semibold text-content">
+            {labels.accountInformation}
+          </h2>
+          <dl className="mt-5 grid gap-5">
+            <div>
+              <dt className="text-xs font-medium text-muted">
+                {workspace.profile.company}
+              </dt>
+              <dd className="mt-1.5 text-sm font-semibold text-content">
+                {canReadCompany ? (
+                  <Link href="/dashboard/company" className="hover:text-brand">
+                    {profile.company.name}
+                  </Link>
+                ) : (
+                  profile.company.name
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-muted">
+                {workspace.profile.role}
+              </dt>
+              <dd className="mt-1.5 text-sm font-semibold text-content">
+                {hasAdminAccess(session)
+                  ? workspace.profile.companyAdministrator
+                  : workspace.profile.companyUser}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-xs font-medium text-muted">
+                {workspace.profile.accountStatus}
+              </dt>
+              <dd>
+                <Badge
+                  tone={
+                    profile.status === "ACTIVE"
+                      ? "success"
+                      : profile.status === "ARCHIVED"
+                        ? "neutral"
+                        : "warning"
+                  }
+                >
+                  {workspace.profile.statusLabels[profile.status]}
+                </Badge>
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-xs font-medium text-muted">
+                {workspace.profile.emailVerification}
+              </dt>
+              <dd>
+                <Badge tone={profile.emailVerifiedAt ? "success" : "neutral"}>
+                  {profile.emailVerifiedAt
+                    ? workspace.profile.verified
+                    : workspace.profile.notVerified}
+                </Badge>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-muted">
+                {workspace.profile.joined}
+              </dt>
+              <dd className="mt-1.5 text-sm font-medium text-content">
+                {formatDate(profile.createdAt, locale)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium text-muted">
+                {workspace.profile.lastActivity}
+              </dt>
+              <dd className="mt-1.5 text-sm font-medium text-content">
+                {profile.lastSeenAt
+                  ? formatDate(profile.lastSeenAt, locale)
+                  : "—"}
+              </dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
     </div>
   );
 }

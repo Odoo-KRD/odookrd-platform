@@ -33,6 +33,7 @@ interface SettingsFormProps {
   labels: SettingsDictionary;
   navigationLabels: SettingsNavigationDictionary;
   canManage: boolean;
+  hideRestrictedTrainingTabs?: boolean;
 }
 
 const categories: readonly SettingCategory[] = [
@@ -229,6 +230,7 @@ export function SettingsForm({
   labels,
   navigationLabels,
   canManage,
+  hideRestrictedTrainingTabs = false,
 }: SettingsFormProps) {
   const [category, setCategory] = useState<SettingCategory>("general");
   const [notificationTab, setNotificationTab] =
@@ -434,10 +436,16 @@ export function SettingsForm({
           }),
         )
       : category === "trainings"
-        ? Object.entries(navigationLabels.trainingTabs).map(([key, label]) => ({
-            key,
-            label,
-          }))
+        ? Object.entries(navigationLabels.trainingTabs)
+            .filter(
+              ([key]) =>
+                !hideRestrictedTrainingTabs ||
+                (key !== "video" && key !== "progress"),
+            )
+            .map(([key, label]) => ({
+              key,
+              label,
+            }))
         : category === "files"
           ? Object.entries(navigationLabels.fileTabs).map(([key, label]) => ({
               key,

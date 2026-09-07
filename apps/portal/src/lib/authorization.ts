@@ -66,6 +66,24 @@ export async function getAdminApiContext(permission: PermissionKey): Promise<{
   return { session, token };
 }
 
+export async function getCustomerAccountApiContext(): Promise<{
+  session: CurrentSession;
+  token: string;
+}> {
+  const session = await requireSession();
+
+  if (session.user.accountScope !== "COMPANY" || !session.user.companyId) {
+    redirect(session.user.accountScope === "PLATFORM" ? "/admin" : "/dashboard");
+  }
+
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  return { session, token };
+}
+
 export async function getCustomerApiContext(
   permission: PermissionKey,
 ): Promise<{

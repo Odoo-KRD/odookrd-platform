@@ -29,6 +29,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     typeof body.password !== "string" ||
     body.token.length < 20 ||
     body.token.length > 512 ||
+    !("displayName" in body) ||
+    typeof body.displayName !== "string" ||
+    Array.from(body.displayName).some((character) => {
+      const code = character.charCodeAt(0);
+      return code < 32 || code === 127;
+    }) ||
+    body.displayName.trim().length < 2 ||
+    body.displayName.length > 160 ||
     body.password.length < 1 ||
     body.password.length > 128
   ) {
@@ -38,7 +46,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     await apiRequest<unknown>("/auth/invitations/accept", {
       method: "POST",
-      body: JSON.stringify({ token: body.token, password: body.password }),
+      body: JSON.stringify({
+        token: body.token,
+        displayName: body.displayName.trim().replace(/\s+/gu, " "),
+        password: body.password,
+      }),
     });
 
     return NextResponse.json(

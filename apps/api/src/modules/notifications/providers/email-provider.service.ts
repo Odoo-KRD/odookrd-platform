@@ -35,6 +35,7 @@ export class EmailProviderService {
     destination: string,
     subject: string,
     body: string,
+    html?: string,
   ): Promise<string | null> {
     const provider = await this.settings.resolveValue(
       'notifications.email.provider',
@@ -56,10 +57,10 @@ export class EmailProviderService {
     const transport = this.sesTransport(transportValue);
 
     if (transport === 'smtp') {
-      return this.sendSmtp(companyId, destination, subject, body);
+      return this.sendSmtp(companyId, destination, subject, body, html);
     }
 
-    return this.sendApi(companyId, destination, subject, body);
+    return this.sendApi(companyId, destination, subject, body, html);
   }
 
   private async sendApi(
@@ -67,6 +68,7 @@ export class EmailProviderService {
     destination: string,
     subject: string,
     body: string,
+    html?: string,
   ): Promise<string | null> {
     const [
       regionValue,
@@ -133,7 +135,10 @@ export class EmailProviderService {
           Content: {
             Simple: {
               Subject: { Data: subject, Charset: 'UTF-8' },
-              Body: { Text: { Data: body, Charset: 'UTF-8' } },
+              Body: {
+                Text: { Data: body, Charset: 'UTF-8' },
+                ...(html ? { Html: { Data: html, Charset: 'UTF-8' } } : {}),
+              },
             },
           },
         }),
@@ -154,6 +159,7 @@ export class EmailProviderService {
     destination: string,
     subject: string,
     body: string,
+    html?: string,
   ): Promise<string | null> {
     const [
       regionValue,
@@ -242,6 +248,7 @@ export class EmailProviderService {
         replyTo: replyTo ?? undefined,
         subject,
         text: body,
+        html: html ?? undefined,
       });
 
       return null;

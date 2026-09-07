@@ -361,6 +361,7 @@ export class UserAdministrationService {
             target.email,
             rendered.subject,
             rendered.emailBody,
+            rendered.emailHtml,
           ),
         );
         continue;

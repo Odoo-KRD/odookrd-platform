@@ -15,7 +15,8 @@ test('3B.2R.1 repairs shared file delivery with integrity-checked buffering', ()
 
   assert.match(files, /Buffer\.concat\(chunks\)/);
   assert.match(files, /sha256 !== asset\.sha256/);
-  assert.match(controller, /new StreamableFile\(buffer\)/);
+  assert.match(controller, /response\.end\(buffer\)/);
+  assert.doesNotMatch(controller, /StreamableFile/);
   assert.match(bff, /await upstream\.arrayBuffer\(\)/);
   assert.match(bff, /Content-Length/);
   assert.match(local, /await open\(target, 'r'\)/);
@@ -31,7 +32,10 @@ test('3B.2R.1 upgrades RichTextEditor with images, attachments and fullscreen', 
   assert.match(editor, /onUploadImage/);
   assert.match(editor, /onUploadFile/);
   assert.match(editor, /setFullscreen/);
-  assert.match(editor, /@tiptap\/extension-link/);
+  assert.match(editor, /import StarterKit from "@tiptap\/starter-kit"/);
+  assert.match(editor, /kind: "link"; value: string/);
+  assert.match(editor, /linkPrompt/);
+  assert.match(editor, /linkInvalid/);
   assert.match(localized, /kind: "IMAGE" \| "DOCUMENT" \| "ATTACHMENT"/);
   assert.match(localized, /uploadAsset\(file, "IMAGE"\)/);
   assert.match(localized, /uploadAsset\(file, "ATTACHMENT"\)/);

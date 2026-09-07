@@ -30,15 +30,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     typeof body.email !== "string" ||
     typeof body.password !== "string" ||
     body.email.length > 320 ||
-    body.password.length > 128
+    body.password.length > 128 ||
+    ("rememberMe" in body && typeof body.rememberMe !== "boolean")
   ) {
     return errorResponse(400, "Valid login credentials are required.");
   }
 
+  const rememberMe =
+    "rememberMe" in body && typeof body.rememberMe === "boolean"
+      ? body.rememberMe
+      : false;
+
   try {
     const result = await apiRequest<ApiLoginResponse>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email: body.email, password: body.password }),
+      body: JSON.stringify({
+        email: body.email,
+        password: body.password,
+        rememberMe,
+      }),
     });
 
     const expires = new Date(result.session.absoluteExpiresAt);
@@ -59,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      expires,
+      ...(rememberMe ? { expires } : {}),
       priority: "high",
     });
 

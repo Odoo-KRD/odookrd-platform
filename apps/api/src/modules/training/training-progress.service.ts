@@ -153,6 +153,14 @@ export class TrainingProgressService {
     const { context, courseId } =
       await this.entitlements.assertEntitledCourseBySlug(principal, slug);
 
+    return this.getCourseForContext(context, courseId, slug);
+  }
+
+  async getCourseForContext(
+    context: CustomerTrainingContext,
+    courseId: string,
+    slug: string,
+  ) {
     return this.prisma.$transaction((tx) =>
       this.buildCourseProgress(tx, context, courseId, slug),
     );

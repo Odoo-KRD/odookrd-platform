@@ -17,17 +17,22 @@ export function TrainingContinueLearning({
   const labels = trainingCustomerWorkspaceDictionaries[locale];
 
   return (
-    <section className="grid gap-4">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
-          {labels.continueLearning}
-        </p>
-        <h2 className="mt-1 text-lg font-semibold text-content">
-          {labels.continueLearningDescription}
-        </h2>
+    <section className="overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-5 py-5 sm:px-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
+            {labels.continueLearning}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-content">
+            {labels.continueLearningDescription}
+          </h2>
+        </div>
+        <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand">
+          {items.length}
+        </span>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 p-5 sm:p-6 lg:grid-cols-2">
         {items.map((item) => {
           const title = localizeTrainingText(
             item.course.title,
@@ -40,19 +45,27 @@ export function TrainingContinueLearning({
             locale,
           );
           const href = item.progress.resumeLessonId
-            ? `/dashboard/training/${encodeURIComponent(item.course.slug)}/lessons/${encodeURIComponent(item.progress.resumeLessonId)}`
+            ? `/dashboard/training/${encodeURIComponent(
+                item.course.slug,
+              )}/lessons/${encodeURIComponent(item.progress.resumeLessonId)}`
             : `/dashboard/training/${encodeURIComponent(item.course.slug)}`;
 
           return (
             <article
               key={item.course.id}
-              className="overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm"
+              className="grid overflow-hidden rounded-xl border border-line bg-white sm:grid-cols-[180px_minmax(0,1fr)]"
             >
-              <Link href={href} className="block bg-surface-subtle">
-                <div className="aspect-video overflow-hidden">
+              <Link
+                href={href}
+                className="block overflow-hidden bg-surface-subtle"
+                aria-label={title}
+              >
+                <div className="aspect-video h-full min-h-36 overflow-hidden sm:aspect-auto">
                   {item.course.hasCover ? (
                     <Image
-                      src={`/api/training/catalog/${encodeURIComponent(item.course.slug)}/cover`}
+                      src={`/api/training/catalog/${encodeURIComponent(
+                        item.course.slug,
+                      )}/cover`}
                       alt=""
                       width={640}
                       height={360}
@@ -67,13 +80,13 @@ export function TrainingContinueLearning({
                 </div>
               </Link>
 
-              <div className="p-4">
+              <div className="flex min-w-0 flex-col p-4">
                 <p className="truncate text-[11px] font-semibold text-brand">
                   {category}
                 </p>
                 <Link
                   href={href}
-                  className="mt-1 block line-clamp-2 text-sm font-semibold leading-5 text-content hover:text-brand"
+                  className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-content hover:text-brand"
                 >
                   {title}
                 </Link>
@@ -102,9 +115,12 @@ export function TrainingContinueLearning({
 
                 <Link
                   href={href}
-                  className="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-brand px-3 text-xs font-semibold text-white hover:bg-brand-hover"
+                  className="mt-auto pt-4 text-sm font-semibold text-brand hover:text-brand-hover"
                 >
                   {labels.continueCourse}
+                  <span aria-hidden="true" className="ms-2 rtl:-scale-x-100">
+                    →
+                  </span>
                 </Link>
               </div>
             </article>

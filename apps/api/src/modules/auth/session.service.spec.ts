@@ -103,6 +103,12 @@ describe('SessionService', () => {
         case 'AUTH_SESSION_ABSOLUTE_TTL_SECONDS':
           return 86400;
 
+        case 'AUTH_REMEMBER_SESSION_IDLE_TTL_SECONDS':
+          return 604800;
+
+        case 'AUTH_REMEMBER_SESSION_ABSOLUTE_TTL_SECONDS':
+          return 2592000;
+
         default:
           throw new Error(`Unexpected configuration key: ${key}`);
       }

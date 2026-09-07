@@ -1,5 +1,6 @@
 "use client";
 
+import { invitationAcceptUrl } from "@/lib/invitation-links";
 import type { AccountScope, Company, Locale, Role } from "@odookrd/types";
 import { ActionButton } from "@odookrd/ui";
 import Link from "next/link";
@@ -60,12 +61,9 @@ export function InviteUserForm({
   });
 
   const availableRoles = roles.filter((role) => role.scope === scope);
-  const invitationUrl =
-    state.invitation && typeof window !== "undefined"
-      ? `${window.location.origin}/invitation/accept#${new URLSearchParams({
-          token: state.invitation.token,
-        }).toString()}`
-      : "";
+  const invitationUrl = state.invitation
+    ? invitationAcceptUrl(state.invitation.token)
+    : "";
 
   function confirmSensitiveInvitation(
     event: React.FormEvent<HTMLFormElement>,
@@ -105,7 +103,10 @@ export function InviteUserForm({
         className="grid max-w-2xl gap-5"
       >
         <div className="grid gap-2">
-          <label htmlFor="invite-email" className="text-sm font-medium text-slate-700">
+          <label
+            htmlFor="invite-email"
+            className="text-sm font-medium text-slate-700"
+          >
             {labels.email}
           </label>
           <input
@@ -122,7 +123,10 @@ export function InviteUserForm({
 
         {isPlatform ? (
           <div className="grid gap-2">
-            <label htmlFor="invite-scope" className="text-sm font-medium text-slate-700">
+            <label
+              htmlFor="invite-scope"
+              className="text-sm font-medium text-slate-700"
+            >
               {labels.accountScope}
             </label>
             <select
@@ -145,7 +149,10 @@ export function InviteUserForm({
 
         {scope === "COMPANY" && isPlatform ? (
           <div className="grid gap-2">
-            <label htmlFor="invite-company" className="text-sm font-medium text-slate-700">
+            <label
+              htmlFor="invite-company"
+              className="text-sm font-medium text-slate-700"
+            >
               {labels.company}
             </label>
             <select
@@ -197,13 +204,19 @@ export function InviteUserForm({
         </fieldset>
 
         {state.message ? (
-          <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
             {state.message}
           </p>
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
-          <ActionButton type="submit" disabled={pending || availableRoles.length === 0}>
+          <ActionButton
+            type="submit"
+            disabled={pending || availableRoles.length === 0}
+          >
             {pending ? labels.creatingInvitation : labels.sendInvitation}
           </ActionButton>
           <Link
@@ -225,7 +238,10 @@ export function InviteUserForm({
           </p>
 
           <div className="mt-5 grid gap-2">
-            <label htmlFor="invitation-link" className="text-sm font-medium text-slate-700">
+            <label
+              htmlFor="invitation-link"
+              className="text-sm font-medium text-slate-700"
+            >
               {labels.invitationLink}
             </label>
             <div className="flex flex-wrap gap-2">
@@ -237,7 +253,11 @@ export function InviteUserForm({
                 dir="ltr"
                 className="h-10 min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-xs text-slate-700"
               />
-              <ActionButton type="button" variant="secondary" onClick={() => void copyInvitation()}>
+              <ActionButton
+                type="button"
+                variant="secondary"
+                onClick={() => void copyInvitation()}
+              >
                 {copied ? labels.copied : labels.copyLink}
               </ActionButton>
             </div>

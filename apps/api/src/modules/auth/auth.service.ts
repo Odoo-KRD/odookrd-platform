@@ -36,6 +36,7 @@ export class AuthService {
   async authenticate(
     email: string,
     password: string,
+    rememberMe = false,
   ): Promise<AuthenticationResult> {
     const normalizedEmail = this.normalizeEmail(email);
 
@@ -87,7 +88,10 @@ export class AuthService {
       throw this.invalidCredentials();
     }
 
-    const session = await this.sessionService.createSession(user.id);
+    const session = await this.sessionService.createSession(
+      user.id,
+      rememberMe,
+    );
 
     return {
       token: session.token,

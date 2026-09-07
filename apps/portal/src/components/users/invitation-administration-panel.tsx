@@ -1,5 +1,6 @@
 "use client";
 
+import { invitationAcceptUrl } from "@/lib/invitation-links";
 import type {
   InvitationDispatchSummary,
   Locale,
@@ -89,9 +90,7 @@ export function InvitationAdministrationPanel({
   const [copied, setCopied] = useState(false);
 
   const generatedPath = generateState.token
-    ? `/invitation/accept#${new URLSearchParams({
-        token: generateState.token,
-      }).toString()}`
+    ? invitationAcceptUrl(generateState.token)
     : null;
 
   const latestDispatch =
@@ -104,9 +103,7 @@ export function InvitationAdministrationPanel({
 
   async function copyGeneratedLink() {
     if (!generatedPath) return;
-    await navigator.clipboard.writeText(
-      `${window.location.origin}${generatedPath}`,
-    );
+    await navigator.clipboard.writeText(`${generatedPath}`);
     setCopied(true);
   }
 

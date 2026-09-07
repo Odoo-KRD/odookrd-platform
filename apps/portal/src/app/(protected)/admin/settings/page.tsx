@@ -121,6 +121,7 @@ export default async function SettingsPage({
           labels={labels}
           navigationLabels={settingsNavigationDictionaries[locale]}
           canManage={canManage}
+          hideRestrictedTrainingTabs={!isPlatform}
         />
       </Panel>
     </div>

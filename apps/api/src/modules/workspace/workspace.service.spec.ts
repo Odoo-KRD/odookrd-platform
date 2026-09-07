@@ -1,4 +1,8 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import {
   AccountScope,
@@ -8,7 +12,9 @@ import {
   UserStatus,
 } from '../../generated/prisma/enums';
 import type { PrismaService } from '../../infrastructure/database/prisma.service';
+import type { AuditService } from '../audit/audit.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
+import type { FilesService } from '../files/files.service';
 import {
   CUSTOMER_ACTIVITY_ACTIONS,
   WorkspaceService,
@@ -81,6 +87,10 @@ function createWorkspace() {
         id: USER_ID,
         email: 'customer@example.com',
         companyId: COMPANY_ID,
+        displayName: 'Customer User',
+        whatsappNumber: '+9647700000000',
+        certificateName: 'Customer User',
+        avatarFileAssetId: null,
         status: UserStatus.ACTIVE,
         emailVerifiedAt: now,
         createdAt: now,
@@ -88,15 +98,38 @@ function createWorkspace() {
         company,
         userRoles: [{ role: { key: 'company_user' } }],
       }),
+      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
     },
     session: {
       findFirst: jest.fn().mockResolvedValue({ lastSeenAt: now }),
     },
   };
 
+  const files = {
+    upload: jest.fn(),
+    delete: jest.fn(),
+    openContent: jest.fn(),
+  };
+
+  const audit = {
+    write: jest.fn().mockResolvedValue(undefined),
+  };
+
+  Object.assign(database, {
+    $transaction: jest.fn((callback: (tx: typeof database) => unknown) =>
+      callback(database),
+    ),
+  });
+
   return {
     database,
-    workspace: new WorkspaceService(database as unknown as PrismaService),
+    files,
+    audit,
+    workspace: new WorkspaceService(
+      database as unknown as PrismaService,
+      files as unknown as FilesService,
+      audit as unknown as AuditService,
+    ),
   };
 }
 
@@ -182,7 +215,7 @@ describe('WorkspaceService customer isolation', () => {
     expect(result.recentServices[0]).not.toHaveProperty('internalNotes');
   });
 
-  it('returns only the current user and the current authenticated session', async () => {
+  it('returns only the current user and authenticated session with safe profile fields', async () => {
     const { database, workspace } = createWorkspace();
     const result = await workspace.profile(principal);
 
@@ -202,7 +235,61 @@ describe('WorkspaceService customer isolation', () => {
     );
     expect(result.roles).toEqual(['company_user']);
     expect(result.lastSeenAt).toEqual(now);
+    expect(result.displayName).toBe('Customer User');
+    expect(result.whatsappNumber).toBe('+9647700000000');
+    expect(result.certificateName).toBe('Customer User');
+    expect(result.hasAvatar).toBe(false);
     expect(result).not.toHaveProperty('passwordHash');
+  });
+
+  it('updates only the authenticated company user and audits the changed fields', async () => {
+    const { database, audit, workspace } = createWorkspace();
+
+    await workspace.updateProfile(principal, {
+      displayName: '  Customer Display Name  ',
+      whatsappNumber: '+9647700000000',
+      certificateName: '  Certificate Name  ',
+    });
+
+    expect(database.user.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: USER_ID,
+        companyId: COMPANY_ID,
+        accountScope: AccountScope.COMPANY,
+      },
+      data: {
+        displayName: 'Customer Display Name',
+        whatsappNumber: '+9647700000000',
+        certificateName: 'Certificate Name',
+      },
+    });
+    expect(audit.write).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorUserId: USER_ID,
+        companyId: COMPANY_ID,
+        targetType: 'user',
+        targetId: USER_ID,
+        metadata: {
+          fields: ['displayName', 'whatsappNumber', 'certificateName'],
+        },
+      }),
+      database,
+    );
+  });
+
+  it('rejects an unsafe avatar signature before storing a file', async () => {
+    const { files, workspace } = createWorkspace();
+
+    await expect(
+      workspace.updateAvatar(principal, {
+        originalname: 'avatar.txt',
+        mimetype: 'text/plain',
+        size: 12,
+        buffer: Buffer.from('not-an-image'),
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(files.upload).not.toHaveBeenCalled();
   });
 
   it('does not create a workspace for a missing company', async () => {

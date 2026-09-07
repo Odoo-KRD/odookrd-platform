@@ -66,6 +66,9 @@ function serviceFor(companyId: string = COMPANY_ID): ServicesService {
       findMany: jest.fn().mockResolvedValue([assignment]),
       count: jest.fn().mockResolvedValue(1),
     },
+    companyServiceFeature: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
     $transaction: jest.fn((operations: Array<Promise<unknown>>) =>
       Promise.all(operations),
     ),

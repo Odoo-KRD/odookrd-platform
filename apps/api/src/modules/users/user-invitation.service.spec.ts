@@ -152,6 +152,7 @@ describe('UserInvitationService security', () => {
 
     await expect(
       service.accept({
+        displayName: 'Customer User',
         token: 'expired-invitation-token',
         password: 'StrongPassword123!',
       }),
@@ -168,6 +169,7 @@ describe('UserInvitationService security', () => {
 
     await expect(
       service.accept({
+        displayName: 'Customer User',
         token: 'already-used-invitation-token',
         password: 'StrongPassword123!',
       }),
@@ -191,6 +193,7 @@ describe('UserInvitationService security', () => {
 
     await expect(
       service.accept({
+        displayName: 'Customer User',
         token: 'suspended-company-token',
         password: 'StrongPassword123!',
       }),
@@ -204,6 +207,7 @@ describe('UserInvitationService security', () => {
 
     await expect(
       service.accept({
+        displayName: 'Customer User',
         token: 'race-safe-invitation-token',
         password: 'StrongPassword123!',
       }),
@@ -215,6 +219,7 @@ describe('UserInvitationService security', () => {
 
   it('activates a valid invitation exactly once', async () => {
     const result = await service.accept({
+      displayName: 'Customer User',
       token: 'valid-invitation-token',
       password: 'StrongPassword123!',
     });
@@ -227,5 +232,51 @@ describe('UserInvitationService security', () => {
       id: 'invited-user',
       status: UserStatus.ACTIVE,
     });
+  });
+  it('invitation activation persists the personal name in the same transaction', async () => {
+    let activationInput: unknown = null;
+    const updateSpy = jest
+      .spyOn(transactionClient.user, 'updateMany')
+      .mockImplementation((...args: unknown[]) => {
+        activationInput = args[0];
+        userActivationCalls += 1;
+        return Promise.resolve({ count: 1 });
+      });
+
+    try {
+      await service.accept({
+        token: 'valid-invitation-token',
+        password: 'StrongPassword123!',
+        displayName: '  Customer   User  ',
+      });
+
+      expect(activationInput).toMatchObject({
+        data: { displayName: 'Customer User' },
+      });
+      expect(userActivationCalls).toBe(1);
+      expect(authTokenUpdateCalls).toBe(2);
+    } finally {
+      updateSpy.mockRestore();
+    }
+  });
+
+  it('rejects an invalid personal name before hashing or consuming a token', async () => {
+    for (const displayName of [
+      '',
+      '   ',
+      'A',
+      'A'.repeat(161),
+      'Name\nOther',
+    ]) {
+      await expect(
+        service.accept({
+          token: 'valid-invitation-token',
+          password: 'StrongPassword123!',
+          displayName,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    }
+    expect(passwordHashCalls).toBe(0);
+    expect(authTokenUpdateCalls).toBe(0);
   });
 });

@@ -42,6 +42,7 @@ export class AuthController {
       const result = await this.authService.authenticate(
         dto.email,
         dto.password,
+        dto.rememberMe ?? false,
       );
 
       this.loginThrottle.recordSuccess(dto.email);

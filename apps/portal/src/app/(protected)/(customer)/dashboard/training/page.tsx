@@ -2,16 +2,17 @@ import {
   PERMISSIONS,
   type TrainingCatalogPage,
   type TrainingContinueLearningResponse,
+  type TrainingDashboardSummary,
 } from "@odookrd/types";
-import { EmptyState, PageHeading, Panel } from "@odookrd/ui";
+import { EmptyState, Panel } from "@odookrd/ui";
 import Image from "next/image";
 import Link from "next/link";
 
 import { TrainingContinueLearning } from "@/components/training/training-continue-learning";
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
+import { customerPortalRefinementDictionaries } from "@/lib/i18n/customer-portal-refinement";
 import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
-import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
 import { getTrainingDictionary } from "@/lib/i18n/training-server";
 import { localizeTrainingText } from "@/lib/training-display";
 
@@ -24,6 +25,39 @@ function queryValue(
   maxLength: number,
 ): string {
   return typeof value === "string" ? value.slice(0, maxLength) : "";
+}
+
+function MetricIcon({ kind }: { kind: "enrolled" | "progress" | "completed" }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    className: "size-5",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    "aria-hidden": true,
+  } as const;
+
+  if (kind === "completed") {
+    return (
+      <svg {...common}>
+        <path d="M12 3 5 6v5c0 4.6 2.8 8.3 7 10 4.2-1.7 7-5.4 7-10V6l-7-3ZM9 12l2 2 4-5" />
+      </svg>
+    );
+  }
+
+  if (kind === "progress") {
+    return (
+      <svg {...common}>
+        <path d="M12 3a9 9 0 1 0 9 9M12 3v9h9" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...common}>
+      <path d="M4 5.5h11a3 3 0 0 1 3 3V20H7a3 3 0 0 1-3-3V5.5ZM7 5.5V20M10 9h5M10 13h5" />
+    </svg>
+  );
 }
 
 function CountIcon({ kind }: { kind: "sections" | "lessons" }) {
@@ -58,7 +92,7 @@ export default async function CustomerTrainingCatalogPage({
     searchParams,
   ]);
   const labels = trainingCustomerDictionaries[locale];
-  const workspace = trainingCustomerWorkspaceDictionaries[locale];
+  const refinement = customerPortalRefinementDictionaries[locale].training;
   const search = queryValue(parameters.q, 250).trim();
   const categoryId = queryValue(parameters.categoryId, 36);
   const rawOffset = Number(queryValue(parameters.offset, 12));
@@ -74,7 +108,7 @@ export default async function CustomerTrainingCatalogPage({
     query.set("categoryId", categoryId);
   }
 
-  const [result, continueLearning] = await Promise.all([
+  const [result, continueLearning, dashboardSummary] = await Promise.all([
     apiRequest<TrainingCatalogPage>(`/training/catalog?${query.toString()}`, {
       token,
     }),
@@ -84,6 +118,9 @@ export default async function CustomerTrainingCatalogPage({
         token,
       },
     ),
+    apiRequest<TrainingDashboardSummary>("/training/dashboard-summary", {
+      token,
+    }),
   ]);
   const canAssign = hasPermission(session, PERMISSIONS.TRAINING_ASSIGN);
 
@@ -97,21 +134,30 @@ export default async function CustomerTrainingCatalogPage({
   };
 
   return (
-    <div className="grid gap-7">
-      <PageHeading
-        title={labels.catalogTitle}
-        description={labels.catalogDescription}
-        actions={
-          canAssign && result.enabled ? (
+    <div className="grid gap-6 sm:gap-7">
+      <section className="rounded-xl border border-line bg-surface-panel px-5 py-6 shadow-sm sm:px-7 sm:py-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
+              {refinement.eyebrow}
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-content sm:text-3xl">
+              {refinement.title}
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              {refinement.description}
+            </p>
+          </div>
+          {canAssign && result.enabled ? (
             <Link
               href="/dashboard/training/manage"
-              className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"
+              className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-semibold text-content hover:bg-surface-subtle"
             >
               {labels.manageTraining}
             </Link>
-          ) : undefined
-        }
-      />
+          ) : null}
+        </div>
+      </section>
 
       {!result.enabled ? (
         <Panel className="p-6 sm:p-8">
@@ -122,19 +168,56 @@ export default async function CustomerTrainingCatalogPage({
         </Panel>
       ) : (
         <>
+          <section className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                label: refinement.enrolled,
+                value: dashboardSummary.metrics.entitledCourses,
+                kind: "enrolled" as const,
+              },
+              {
+                label: refinement.inProgress,
+                value: dashboardSummary.metrics.inProgress,
+                kind: "progress" as const,
+              },
+              {
+                label: refinement.completed,
+                value: dashboardSummary.metrics.completed,
+                kind: "completed" as const,
+              },
+            ].map((metric) => (
+              <div
+                key={metric.label}
+                className="flex items-center gap-4 rounded-xl border border-line bg-surface-panel p-5 shadow-sm"
+              >
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+                  <MetricIcon kind={metric.kind} />
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-muted">
+                    {metric.label}
+                  </p>
+                  <p className="mt-1 text-2xl font-semibold text-content">
+                    {metric.value}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </section>
+
           <TrainingContinueLearning
             items={continueLearning.items}
             locale={locale}
           />
 
-          <section className="grid gap-4">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+          <section className="overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-5 py-5 sm:px-6">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
-                  {workspace.courseLibrary}
+                  {refinement.libraryTitle}
                 </p>
                 <h2 className="mt-1 text-lg font-semibold text-content">
-                  {workspace.availableCourses}
+                  {refinement.libraryDescription}
                 </h2>
               </div>
               <p className="text-sm text-muted">
@@ -142,7 +225,7 @@ export default async function CustomerTrainingCatalogPage({
               </p>
             </div>
 
-            <Panel className="p-4">
+            <div className="p-5 sm:p-6">
               <form
                 className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_minmax(220px,320px)_auto_auto]"
                 method="get"
@@ -186,7 +269,7 @@ export default async function CustomerTrainingCatalogPage({
                   <span className="hidden lg:block" />
                 )}
               </form>
-            </Panel>
+            </div>
           </section>
 
           {result.items.length === 0 ? (
@@ -213,17 +296,21 @@ export default async function CustomerTrainingCatalogPage({
                 return (
                   <article
                     key={course.id}
-                    className="group flex min-h-full flex-col overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                    className="group flex min-h-full flex-col overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
                   >
                     <Link
-                      href={`/dashboard/training/${encodeURIComponent(course.slug)}`}
+                      href={`/dashboard/training/${encodeURIComponent(
+                        course.slug,
+                      )}`}
                       className="block overflow-hidden bg-surface-subtle"
                       aria-label={title}
                     >
                       <div className="aspect-video overflow-hidden">
                         {course.hasCover ? (
                           <Image
-                            src={`/api/training/catalog/${encodeURIComponent(course.slug)}/cover`}
+                            src={`/api/training/catalog/${encodeURIComponent(
+                              course.slug,
+                            )}/cover`}
                             alt=""
                             width={640}
                             height={360}
@@ -239,14 +326,14 @@ export default async function CustomerTrainingCatalogPage({
                     </Link>
 
                     <div className="flex flex-1 flex-col p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="inline-flex max-w-full rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand">
-                          <span className="truncate">{category}</span>
-                        </span>
-                      </div>
+                      <span className="inline-flex max-w-full self-start rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand">
+                        <span className="truncate">{category}</span>
+                      </span>
 
                       <Link
-                        href={`/dashboard/training/${encodeURIComponent(course.slug)}`}
+                        href={`/dashboard/training/${encodeURIComponent(
+                          course.slug,
+                        )}`}
                         className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-content hover:text-brand"
                       >
                         {title}
@@ -276,7 +363,9 @@ export default async function CustomerTrainingCatalogPage({
                       </div>
 
                       <Link
-                        href={`/dashboard/training/${encodeURIComponent(course.slug)}`}
+                        href={`/dashboard/training/${encodeURIComponent(
+                          course.slug,
+                        )}`}
                         className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-hover"
                       >
                         {labels.viewCourse}

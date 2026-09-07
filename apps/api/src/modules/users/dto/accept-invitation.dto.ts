@@ -10,4 +10,9 @@ export class AcceptInvitationDto {
   @MinLength(1)
   @MaxLength(1024)
   password!: string;
+
+  @IsString()
+  @MinLength(2)
+  @MaxLength(160)
+  displayName!: string;
 }

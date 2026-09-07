@@ -286,11 +286,31 @@ enum TrainingCertificateTemplateStatus {
   @@map("training_certificate_template_status")
 }
 
+enum CompanyIdentityChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+
+  @@map("company_identity_change_request_status")
+}
+
 model Company {
   id               String        @id @default(uuid()) @db.Uuid
   name             String        @db.VarChar(200)
   nameTranslations Json          @default("{}") @map("name_translations") @db.JsonB
   status           CompanyStatus @default(ACTIVE)
+  slug             String?       @unique @db.VarChar(160)
+  contactEmail     String?       @map("contact_email") @db.VarChar(320)
+  websiteUrl       String?       @map("website_url") @db.VarChar(500)
+  phone            String?       @db.VarChar(32)
+  addressLine1     String?       @map("address_line_1") @db.VarChar(250)
+  addressLine2     String?       @map("address_line_2") @db.VarChar(250)
+  city             String?       @db.VarChar(120)
+  region           String?       @db.VarChar(120)
+  postalCode       String?       @map("postal_code") @db.VarChar(32)
+  countryCode      String?       @map("country_code") @db.Char(2)
+  logoFileAssetId  String?       @map("logo_file_asset_id") @db.Uuid
   createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -301,7 +321,7 @@ model Company {
   notifications             Notification[]
   notificationRecipients    NotificationRecipient[]
   invitationDispatches      UserInvitationDispatch[]
-  fileAssets                FileAsset[]
+  fileAssets                FileAsset[]                    @relation("CompanyFileAssets")
   trainingCompanyAccess     TrainingCourseCompanyAccess[]
   trainingUserAccess        TrainingCourseUserAccess[]
   trainingLessonProgress    TrainingLessonProgress[]
@@ -309,42 +329,77 @@ model Company {
   trainingQuizAttempts      TrainingQuizAttempt[]
   trainingCourseCompletions TrainingCourseCompletion[]
   trainingCertificates      TrainingCertificate[]
+  logoFileAsset             FileAsset?                     @relation("CompanyLogoFileAsset", fields: [logoFileAssetId], references: [id], onDelete: SetNull)
+  identityChangeRequests    CompanyIdentityChangeRequest[]
 
+  @@index([logoFileAssetId], map: "companies_logo_file_asset_idx")
   @@map("companies")
 }
 
-model User {
-  id              String       @id @default(uuid()) @db.Uuid
-  companyId       String?      @map("company_id") @db.Uuid
-  accountScope    AccountScope @map("account_scope")
-  email           String       @db.VarChar(320)
-  whatsappNumber  String?      @map("whatsapp_number") @db.VarChar(16)
-  certificateName String?      @map("certificate_name") @db.VarChar(250)
-  normalizedEmail String       @unique @map("normalized_email") @db.VarChar(320)
-  passwordHash    String?      @map("password_hash") @db.VarChar(255)
-  status          UserStatus   @default(INVITED)
-  emailVerifiedAt DateTime?    @map("email_verified_at") @db.Timestamptz(6)
-  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+model CompanyIdentityChangeRequest {
+  id                      String                             @id @default(uuid()) @db.Uuid
+  companyId               String                             @map("company_id") @db.Uuid
+  requestedByUserId       String                             @map("requested_by_user_id") @db.Uuid
+  proposedName            String?                            @map("proposed_name") @db.VarChar(200)
+  proposedLogoFileAssetId String?                            @map("proposed_logo_file_asset_id") @db.Uuid
+  status                  CompanyIdentityChangeRequestStatus @default(PENDING)
+  reviewNote              String?                            @map("review_note") @db.VarChar(1000)
+  reviewedByUserId        String?                            @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt              DateTime?                          @map("reviewed_at") @db.Timestamptz(6)
+  createdAt               DateTime                           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company                   Company?                       @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  userRoles                 UserRole[]
-  sessions                  Session[]
-  authTokens                AuthToken[]
-  notificationRecipients    NotificationRecipient[]
-  invitationDispatches      UserInvitationDispatch[]
-  notificationProviderTests NotificationProviderTest[]
-  serviceLifecycleEvents    CompanyServiceLifecycleEvent[]
-  uiPreference              UserUiPreference?
-  uploadedFileAssets        FileAsset[]                    @relation("FileAssetUploader")
-  trainingUserAccess        TrainingCourseUserAccess[]
-  trainingLessonProgress    TrainingLessonProgress[]
-  trainingCourseProgress    TrainingCourseProgress[]
-  trainingQuizAttempts      TrainingQuizAttempt[]
-  trainingCourseCompletions TrainingCourseCompletion[]
-  trainingCertificates      TrainingCertificate[]
+  company               Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedBy           User       @relation("CompanyIdentityRequestedBy", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  reviewedBy            User?      @relation("CompanyIdentityReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  proposedLogoFileAsset FileAsset? @relation("CompanyIdentityProposedLogo", fields: [proposedLogoFileAssetId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, status])
+  @@index([requestedByUserId])
+  @@index([reviewedByUserId])
+  @@index([proposedLogoFileAssetId])
+  @@index([createdAt])
+  @@map("company_identity_change_requests")
+}
+
+model User {
+  id                String       @id @default(uuid()) @db.Uuid
+  companyId         String?      @map("company_id") @db.Uuid
+  accountScope      AccountScope @map("account_scope")
+  email             String       @db.VarChar(320)
+  displayName       String?      @map("display_name") @db.VarChar(160)
+  whatsappNumber    String?      @map("whatsapp_number") @db.VarChar(16)
+  certificateName   String?      @map("certificate_name") @db.VarChar(250)
+  avatarFileAssetId String?      @map("avatar_file_asset_id") @db.Uuid
+  normalizedEmail   String       @unique @map("normalized_email") @db.VarChar(320)
+  passwordHash      String?      @map("password_hash") @db.VarChar(255)
+  status            UserStatus   @default(INVITED)
+  emailVerifiedAt   DateTime?    @map("email_verified_at") @db.Timestamptz(6)
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company                          Company?                       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  userRoles                        UserRole[]
+  sessions                         Session[]
+  authTokens                       AuthToken[]
+  notificationRecipients           NotificationRecipient[]
+  invitationDispatches             UserInvitationDispatch[]
+  notificationProviderTests        NotificationProviderTest[]
+  serviceLifecycleEvents           CompanyServiceLifecycleEvent[]
+  uiPreference                     UserUiPreference?
+  uploadedFileAssets               FileAsset[]                    @relation("FileAssetUploader")
+  avatarFileAsset                  FileAsset?                     @relation("UserAvatarFileAsset", fields: [avatarFileAssetId], references: [id], onDelete: SetNull)
+  trainingUserAccess               TrainingCourseUserAccess[]
+  trainingLessonProgress           TrainingLessonProgress[]
+  trainingCourseProgress           TrainingCourseProgress[]
+  trainingQuizAttempts             TrainingQuizAttempt[]
+  trainingCourseCompletions        TrainingCourseCompletion[]
+  trainingCertificates             TrainingCertificate[]
+  companyIdentityRequestsRequested CompanyIdentityChangeRequest[] @relation("CompanyIdentityRequestedBy")
+  companyIdentityRequestsReviewed  CompanyIdentityChangeRequest[] @relation("CompanyIdentityReviewedBy")
 
   @@index([companyId])
+  @@index([avatarFileAssetId], map: "users_avatar_file_asset_idx")
   @@index([status])
   @@map("users")
 }
@@ -378,10 +433,13 @@ model FileAsset {
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?           @map("deleted_at") @db.Timestamptz(6)
 
-  company                 Company?              @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  uploadedBy              User                  @relation("FileAssetUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
-  trainingCourseCovers    TrainingCourse[]      @relation("TrainingCourseCoverImage")
-  trainingDocumentLessons TrainingVideoLesson[] @relation("TrainingLessonDocumentAsset")
+  company                      Company?                       @relation("CompanyFileAssets", fields: [companyId], references: [id], onDelete: Restrict)
+  uploadedBy                   User                           @relation("FileAssetUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  avatarForUsers               User[]                         @relation("UserAvatarFileAsset")
+  companyLogos                 Company[]                      @relation("CompanyLogoFileAsset")
+  companyIdentityProposedLogos CompanyIdentityChangeRequest[] @relation("CompanyIdentityProposedLogo")
+  trainingCourseCovers         TrainingCourse[]               @relation("TrainingCourseCoverImage")
+  trainingDocumentLessons      TrainingVideoLesson[]          @relation("TrainingLessonDocumentAsset")
 
   trainingLessonResources                TrainingLessonResource[]      @relation("TrainingLessonResourceFile")
   trainingVideoCaptionTracks             TrainingVideoCaptionTrack[]   @relation("TrainingVideoCaptionFile")

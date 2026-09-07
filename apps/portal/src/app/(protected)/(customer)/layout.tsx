@@ -1,19 +1,23 @@
-import { PERMISSIONS, type TrainingCatalogStatus } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  type CustomerAccountProfile,
+  type CustomerNotificationPage,
+  type NotificationUnreadCount,
+  type TrainingCatalogStatus,
+} from "@odookrd/types";
 import { redirect } from "next/navigation";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import {
-  AdminNavigation,
-  type AdminNavigationItem,
+import type {
+  AdminNavigationEntry,
+  AdminNavigationItem,
 } from "@/components/admin/navigation";
-import { LogoutButton } from "@/components/auth/logout-button";
-import { LanguageSwitcher } from "@/components/preferences/language-switcher";
+import { CustomerShellHeader } from "@/components/customer/customer-shell-header";
 import { apiRequest } from "@/lib/api";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
+import { customerDashboardV2Dictionaries } from "@/lib/i18n/customer-dashboard-v2";
 import { frontendTranslations } from "@/lib/i18n/frontend";
 import { getPortalDictionary } from "@/lib/i18n/portal-server";
-import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
-import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
 import { getPublicSettings } from "@/lib/public-settings";
 import { getSessionToken, requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
@@ -33,32 +37,54 @@ export default async function ProtectedCustomerLayout({
     getUserUiPreferences(),
   ]);
 
-  if (session.user.accountScope !== "COMPANY") {
+  if (session.user.accountScope !== "COMPANY" || !session.user.companyId) {
     redirect("/admin");
   }
 
-  let trainingEnabled = false;
-
-  if (
-    session.user.companyId &&
-    hasPermission(session, PERMISSIONS.TRAINING_READ)
-  ) {
-    const token = await getSessionToken();
-
-    if (token) {
-      try {
-        const status = await apiRequest<TrainingCatalogStatus>(
-          "/training/catalog/status",
-          { token },
-        );
-        trainingEnabled = status.enabled;
-      } catch {
-        trainingEnabled = false;
-      }
-    }
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
   }
 
-  const navigation: AdminNavigationItem[] = [
+  const labels = customerDashboardV2Dictionaries[locale];
+  const canServices = hasPermission(session, PERMISSIONS.SERVICES_READ);
+  const canTraining = hasPermission(session, PERMISSIONS.TRAINING_READ);
+  const canCompany = hasPermission(session, PERMISSIONS.COMPANIES_READ);
+  const canNotifications = hasPermission(
+    session,
+    PERMISSIONS.NOTIFICATIONS_READ,
+  );
+  const canAdministration = hasAdminAccess(session);
+
+  const [profile, trainingStatus, notificationPage, unread] = await Promise.all(
+    [
+      apiRequest<CustomerAccountProfile>("/workspace/profile", { token }),
+      canTraining
+        ? apiRequest<TrainingCatalogStatus>("/training/catalog/status", {
+            token,
+          }).catch(() => ({ enabled: false }))
+        : Promise.resolve({ enabled: false }),
+      canNotifications
+        ? apiRequest<CustomerNotificationPage>(
+            "/notifications?limit=5&offset=0",
+            {
+              token,
+            },
+          ).catch(() => ({
+            items: [],
+            pagination: { limit: 5, offset: 0, total: 0 },
+          }))
+        : Promise.resolve(null),
+      canNotifications
+        ? apiRequest<NotificationUnreadCount>("/notifications/unread-count", {
+            token,
+          }).catch(() => ({ unread: 0 }))
+        : Promise.resolve(null),
+    ],
+  );
+  const trainingEnabled = trainingStatus.enabled;
+
+  const navigation: AdminNavigationEntry[] = [
     {
       kind: "item",
       href: "/dashboard",
@@ -67,7 +93,7 @@ export default async function ProtectedCustomerLayout({
     },
   ];
 
-  if (hasPermission(session, PERMISSIONS.SERVICES_READ)) {
+  if (canServices) {
     navigation.push({
       kind: "item",
       href: "/dashboard/services",
@@ -76,39 +102,53 @@ export default async function ProtectedCustomerLayout({
     });
   }
 
-  if (trainingEnabled) {
-    navigation.push({
+  const learningChildren: AdminNavigationItem[] = [];
+  if (canTraining && trainingEnabled) {
+    learningChildren.push({
       kind: "item",
       href: "/dashboard/training",
-      label: trainingCustomerDictionaries[locale].navigation,
-      icon: "training",
+      label: labels.navigation.myCourses,
     });
   }
-
-  if (hasPermission(session, PERMISSIONS.TRAINING_READ)) {
-    navigation.push({
+  if (canTraining) {
+    learningChildren.push({
       kind: "item",
       href: "/dashboard/training/certificates",
-      label: trainingCertificateDictionaries[locale].certificatesNavigation,
+      label: labels.navigation.myCertificates,
+    });
+  }
+  if (learningChildren.length > 0) {
+    navigation.push({
+      kind: "group",
+      id: "customer-learning",
+      label: labels.navigation.learning,
+      icon: "training",
+      children: learningChildren,
     });
   }
 
-  navigation.push(
-    {
+  const accountChildren: AdminNavigationItem[] = [];
+  if (canCompany) {
+    accountChildren.push({
       kind: "item",
       href: "/dashboard/company",
-      label: frontendTranslations[locale].workspace.navigation.company,
-      icon: "companies",
-    },
-    {
-      kind: "item",
-      href: "/dashboard/profile",
-      label: frontendTranslations[locale].workspace.navigation.profile,
-      icon: "users",
-    },
-  );
+      label: labels.navigation.companyProfile,
+    });
+  }
+  accountChildren.push({
+    kind: "item",
+    href: "/dashboard/profile",
+    label: labels.navigation.myProfile,
+  });
+  navigation.push({
+    kind: "group",
+    id: "customer-company-account",
+    label: labels.navigation.companyAccount,
+    icon: "users",
+    children: accountChildren,
+  });
 
-  if (hasPermission(session, PERMISSIONS.NOTIFICATIONS_READ)) {
+  if (canNotifications) {
     navigation.push({
       kind: "item",
       href: "/dashboard/notifications",
@@ -117,7 +157,7 @@ export default async function ProtectedCustomerLayout({
     });
   }
 
-  if (hasAdminAccess(session)) {
+  if (canAdministration) {
     navigation.push({
       kind: "item",
       href: "/admin",
@@ -141,43 +181,28 @@ export default async function ProtectedCustomerLayout({
       />
 
       <div className="flex min-w-0 flex-1 flex-col lg:h-screen lg:overflow-hidden">
-        <header className="customer-shell-header shrink-0 border-b border-line bg-surface-panel px-5 py-4 sm:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-content lg:hidden">
-                {publicSettings.siteTitle}
-              </p>
-              <p className="mt-1 text-xs text-muted lg:mt-0">
-                {portal.navigation.portal}
-              </p>
-            </div>
+        <CustomerShellHeader
+          siteTitle={publicSettings.siteTitle}
+          navigationLabel={portal.navigation.label}
+          navigation={navigation}
+          locale={locale}
+          languageLabel={dictionary.common.language}
+          labels={labels.header}
+          email={profile.email}
+          displayName={profile.displayName ?? profile.certificateName}
+          companyName={profile.company.name}
+          hasAvatar={profile.hasAvatar}
+          avatarFileAssetId={profile.avatarFileAssetId}
+          unreadCount={unread?.unread ?? 0}
+          notifications={notificationPage?.items ?? []}
+          canCompany={canCompany}
+          canTraining={canTraining}
+          trainingEnabled={trainingEnabled}
+          canNotifications={canNotifications}
+          canAdministration={canAdministration}
+        />
 
-            <div className="flex flex-wrap items-center gap-3">
-              <LanguageSwitcher
-                locale={locale}
-                label={dictionary.common.language}
-              />
-              <LogoutButton
-                label={dictionary.workspace.signOut}
-                pendingLabel={dictionary.workspace.signingOut}
-              />
-            </div>
-          </div>
-
-          <details className="mt-4 border-t border-line pt-3 lg:hidden">
-            <summary className="cursor-pointer text-sm font-medium text-content">
-              {portal.navigation.label}
-            </summary>
-            <div className="mt-3">
-              <AdminNavigation
-                label={portal.navigation.label}
-                entries={navigation}
-              />
-            </div>
-          </details>
-        </header>
-
-        <main className="customer-shell-main w-full min-w-0 flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
+        <main className="customer-shell-main w-full min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-7 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:px-8 lg:py-8">
           {children}
         </main>
       </div>

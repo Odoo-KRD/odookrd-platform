@@ -19,10 +19,19 @@ export interface ValidatedSession {
   absoluteExpiresAt: Date;
 }
 
+interface SessionExpiryShape {
+  createdAt: Date;
+  lastSeenAt: Date;
+  idleExpiresAt: Date;
+  absoluteExpiresAt: Date;
+}
+
 @Injectable()
 export class SessionService {
   private readonly idleTtlSeconds: number;
   private readonly absoluteTtlSeconds: number;
+  private readonly rememberIdleTtlSeconds: number;
+  private readonly rememberAbsoluteTtlSeconds: number;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -35,20 +44,44 @@ export class SessionService {
     this.absoluteTtlSeconds = configService.getOrThrow<number>(
       'AUTH_SESSION_ABSOLUTE_TTL_SECONDS',
     );
+
+    this.rememberIdleTtlSeconds = Math.max(
+      this.idleTtlSeconds,
+      configService.getOrThrow<number>(
+        'AUTH_REMEMBER_SESSION_IDLE_TTL_SECONDS',
+      ),
+    );
+
+    this.rememberAbsoluteTtlSeconds = Math.max(
+      this.absoluteTtlSeconds,
+      configService.getOrThrow<number>(
+        'AUTH_REMEMBER_SESSION_ABSOLUTE_TTL_SECONDS',
+      ),
+    );
   }
 
-  async createSession(userId: string): Promise<CreatedSession> {
+  async createSession(
+    userId: string,
+    rememberMe = false,
+  ): Promise<CreatedSession> {
     const token = this.generateToken();
     const tokenHash = this.hashToken(token);
 
     const now = new Date();
+    const absoluteTtlSeconds = rememberMe
+      ? this.rememberAbsoluteTtlSeconds
+      : this.absoluteTtlSeconds;
+    const idleTtlSeconds = rememberMe
+      ? this.rememberIdleTtlSeconds
+      : this.idleTtlSeconds;
+
     const absoluteExpiresAt = new Date(
-      now.getTime() + this.absoluteTtlSeconds * 1000,
+      now.getTime() + absoluteTtlSeconds * 1000,
     );
 
     const idleExpiresAt = new Date(
       Math.min(
-        now.getTime() + this.idleTtlSeconds * 1000,
+        now.getTime() + idleTtlSeconds * 1000,
         absoluteExpiresAt.getTime(),
       ),
     );
@@ -96,9 +129,13 @@ export class SessionService {
       return null;
     }
 
+    const idleTtlSeconds = this.isRememberedSession(session)
+      ? this.rememberIdleTtlSeconds
+      : this.idleTtlSeconds;
+
     const idleExpiresAt = new Date(
       Math.min(
-        now.getTime() + this.idleTtlSeconds * 1000,
+        now.getTime() + idleTtlSeconds * 1000,
         session.absoluteExpiresAt.getTime(),
       ),
     );
@@ -183,6 +220,19 @@ export class SessionService {
     });
 
     return result.count;
+  }
+
+  private isRememberedSession(session: SessionExpiryShape): boolean {
+    const absoluteWindowMs =
+      session.absoluteExpiresAt.getTime() - session.createdAt.getTime();
+    const idleWindowMs =
+      session.idleExpiresAt.getTime() - session.lastSeenAt.getTime();
+    const toleranceMs = 1000;
+
+    return (
+      absoluteWindowMs > this.absoluteTtlSeconds * 1000 + toleranceMs ||
+      idleWindowMs > this.idleTtlSeconds * 1000 + toleranceMs
+    );
   }
 
   private generateToken(): string {

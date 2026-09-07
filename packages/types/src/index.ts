@@ -86,6 +86,43 @@ export interface Company {
   updatedAt: string;
 }
 
+export type CompanyIdentityChangeRequestStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "CANCELLED";
+
+export interface CompanyProfile extends Company {
+  slug: string | null;
+  contactEmail: string | null;
+  websiteUrl: string | null;
+  phone: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  countryCode: string | null;
+  logoFileAssetId: string | null;
+  hasLogo: boolean;
+}
+
+export interface CompanyIdentityChangeRequest {
+  id: string;
+  companyId: string;
+  requestedByUserId: string;
+  requestedByEmail: string;
+  proposedName: string | null;
+  proposedLogoFileAssetId: string | null;
+  hasProposedLogo: boolean;
+  status: CompanyIdentityChangeRequestStatus;
+  reviewNote: string | null;
+  reviewedByUserId: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ManagedUser {
   id: string;
   email: string;
@@ -325,6 +362,16 @@ export interface CompanyServiceAssignment {
   >;
 }
 
+export type CustomerVisibleServiceFeature = Omit<
+  CompanyServiceFeature,
+  "source" | "customerVisibleOverride" | "sortOrderOverride"
+>;
+
+export interface CustomerServiceAssignmentCard extends CompanyServiceAssignment {
+  featurePreview: CustomerVisibleServiceFeature[];
+  visibleFeatureCount: number;
+}
+
 export type CustomerActivityAction =
   | "company.created"
   | "company.updated"
@@ -379,6 +426,11 @@ export interface CustomerAccountProfile {
   id: string;
   email: string;
   companyId: string;
+  displayName: string | null;
+  whatsappNumber: string | null;
+  certificateName: string | null;
+  avatarFileAssetId: string | null;
+  hasAvatar: boolean;
   status: UserStatus;
   emailVerifiedAt: string | null;
   createdAt: string;
@@ -386,6 +438,12 @@ export interface CustomerAccountProfile {
   company: Company;
   roles: string[];
   lastSeenAt: string | null;
+}
+
+export interface UpdateCustomerAccountProfileInput {
+  displayName?: string | null;
+  whatsappNumber?: string | null;
+  certificateName?: string | null;
 }
 
 export type NotificationChannel = "IN_APP" | "EMAIL" | "WHATSAPP";
@@ -1338,6 +1396,35 @@ export interface TrainingContinueLearningItem {
 
 export interface TrainingContinueLearningResponse {
   items: TrainingContinueLearningItem[];
+}
+
+export interface TrainingDashboardCourse {
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+    titleTranslations: LocalizedText;
+    hasCover: boolean;
+    category: TrainingCatalogCategory;
+  };
+  progress: TrainingCourseProgressSummary;
+  completedAt: string | null;
+  certificate: {
+    id: string;
+    status: TrainingCertificateStatus;
+  } | null;
+}
+
+export interface TrainingDashboardSummary {
+  enabled: boolean;
+  metrics: {
+    entitledCourses: number;
+    completed: number;
+    inProgress: number;
+    notStarted: number;
+    averageProgressPercentage: number;
+  };
+  courses: TrainingDashboardCourse[];
 }
 
 export interface TrainingLessonProgressUpdate {

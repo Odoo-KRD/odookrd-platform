@@ -1363,8 +1363,64 @@ export class ServicesService {
       this.prisma.companyService.count({ where }),
     ]);
 
+    const featureRecords =
+      principal.accountScope === AccountScope.COMPANY && records.length > 0
+        ? await this.prisma.companyServiceFeature.findMany({
+            where: {
+              companyServiceId: { in: records.map((record) => record.id) },
+              serviceFeature: {
+                status: ServiceFeatureStatus.ACTIVE,
+              },
+            },
+            select: assignmentFeatureSelect,
+          })
+        : [];
+
+    const featuresByAssignment = new Map<string, AssignmentFeatureRecord[]>();
+
+    for (const feature of featureRecords) {
+      const customerVisible =
+        feature.customerVisibleOverride ??
+        feature.serviceFeature.customerVisible;
+
+      if (!customerVisible) {
+        continue;
+      }
+
+      const current = featuresByAssignment.get(feature.companyServiceId) ?? [];
+      current.push(feature);
+      featuresByAssignment.set(feature.companyServiceId, current);
+    }
+
+    for (const features of featuresByAssignment.values()) {
+      features.sort((left, right) => {
+        const leftOrder =
+          left.sortOrderOverride ?? left.serviceFeature.sortOrder;
+        const rightOrder =
+          right.sortOrderOverride ?? right.serviceFeature.sortOrder;
+
+        return leftOrder - rightOrder || left.id.localeCompare(right.id);
+      });
+    }
+
     return {
-      items: records.map((record) => this.presentAssignment(record, principal)),
+      items: records.map((record) => {
+        const assignment = this.presentAssignment(record, principal);
+
+        if (principal.accountScope !== AccountScope.COMPANY) {
+          return assignment;
+        }
+
+        const visibleFeatures = (featuresByAssignment.get(record.id) ?? []).map(
+          (feature) => this.presentAssignmentFeature(feature, principal),
+        );
+
+        return {
+          ...assignment,
+          featurePreview: visibleFeatures.slice(0, 5),
+          visibleFeatureCount: visibleFeatures.length,
+        };
+      }),
       pagination: { limit: query.limit, offset: query.offset, total },
     };
   }

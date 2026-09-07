@@ -1,5 +1,6 @@
 "use client";
 
+import { invitationAcceptUrl } from "@/lib/invitation-links";
 import type {
   Company,
   InvitationDispatchSummary,
@@ -90,16 +91,12 @@ export function InviteAndDeliverUserForm({
   );
 
   const invitationLink = state.invitation
-    ? `/invitation/accept#${new URLSearchParams({
-        token: state.invitation.token,
-      }).toString()}`
+    ? invitationAcceptUrl(state.invitation.token)
     : null;
 
   async function copyLink() {
     if (!invitationLink) return;
-    await navigator.clipboard.writeText(
-      `${window.location.origin}${invitationLink}`,
-    );
+    await navigator.clipboard.writeText(`${invitationLink}`);
     setCopied(true);
   }
 

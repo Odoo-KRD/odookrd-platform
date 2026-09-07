@@ -113,7 +113,12 @@ test("invitation secrets use the URL fragment and are cleared after acceptance",
     source("src/components/invitations/accept-invitation-form.tsx"),
   ]);
 
-  assert.match(inviteForm, /\/invitation\/accept#/);
+  const invitationLinks = await source("src/lib/invitation-links.ts");
+  assert.match(inviteForm, /invitationAcceptUrl\(/);
+  assert.match(invitationLinks, /https:\/\/my\.odoo\.krd/);
+  assert.match(invitationLinks, /\/invitation\/accept#/);
+  assert.match(invitationLinks, /new URLSearchParams\(/);
+  assert.doesNotMatch(invitationLinks, /\/invitation\/accept\?[^#\s]*token/);
   assert.doesNotMatch(inviteForm, /\/invitation\/accept\?[^"'`]*token/);
   assert.match(acceptanceForm, /window\.location\.hash\.slice\(1\)/);
   assert.match(

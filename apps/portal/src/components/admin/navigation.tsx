@@ -52,9 +52,19 @@ function isItemActive(pathname: string, href: string): boolean {
     return false;
   }
 
-  return href === "/admin"
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+  if (
+    href === "/dashboard/training" &&
+    (pathname === "/dashboard/training/certificates" ||
+      pathname.startsWith("/dashboard/training/certificates/"))
+  ) {
+    return false;
+  }
+
+  if (href === "/admin" || href === "/dashboard") {
+    return pathname === href;
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function entryContainsActive(

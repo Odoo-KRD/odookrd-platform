@@ -103,6 +103,21 @@ export class SettingsService {
   ): Promise<SettingsCollection> {
     this.authorization.assertCompanyAccess(principal, companyId);
     await this.assertCompanyExists(companyId);
+
+    if (
+      principal.accountScope === AccountScope.COMPANY &&
+      items.some(
+        (item) =>
+          item.key.startsWith('trainings.video.') ||
+          item.key.startsWith('trainings.player.') ||
+          item.key.startsWith('trainings.progress.'),
+      )
+    ) {
+      throw new ForbiddenException(
+        'Video delivery, player, and progress settings can be changed only by a platform administrator.',
+      );
+    }
+
     await this.update(principal, SettingScope.COMPANY, companyId, items);
     return this.list(principal, SettingScope.COMPANY, companyId);
   }

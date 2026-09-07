@@ -14,6 +14,7 @@ import { PasswordService } from '../auth/password.service';
 import { AUDIT_ACTIONS } from '../audit/audit.actions';
 import { AuditService } from '../audit/audit.service';
 import type { AcceptInvitationDto } from './dto/accept-invitation.dto';
+import { normalizeInvitationName } from './invitation-name';
 
 export interface CreatedInvitationToken {
   token: string;
@@ -65,6 +66,7 @@ export class UserInvitationService {
     };
   }> {
     this.validatePassword(dto.password);
+    const displayName = normalizeInvitationName(dto.displayName);
 
     const tokenHash = this.hashToken(dto.token);
     const now = new Date();
@@ -135,6 +137,7 @@ export class UserInvitationService {
           status: UserStatus.INVITED,
         },
         data: {
+          displayName,
           passwordHash,
           status: UserStatus.ACTIVE,
           emailVerifiedAt: now,

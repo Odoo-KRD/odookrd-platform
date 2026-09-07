@@ -23,6 +23,18 @@ export const environmentValidationSchema = Joi.object({
     .max(2592000)
     .default(86400),
 
+  AUTH_REMEMBER_SESSION_IDLE_TTL_SECONDS: Joi.number()
+    .integer()
+    .min(3600)
+    .max(2592000)
+    .default(604800),
+
+  AUTH_REMEMBER_SESSION_ABSOLUTE_TTL_SECONDS: Joi.number()
+    .integer()
+    .min(86400)
+    .max(2592000)
+    .default(2592000),
+
   AUTH_PASSWORD_MIN_LENGTH: Joi.number().integer().min(8).max(64).default(12),
 
   AUTH_PASSWORD_MAX_LENGTH: Joi.number()
