@@ -46,7 +46,6 @@ import type {
   CreateServiceFeatureDto,
   ListServiceFeaturesQueryDto,
   ReorderServiceFeaturesDto,
-  ServiceFeaturePrimitive,
   UpdateCompanyServiceFeatureDto,
   UpdateServiceFeatureDto,
 } from './dto/service-feature.dto';
@@ -57,197 +56,34 @@ import type {
   UpdateServiceFeatureDefinitionDto,
 } from './dto/service-feature-definition.dto';
 import type { CreateServiceTransitionDto } from './dto/service-lifecycle.dto';
-
-const serviceSelect = {
-  id: true,
-  key: true,
-  name: true,
-  nameTranslations: true,
-  category: true,
-  description: true,
-  descriptionTranslations: true,
-  status: true,
-  createdAt: true,
-  updatedAt: true,
-  _count: { select: { assignments: true, features: true } },
-} satisfies Prisma.ServiceSelect;
-
-const featureDefinitionSelect = {
-  id: true,
-  key: true,
-  name: true,
-  nameTranslations: true,
-  description: true,
-  descriptionTranslations: true,
-  category: true,
-  valueType: true,
-  parameterLabel: true,
-  parameterLabelTranslations: true,
-  defaultValue: true,
-  valueTranslations: true,
-  unit: true,
-  status: true,
-  sortOrder: true,
-  createdAt: true,
-  updatedAt: true,
-  _count: { select: { serviceFeatures: true } },
-} satisfies Prisma.ServiceFeatureDefinitionSelect;
-
-const serviceFeatureSelect = {
-  id: true,
-  serviceId: true,
-  definitionId: true,
-  key: true,
-  name: true,
-  nameTranslations: true,
-  description: true,
-  descriptionTranslations: true,
-  valueType: true,
-  parameterLabel: true,
-  parameterLabelTranslations: true,
-  defaultValue: true,
-  valueTranslations: true,
-  unit: true,
-  status: true,
-  customerVisible: true,
-  sortOrder: true,
-  createdAt: true,
-  updatedAt: true,
-} satisfies Prisma.ServiceFeatureSelect;
-
-const assignmentFeatureSelect = {
-  id: true,
-  companyServiceId: true,
-  serviceFeatureId: true,
-  value: true,
-  valueTranslations: true,
-  source: true,
-  customerVisibleOverride: true,
-  sortOrderOverride: true,
-  createdAt: true,
-  updatedAt: true,
-  serviceFeature: {
-    select: {
-      id: true,
-      serviceId: true,
-      key: true,
-      name: true,
-      nameTranslations: true,
-      description: true,
-      descriptionTranslations: true,
-      valueType: true,
-      parameterLabel: true,
-      parameterLabelTranslations: true,
-      defaultValue: true,
-      valueTranslations: true,
-      unit: true,
-      status: true,
-      customerVisible: true,
-      sortOrder: true,
-    },
-  },
-} satisfies Prisma.CompanyServiceFeatureSelect;
-
-const lifecycleSelect = {
-  id: true,
-  companyServiceId: true,
-  companyId: true,
-  fromStatus: true,
-  toStatus: true,
-  source: true,
-  reasonCode: true,
-  reason: true,
-  actorUserId: true,
-  actorEmailSnapshot: true,
-  effectiveAt: true,
-  metadata: true,
-  createdAt: true,
-} satisfies Prisma.CompanyServiceLifecycleEventSelect;
-
-const allowedLifecycleTransitions: Record<
-  CompanyServiceStatus,
-  readonly CompanyServiceStatus[]
-> = {
-  [CompanyServiceStatus.PROVISIONING]: [
-    CompanyServiceStatus.ACTIVE,
-    CompanyServiceStatus.SUSPENDED,
-    CompanyServiceStatus.CANCELLED,
-  ],
-  [CompanyServiceStatus.ACTIVE]: [
-    CompanyServiceStatus.SUSPENDED,
-    CompanyServiceStatus.EXPIRED,
-    CompanyServiceStatus.CANCELLED,
-  ],
-  [CompanyServiceStatus.SUSPENDED]: [
-    CompanyServiceStatus.ACTIVE,
-    CompanyServiceStatus.EXPIRED,
-    CompanyServiceStatus.CANCELLED,
-  ],
-  [CompanyServiceStatus.EXPIRED]: [
-    CompanyServiceStatus.ACTIVE,
-    CompanyServiceStatus.CANCELLED,
-  ],
-  [CompanyServiceStatus.CANCELLED]: [],
-};
-
-const prohibitedMonetaryUnit =
-  /(?:[$€£]|\b(?:USD|IQD|EUR|GBP|AED|SAR|DOLLARS?|DINARS?|EUROS?)\b)/i;
-const storageUnits = new Set(['MB', 'GB', 'TB']);
-
-const assignmentSelect = {
-  id: true,
-  companyId: true,
-  serviceId: true,
-  displayName: true,
-  displayNameTranslations: true,
-  status: true,
-  serviceUrl: true,
-  startsAt: true,
-  expiresAt: true,
-  notes: true,
-  internalNotes: true,
-  createdAt: true,
-  updatedAt: true,
-  company: {
-    select: { id: true, name: true, nameTranslations: true, status: true },
-  },
-  service: {
-    select: {
-      id: true,
-      key: true,
-      name: true,
-      nameTranslations: true,
-      description: true,
-      descriptionTranslations: true,
-      category: true,
-      status: true,
-    },
-  },
-} satisfies Prisma.CompanyServiceSelect;
-
-type ServiceRecord = Prisma.ServiceGetPayload<{
-  select: typeof serviceSelect;
-}>;
-
-type FeatureDefinitionRecord = Prisma.ServiceFeatureDefinitionGetPayload<{
-  select: typeof featureDefinitionSelect;
-}>;
-
-type AssignmentRecord = Prisma.CompanyServiceGetPayload<{
-  select: typeof assignmentSelect;
-}>;
-
-type AssignmentFeatureRecord = Prisma.CompanyServiceFeatureGetPayload<{
-  select: typeof assignmentFeatureSelect;
-}>;
-
-type LifecycleRecord = Prisma.CompanyServiceLifecycleEventGetPayload<{
-  select: typeof lifecycleSelect;
-}>;
-
-type VisibleAssignment = Omit<AssignmentRecord, 'internalNotes'> & {
-  internalNotes?: string | null;
-};
+import {
+  assignmentFeatureSelect,
+  assignmentSelect,
+  featureDefinitionSelect,
+  lifecycleSelect,
+  serviceFeatureSelect,
+  serviceSelect,
+  type AssignmentFeatureRecord,
+  type VisibleAssignment,
+} from './services.selectors';
+import {
+  assertAllowedTransition,
+  assertPlatformAdministrator,
+  assertValidDates,
+  assertValidFeatureValue,
+  jsonInputObject,
+  optionalDate,
+  optionalText,
+  requireFeaturePrimitive,
+  resolveTransitionDate,
+} from './services.rules';
+import {
+  presentAssignment,
+  presentAssignmentFeature,
+  presentFeatureDefinition,
+  presentLifecycleEvent,
+  presentService,
+} from './services.presenters';
 
 @Injectable()
 export class ServicesService {
@@ -260,7 +96,7 @@ export class ServicesService {
     principal: AuthenticatedPrincipal,
     query: ListServicesQueryDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const search = query.search?.trim();
     const where: Prisma.ServiceWhereInput = {
@@ -288,13 +124,13 @@ export class ServicesService {
     ]);
 
     return {
-      items: records.map((record) => this.presentService(record)),
+      items: records.map((record) => presentService(record)),
       pagination: { limit: query.limit, offset: query.offset, total },
     };
   }
 
   async getService(principal: AuthenticatedPrincipal, serviceId: string) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
@@ -305,14 +141,14 @@ export class ServicesService {
       throw new NotFoundException('Service was not found.');
     }
 
-    return this.presentService(service);
+    return presentService(service);
   }
 
   async createService(
     principal: AuthenticatedPrincipal,
     input: CreateServiceDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const existing = await this.prisma.service.findUnique({
       where: { key: input.key },
@@ -339,7 +175,7 @@ export class ServicesService {
             name,
           ),
           category: input.category,
-          description: this.optionalText(input.description),
+          description: optionalText(input.description),
           descriptionTranslations: normalizeLocalizedText(
             input.descriptionTranslations,
             input.description,
@@ -362,7 +198,7 @@ export class ServicesService {
       return created;
     });
 
-    return this.presentService(service);
+    return presentService(service);
   }
 
   async updateService(
@@ -370,7 +206,7 @@ export class ServicesService {
     serviceId: string,
     input: UpdateServiceDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const existing = await this.prisma.service.findUnique({
       where: { id: serviceId },
@@ -419,7 +255,7 @@ export class ServicesService {
             : {}),
           ...(input.category !== undefined ? { category: input.category } : {}),
           ...(input.description !== undefined
-            ? { description: this.optionalText(input.description) }
+            ? { description: optionalText(input.description) }
             : {}),
           ...(input.descriptionTranslations !== undefined
             ? {
@@ -447,14 +283,14 @@ export class ServicesService {
       return updated;
     });
 
-    return this.presentService(service);
+    return presentService(service);
   }
 
   async updateServiceStatuses(
     principal: AuthenticatedPrincipal,
     input: BatchServiceStatusDto,
   ): Promise<BatchMutationResult> {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const services = await transaction.service.findMany({
@@ -523,7 +359,7 @@ export class ServicesService {
     principal: AuthenticatedPrincipal,
     serviceId: string,
   ): Promise<{ success: true }> {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     await this.prisma.$transaction(async (transaction) => {
       const existing = await transaction.service.findUnique({
@@ -580,7 +416,7 @@ export class ServicesService {
     principal: AuthenticatedPrincipal,
     query: ListServiceFeatureDefinitionsDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const search = query.search?.trim();
     const where: Prisma.ServiceFeatureDefinitionWhereInput = {
@@ -610,7 +446,7 @@ export class ServicesService {
 
     return {
       items: definitions.map((definition) =>
-        this.presentFeatureDefinition(definition),
+        presentFeatureDefinition(definition),
       ),
       pagination: { limit: query.limit, offset: query.offset, total },
     };
@@ -620,7 +456,7 @@ export class ServicesService {
     principal: AuthenticatedPrincipal,
     definitionId: string,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const definition = await this.prisma.serviceFeatureDefinition.findUnique({
       where: { id: definitionId },
@@ -631,14 +467,14 @@ export class ServicesService {
       throw new NotFoundException('Feature definition was not found.');
     }
 
-    return this.presentFeatureDefinition(definition);
+    return presentFeatureDefinition(definition);
   }
 
   async createFeatureDefinition(
     principal: AuthenticatedPrincipal,
     input: CreateServiceFeatureDefinitionDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const name = input.name.trim();
     const parameterLabel = input.parameterLabel.trim();
@@ -649,8 +485,8 @@ export class ServicesService {
       );
     }
 
-    const unit = this.optionalText(input.unit);
-    this.assertValidFeatureValue(
+    const unit = optionalText(input.unit);
+    assertValidFeatureValue(
       input.valueType,
       input.defaultValue,
       unit,
@@ -677,7 +513,7 @@ export class ServicesService {
             input.nameTranslations,
             name,
           ),
-          description: this.optionalText(input.description),
+          description: optionalText(input.description),
           descriptionTranslations: normalizeLocalizedText(
             input.descriptionTranslations,
             input.description,
@@ -723,7 +559,7 @@ export class ServicesService {
       return created;
     });
 
-    return this.presentFeatureDefinition(definition);
+    return presentFeatureDefinition(definition);
   }
 
   async updateFeatureDefinition(
@@ -731,7 +567,7 @@ export class ServicesService {
     definitionId: string,
     input: UpdateServiceFeatureDefinitionDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const definition = await this.prisma.$transaction(async (transaction) => {
       const existing = await transaction.serviceFeatureDefinition.findUnique({
@@ -746,9 +582,7 @@ export class ServicesService {
       const category = input.category ?? existing.category;
       const valueType = input.valueType ?? existing.valueType;
       const unit =
-        input.unit === undefined
-          ? existing.unit
-          : this.optionalText(input.unit);
+        input.unit === undefined ? existing.unit : optionalText(input.unit);
 
       if (
         existing._count.serviceFeatures > 0 &&
@@ -762,11 +596,10 @@ export class ServicesService {
       }
 
       const value =
-        input.defaultValue ??
-        this.requireFeaturePrimitive(existing.defaultValue);
+        input.defaultValue ?? requireFeaturePrimitive(existing.defaultValue);
       const translations =
         input.valueTranslations ?? existing.valueTranslations;
-      this.assertValidFeatureValue(valueType, value, unit, translations);
+      assertValidFeatureValue(valueType, value, unit, translations);
 
       const name = input.name?.trim();
       const parameterLabel = input.parameterLabel?.trim();
@@ -792,7 +625,7 @@ export class ServicesService {
             }),
         ...(input.description === undefined
           ? {}
-          : { description: this.optionalText(input.description) }),
+          : { description: optionalText(input.description) }),
         ...(input.descriptionTranslations === undefined
           ? {}
           : {
@@ -863,14 +696,14 @@ export class ServicesService {
       return updated;
     });
 
-    return this.presentFeatureDefinition(definition);
+    return presentFeatureDefinition(definition);
   }
 
   async deleteFeatureDefinition(
     principal: AuthenticatedPrincipal,
     definitionId: string,
   ): Promise<{ success: true }> {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     await this.prisma.$transaction(async (transaction) => {
       const existing = await transaction.serviceFeatureDefinition.findUnique({
@@ -917,7 +750,7 @@ export class ServicesService {
     serviceId: string,
     input: AttachServiceFeatureDefinitionDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const [service, definition] = await Promise.all([
@@ -966,10 +799,10 @@ export class ServicesService {
       }
 
       const value =
-        input.value ?? this.requireFeaturePrimitive(definition.defaultValue);
+        input.value ?? requireFeaturePrimitive(definition.defaultValue);
       const translations =
         input.valueTranslations ?? definition.valueTranslations;
-      this.assertValidFeatureValue(
+      assertValidFeatureValue(
         definition.valueType,
         value,
         definition.unit,
@@ -982,14 +815,14 @@ export class ServicesService {
           definitionId: definition.id,
           key: definition.key,
           name: definition.name,
-          nameTranslations: this.jsonInputObject(definition.nameTranslations),
+          nameTranslations: jsonInputObject(definition.nameTranslations),
           description: definition.description,
-          descriptionTranslations: this.jsonInputObject(
+          descriptionTranslations: jsonInputObject(
             definition.descriptionTranslations,
           ),
           valueType: definition.valueType,
           parameterLabel: definition.parameterLabel,
-          parameterLabelTranslations: this.jsonInputObject(
+          parameterLabelTranslations: jsonInputObject(
             definition.parameterLabelTranslations,
           ),
           defaultValue: value,
@@ -1000,7 +833,7 @@ export class ServicesService {
                     input.valueTranslations,
                     typeof value === 'string' ? value : undefined,
                   )
-                : this.jsonInputObject(definition.valueTranslations)
+                : jsonInputObject(definition.valueTranslations)
               : {},
           unit: definition.unit,
           status: ServiceFeatureStatus.ACTIVE,
@@ -1033,7 +866,7 @@ export class ServicesService {
     serviceId: string,
     query: ListServiceFeaturesQueryDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
     await this.requireCatalogService(serviceId);
 
     const search = query.search?.trim();
@@ -1072,15 +905,15 @@ export class ServicesService {
     serviceId: string,
     input: CreateServiceFeatureDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
     const name = input.name.trim();
 
     if (!name) {
       throw new BadRequestException('Feature name cannot be blank.');
     }
 
-    const unit = this.optionalText(input.unit);
-    this.assertValidFeatureValue(
+    const unit = optionalText(input.unit);
+    assertValidFeatureValue(
       input.valueType,
       input.defaultValue,
       unit,
@@ -1118,7 +951,7 @@ export class ServicesService {
             input.nameTranslations,
             name,
           ),
-          description: this.optionalText(input.description),
+          description: optionalText(input.description),
           descriptionTranslations: normalizeLocalizedText(
             input.descriptionTranslations,
             input.description,
@@ -1166,7 +999,7 @@ export class ServicesService {
     featureId: string,
     input: UpdateServiceFeatureDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const existing = await transaction.serviceFeature.findFirst({
@@ -1193,16 +1026,13 @@ export class ServicesService {
       }
 
       const value =
-        input.defaultValue ??
-        this.requireFeaturePrimitive(existing.defaultValue);
+        input.defaultValue ?? requireFeaturePrimitive(existing.defaultValue);
       const unit =
-        input.unit === undefined
-          ? existing.unit
-          : this.optionalText(input.unit);
+        input.unit === undefined ? existing.unit : optionalText(input.unit);
       const translations =
         input.valueTranslations ?? existing.valueTranslations;
 
-      this.assertValidFeatureValue(valueType, value, unit, translations);
+      assertValidFeatureValue(valueType, value, unit, translations);
 
       const name = input.name?.trim();
 
@@ -1224,7 +1054,7 @@ export class ServicesService {
               }),
           ...(input.description === undefined
             ? {}
-            : { description: this.optionalText(input.description) }),
+            : { description: optionalText(input.description) }),
           ...(input.descriptionTranslations === undefined
             ? {}
             : {
@@ -1277,7 +1107,7 @@ export class ServicesService {
     serviceId: string,
     input: ReorderServiceFeaturesDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const features = await transaction.serviceFeature.findMany({
@@ -1405,14 +1235,14 @@ export class ServicesService {
 
     return {
       items: records.map((record) => {
-        const assignment = this.presentAssignment(record, principal);
+        const assignment = presentAssignment(record, principal);
 
         if (principal.accountScope !== AccountScope.COMPANY) {
           return assignment;
         }
 
         const visibleFeatures = (featuresByAssignment.get(record.id) ?? []).map(
-          (feature) => this.presentAssignmentFeature(feature, principal),
+          (feature) => presentAssignmentFeature(feature, principal),
         );
 
         return {
@@ -1440,14 +1270,14 @@ export class ServicesService {
 
     this.authorization.assertCompanyAccess(principal, assignment.companyId);
 
-    return this.presentAssignment(assignment, principal);
+    return presentAssignment(assignment, principal);
   }
 
   async createAssignment(
     principal: AuthenticatedPrincipal,
     input: CreateServiceAssignmentDto,
   ): Promise<VisibleAssignment> {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const [company, service] = await Promise.all([
       this.prisma.company.findUnique({
@@ -1480,26 +1310,26 @@ export class ServicesService {
       );
     }
 
-    const startsAt = this.optionalDate(input.startsAt);
-    const expiresAt = this.optionalDate(input.expiresAt);
-    this.assertValidDates(startsAt, expiresAt);
+    const startsAt = optionalDate(input.startsAt);
+    const expiresAt = optionalDate(input.expiresAt);
+    assertValidDates(startsAt, expiresAt);
 
     const assignment = await this.prisma.$transaction(async (transaction) => {
       const created = await transaction.companyService.create({
         data: {
           companyId: input.companyId,
           serviceId: input.serviceId,
-          displayName: this.optionalText(input.displayName),
+          displayName: optionalText(input.displayName),
           displayNameTranslations: normalizeLocalizedText(
             input.displayNameTranslations,
             input.displayName,
           ),
           status: input.status ?? CompanyServiceStatus.PROVISIONING,
-          serviceUrl: this.optionalText(input.serviceUrl),
+          serviceUrl: optionalText(input.serviceUrl),
           startsAt,
           expiresAt,
-          notes: this.optionalText(input.notes),
-          internalNotes: this.optionalText(input.internalNotes),
+          notes: optionalText(input.notes),
+          internalNotes: optionalText(input.internalNotes),
         },
         select: assignmentSelect,
       });
@@ -1522,8 +1352,8 @@ export class ServicesService {
           data: activeFeatures.map((feature) => ({
             companyServiceId: created.id,
             serviceFeatureId: feature.id,
-            value: this.requireFeaturePrimitive(feature.defaultValue),
-            valueTranslations: this.jsonInputObject(feature.valueTranslations),
+            value: requireFeaturePrimitive(feature.defaultValue),
+            valueTranslations: jsonInputObject(feature.valueTranslations),
             source: CompanyServiceFeatureSource.CATALOG_DEFAULT,
           })),
         });
@@ -1556,7 +1386,7 @@ export class ServicesService {
       return created;
     });
 
-    return this.presentAssignment(assignment, principal);
+    return presentAssignment(assignment, principal);
   }
 
   async updateAssignment(
@@ -1564,7 +1394,7 @@ export class ServicesService {
     assignmentId: string,
     input: UpdateServiceAssignmentDto,
   ): Promise<VisibleAssignment> {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     const previous = await this.prisma.companyService.findUnique({
       where: { id: assignmentId },
@@ -1584,16 +1414,16 @@ export class ServicesService {
     const startsAt =
       input.startsAt === undefined
         ? previous.startsAt
-        : this.optionalDate(input.startsAt);
+        : optionalDate(input.startsAt);
     const expiresAt =
       input.expiresAt === undefined
         ? previous.expiresAt
-        : this.optionalDate(input.expiresAt);
+        : optionalDate(input.expiresAt);
 
-    this.assertValidDates(startsAt, expiresAt);
+    assertValidDates(startsAt, expiresAt);
 
     if (input.status !== undefined && input.status !== previous.status) {
-      this.assertAllowedTransition(previous.status, input.status, input.reason);
+      assertAllowedTransition(previous.status, input.status, input.reason);
     }
 
     const assignment = await this.prisma.$transaction(async (transaction) => {
@@ -1601,7 +1431,7 @@ export class ServicesService {
         where: { id: assignmentId },
         data: {
           ...(input.displayName !== undefined
-            ? { displayName: this.optionalText(input.displayName) }
+            ? { displayName: optionalText(input.displayName) }
             : {}),
           ...(input.displayNameTranslations !== undefined
             ? {
@@ -1613,15 +1443,15 @@ export class ServicesService {
             : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
           ...(input.serviceUrl !== undefined
-            ? { serviceUrl: this.optionalText(input.serviceUrl) }
+            ? { serviceUrl: optionalText(input.serviceUrl) }
             : {}),
           ...(input.startsAt !== undefined ? { startsAt } : {}),
           ...(input.expiresAt !== undefined ? { expiresAt } : {}),
           ...(input.notes !== undefined
-            ? { notes: this.optionalText(input.notes) }
+            ? { notes: optionalText(input.notes) }
             : {}),
           ...(input.internalNotes !== undefined
-            ? { internalNotes: this.optionalText(input.internalNotes) }
+            ? { internalNotes: optionalText(input.internalNotes) }
             : {}),
         },
         select: assignmentSelect,
@@ -1652,7 +1482,7 @@ export class ServicesService {
       return updated;
     });
 
-    return this.presentAssignment(assignment, principal);
+    return presentAssignment(assignment, principal);
   }
 
   async listAssignmentFeatures(
@@ -1694,7 +1524,7 @@ export class ServicesService {
 
     return {
       items: features.map((feature) =>
-        this.presentAssignmentFeature(feature, principal),
+        presentAssignmentFeature(feature, principal),
       ),
       pagination: { limit: query.limit, offset: query.offset, total },
     };
@@ -1706,7 +1536,7 @@ export class ServicesService {
     featureId: string,
     input: UpdateCompanyServiceFeatureDto,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const assignment = await transaction.companyService.findUnique({
@@ -1740,13 +1570,13 @@ export class ServicesService {
       }
 
       const value = input.reset
-        ? this.requireFeaturePrimitive(existing.serviceFeature.defaultValue)
-        : (input.value ?? this.requireFeaturePrimitive(existing.value));
+        ? requireFeaturePrimitive(existing.serviceFeature.defaultValue)
+        : (input.value ?? requireFeaturePrimitive(existing.value));
       const translations = input.reset
         ? existing.serviceFeature.valueTranslations
         : (input.valueTranslations ?? existing.valueTranslations);
 
-      this.assertValidFeatureValue(
+      assertValidFeatureValue(
         existing.serviceFeature.valueType,
         value,
         existing.serviceFeature.unit,
@@ -1759,7 +1589,7 @@ export class ServicesService {
           ...(input.reset || input.value !== undefined ? { value } : {}),
           ...(input.reset
             ? {
-                valueTranslations: this.jsonInputObject(
+                valueTranslations: jsonInputObject(
                   existing.serviceFeature.valueTranslations,
                 ),
                 source: CompanyServiceFeatureSource.CATALOG_DEFAULT,
@@ -1806,7 +1636,7 @@ export class ServicesService {
         },
       });
 
-      return this.presentAssignmentFeature(updated, principal);
+      return presentAssignmentFeature(updated, principal);
     });
   }
 
@@ -1814,7 +1644,7 @@ export class ServicesService {
     principal: AuthenticatedPrincipal,
     assignmentId: string,
   ) {
-    this.assertPlatformAdministrator(principal);
+    assertPlatformAdministrator(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const assignment = await transaction.companyService.findUnique({
@@ -1851,8 +1681,8 @@ export class ServicesService {
           data: missing.map((feature) => ({
             companyServiceId: assignment.id,
             serviceFeatureId: feature.id,
-            value: this.requireFeaturePrimitive(feature.defaultValue),
-            valueTranslations: this.jsonInputObject(feature.valueTranslations),
+            value: requireFeaturePrimitive(feature.defaultValue),
+            valueTranslations: jsonInputObject(feature.valueTranslations),
             source: CompanyServiceFeatureSource.CATALOG_DEFAULT,
           })),
         });
@@ -1896,9 +1726,7 @@ export class ServicesService {
     ]);
 
     return {
-      items: events.map((event) =>
-        this.presentLifecycleEvent(event, principal),
-      ),
+      items: events.map((event) => presentLifecycleEvent(event, principal)),
       pagination: { limit: query.limit, offset: query.offset, total },
     };
   }
@@ -1908,8 +1736,8 @@ export class ServicesService {
     assignmentId: string,
     input: CreateServiceTransitionDto,
   ): Promise<VisibleAssignment> {
-    this.assertPlatformAdministrator(principal);
-    const effectiveAt = this.resolveTransitionDate(input.effectiveAt);
+    assertPlatformAdministrator(principal);
+    const effectiveAt = resolveTransitionDate(input.effectiveAt);
 
     const updated = await this.prisma.$transaction(async (transaction) => {
       const assignment = await transaction.companyService.findUnique({
@@ -1925,11 +1753,7 @@ export class ServicesService {
         return assignment;
       }
 
-      this.assertAllowedTransition(
-        assignment.status,
-        input.toStatus,
-        input.reason,
-      );
+      assertAllowedTransition(assignment.status, input.toStatus, input.reason);
 
       const record = await transaction.companyService.update({
         where: { id: assignment.id },
@@ -1950,15 +1774,15 @@ export class ServicesService {
       return record;
     });
 
-    return this.presentAssignment(updated, principal);
+    return presentAssignment(updated, principal);
   }
 
   async transitionAssignments(
     principal: AuthenticatedPrincipal,
     input: BatchAssignmentTransitionDto,
   ): Promise<BatchMutationResult> {
-    this.assertPlatformAdministrator(principal);
-    const effectiveAt = this.resolveTransitionDate(input.effectiveAt);
+    assertPlatformAdministrator(principal);
+    const effectiveAt = resolveTransitionDate(input.effectiveAt);
 
     return this.prisma.$transaction(async (transaction) => {
       const assignments = await transaction.companyService.findMany({
@@ -1974,7 +1798,7 @@ export class ServicesService {
 
       for (const assignment of assignments) {
         if (assignment.status !== input.toStatus) {
-          this.assertAllowedTransition(
+          assertAllowedTransition(
             assignment.status,
             input.toStatus,
             input.reason,
@@ -2046,17 +1870,6 @@ export class ServicesService {
     });
   }
 
-  private assertPlatformAdministrator(principal: AuthenticatedPrincipal): void {
-    if (
-      principal.accountScope !== AccountScope.PLATFORM ||
-      principal.companyId !== null
-    ) {
-      throw new ForbiddenException(
-        'Platform service administration is forbidden.',
-      );
-    }
-  }
-
   private resolveCompanyScope(
     principal: AuthenticatedPrincipal,
     requestedCompanyId?: string,
@@ -2080,78 +1893,6 @@ export class ServicesService {
     return principal.companyId;
   }
 
-  private presentService(record: ServiceRecord) {
-    const { _count, ...service } = record;
-    return {
-      ...service,
-      assignmentCount: _count.assignments,
-      featureCount: _count.features,
-    };
-  }
-
-  private presentFeatureDefinition(record: FeatureDefinitionRecord) {
-    const { _count, ...definition } = record;
-
-    return {
-      ...definition,
-      serviceCount: _count.serviceFeatures,
-    };
-  }
-
-  private presentAssignmentFeature(
-    record: AssignmentFeatureRecord,
-    principal: AuthenticatedPrincipal,
-  ) {
-    const { serviceFeature, ...assignment } = record;
-    const {
-      defaultValue,
-      valueTranslations: catalogValueTranslations,
-      serviceId,
-      ...feature
-    } = serviceFeature;
-    void defaultValue;
-    void catalogValueTranslations;
-    void serviceId;
-
-    const customerVisible =
-      record.customerVisibleOverride ?? serviceFeature.customerVisible;
-    const sortOrder = record.sortOrderOverride ?? serviceFeature.sortOrder;
-
-    if (principal.accountScope === AccountScope.PLATFORM) {
-      return { ...assignment, customerVisible, sortOrder, feature };
-    }
-
-    const {
-      source,
-      customerVisibleOverride,
-      sortOrderOverride,
-      ...visibleAssignment
-    } = assignment;
-    void source;
-    void customerVisibleOverride;
-    void sortOrderOverride;
-
-    return { ...visibleAssignment, customerVisible, sortOrder, feature };
-  }
-
-  private presentLifecycleEvent(
-    record: LifecycleRecord,
-    principal: AuthenticatedPrincipal,
-  ) {
-    if (principal.accountScope === AccountScope.PLATFORM) {
-      return record;
-    }
-
-    return {
-      id: record.id,
-      fromStatus: record.fromStatus,
-      toStatus: record.toStatus,
-      source: record.source,
-      effectiveAt: record.effectiveAt,
-      createdAt: record.createdAt,
-    };
-  }
-
   private async requireCatalogService(serviceId: string): Promise<void> {
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
@@ -2161,138 +1902,6 @@ export class ServicesService {
     if (!service) {
       throw new NotFoundException('Service was not found.');
     }
-  }
-
-  private assertValidFeatureValue(
-    valueType: ServiceFeatureValueType,
-    value: unknown,
-    unit: string | null | undefined,
-    translations: unknown,
-  ): asserts value is ServiceFeaturePrimitive {
-    const hasTranslations =
-      typeof translations === 'object' &&
-      translations !== null &&
-      Object.values(translations).some(
-        (translation) =>
-          typeof translation === 'string' && translation.trim().length > 0,
-      );
-
-    if (valueType === ServiceFeatureValueType.BOOLEAN) {
-      if (typeof value !== 'boolean' || unit || hasTranslations) {
-        throw new BadRequestException(
-          'Boolean features require true or false and cannot use units or translated values.',
-        );
-      }
-
-      return;
-    }
-
-    if (
-      valueType === ServiceFeatureValueType.NUMBER ||
-      valueType === ServiceFeatureValueType.STORAGE
-    ) {
-      if (
-        typeof value !== 'number' ||
-        !Number.isFinite(value) ||
-        hasTranslations
-      ) {
-        throw new BadRequestException(
-          'Number and storage features require a finite number and cannot use translated values.',
-        );
-      }
-
-      if (unit && prohibitedMonetaryUnit.test(unit)) {
-        throw new BadRequestException(
-          'Service feature units cannot represent currencies or pricing.',
-        );
-      }
-
-      if (
-        valueType === ServiceFeatureValueType.STORAGE &&
-        unit &&
-        !storageUnits.has(unit)
-      ) {
-        throw new BadRequestException(
-          'Storage feature units must be MB, GB, TB, or empty.',
-        );
-      }
-
-      return;
-    }
-
-    if (
-      valueType !== ServiceFeatureValueType.TEXT ||
-      typeof value !== 'string' ||
-      value.trim().length === 0 ||
-      value.length > 500 ||
-      unit
-    ) {
-      throw new BadRequestException(
-        'Text features require a non-empty value of at most 500 characters and cannot use units.',
-      );
-    }
-  }
-
-  private requireFeaturePrimitive(
-    value: Prisma.JsonValue,
-  ): ServiceFeaturePrimitive {
-    if (
-      typeof value === 'boolean' ||
-      (typeof value === 'number' && Number.isFinite(value)) ||
-      typeof value === 'string'
-    ) {
-      return value;
-    }
-
-    throw new ConflictException(
-      'An existing service feature value is invalid.',
-    );
-  }
-
-  private jsonInputObject(value: Prisma.JsonValue): Prisma.InputJsonObject {
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      return {};
-    }
-
-    return Object.fromEntries(
-      Object.entries(value).filter(
-        (entry): entry is [string, string] => typeof entry[1] === 'string',
-      ),
-    );
-  }
-
-  private assertAllowedTransition(
-    fromStatus: CompanyServiceStatus,
-    toStatus: CompanyServiceStatus,
-    reason?: string,
-  ): void {
-    if (!allowedLifecycleTransitions[fromStatus].includes(toStatus)) {
-      throw new ConflictException(
-        `Service status cannot transition from ${fromStatus} to ${toStatus}.`,
-      );
-    }
-
-    if (
-      (toStatus === CompanyServiceStatus.SUSPENDED ||
-        toStatus === CompanyServiceStatus.CANCELLED) &&
-      !reason?.trim()
-    ) {
-      throw new BadRequestException(
-        'Suspending or cancelling a service requires an operator reason.',
-      );
-    }
-  }
-
-  private resolveTransitionDate(value?: string): Date {
-    const date = value ? new Date(value) : new Date();
-
-    if (Number.isNaN(date.getTime()) || date.getTime() > Date.now() + 60_000) {
-      throw new BadRequestException(
-        'The service transition effective date must not be in the future.',
-      );
-    }
-
-    return date;
   }
 
   private async recordLifecycleTransition(
@@ -2315,8 +1924,8 @@ export class ServicesService {
         fromStatus: input.fromStatus,
         toStatus: input.toStatus,
         source: CompanyServiceLifecycleSource.ADMIN,
-        reasonCode: this.optionalText(input.reasonCode),
-        reason: this.optionalText(input.reason),
+        reasonCode: optionalText(input.reasonCode),
+        reason: optionalText(input.reason),
         actorUserId: principal.userId,
         actorEmailSnapshot: principal.email,
         effectiveAt: input.effectiveAt,
@@ -2336,48 +1945,5 @@ export class ServicesService {
         },
       },
     });
-  }
-
-  private presentAssignment(
-    record: AssignmentRecord,
-    principal: AuthenticatedPrincipal,
-  ): VisibleAssignment {
-    const { internalNotes, ...visible } = record;
-
-    if (principal.accountScope === AccountScope.PLATFORM) {
-      return { ...visible, internalNotes };
-    }
-
-    return visible;
-  }
-
-  private optionalText(value: string | null | undefined): string | null {
-    const trimmed = value?.trim();
-    return trimmed ? trimmed : null;
-  }
-
-  private optionalDate(value: string | null | undefined): Date | null {
-    if (!value) {
-      return null;
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      throw new BadRequestException('A service date is invalid.');
-    }
-
-    return date;
-  }
-
-  private assertValidDates(
-    startsAt: Date | null,
-    expiresAt: Date | null,
-  ): void {
-    if (startsAt && expiresAt && startsAt.getTime() > expiresAt.getTime()) {
-      throw new BadRequestException(
-        'The service expiration date cannot be earlier than its start date.',
-      );
-    }
   }
 }
