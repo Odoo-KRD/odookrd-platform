@@ -217,6 +217,10 @@ export async function regenerateInvitationAction(
   _previousState: InvitationOperationState,
   _formData: FormData,
 ): Promise<InvitationOperationState> {
+  // Preserve the form-action signature while marking these as intentionally unused.
+  void _previousState;
+  void _formData;
+
   if (!uuidPattern.test(userId)) {
     return {
       message: "The selected user is invalid.",

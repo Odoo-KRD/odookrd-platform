@@ -365,12 +365,6 @@ function VideoWorkflowStepper({
     stage === "FAILED"
       ? Math.max(0, order.indexOf("PROCESSING"))
       : Math.max(0, order.indexOf(stage));
-  const livePercent =
-    stage === "UPLOADING"
-      ? uploadPercent
-      : stage === "PROCESSING"
-        ? processingPercent
-        : null;
 
   return (
     <div className="rounded-xl border border-line bg-surface-subtle p-4 sm:p-5">

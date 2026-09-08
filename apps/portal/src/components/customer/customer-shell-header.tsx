@@ -3,6 +3,7 @@
 import type { CustomerNotification, Locale } from "@odookrd/types";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -139,9 +140,12 @@ function Avatar({
       : "";
 
     return (
-      <img
+      <Image
         src={`/api/workspace/profile/avatar${version}`}
-        alt=""
+	alt=""
+   	width={48}
+    	height={48}
+	unoptimized
         className={`${className} shrink-0 rounded-full border border-line object-cover`}
       />
     );
@@ -238,10 +242,11 @@ export function CustomerShellHeader({
             </button>
 
             {/* OdooKRD brand mark */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/brand/odookrd-logo.svg"
-              alt="OdooKRD"
+            <Image
+              	src="/brand/odookrd-logo.svg"
+              	alt="OdooKRD"
+		width={40}
+		height={40}
               className="size-10 shrink-0 rounded-lg border border-line bg-white object-contain"
             />
 

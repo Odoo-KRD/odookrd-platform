@@ -12,6 +12,7 @@ import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { companyProfileV2Dictionaries } from "@/lib/i18n/company-profile-v2";
 import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
+import Image from "next/image";
 
 import {
   requestCompanyIdentityChangeAction,
@@ -122,11 +123,14 @@ export default async function CustomerCompanyProfilePage() {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
             <div className="flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-white">
               {company.hasLogo ? (
-                <img
+                <Image
                   src={`/api/workspace/company/logo?v=${encodeURIComponent(
                     company.logoFileAssetId ?? "logo",
                   )}`}
                   alt=""
+                  width={160}
+                  height={160}
+                  unoptimized
                   className="max-h-full max-w-full object-contain p-2"
                 />
               ) : (
