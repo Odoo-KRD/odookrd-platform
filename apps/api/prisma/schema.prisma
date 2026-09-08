@@ -105,6 +105,53 @@ enum CompanyServiceLifecycleSource {
   @@map("company_service_lifecycle_source")
 }
 
+enum ServiceBillingModel {
+  PERPETUAL
+  SUBSCRIPTION
+
+  @@map("service_billing_model")
+}
+
+enum SubscriptionTerm {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+  BIENNIAL
+  TRIENNIAL
+  CUSTOM
+
+  @@map("subscription_term")
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  GRACE
+  EXPIRED
+  CANCELLED
+
+  @@map("subscription_status")
+}
+
+enum SubscriptionPeriodSource {
+  INITIAL
+  MANUAL_RENEWAL
+  AUTO_RENEWAL
+  ADMIN_ADJUSTMENT
+
+  @@map("subscription_period_source")
+}
+
+enum SubscriptionRenewalRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+
+  @@map("subscription_renewal_request_status")
+}
+
 enum SettingScope {
   PLATFORM
   COMPANY
@@ -395,6 +442,9 @@ model User {
   trainingQuizAttempts             TrainingQuizAttempt[]
   trainingCourseCompletions        TrainingCourseCompletion[]
   trainingCertificates             TrainingCertificate[]
+  subscriptionPeriods              SubscriptionPeriod[]           @relation("SubscriptionPeriodActor")
+  subscriptionRenewalsRequested    SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalRequestedBy")
+  subscriptionRenewalsReviewed     SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalReviewedBy")
   companyIdentityRequestsRequested CompanyIdentityChangeRequest[] @relation("CompanyIdentityRequestedBy")
   companyIdentityRequestsReviewed  CompanyIdentityChangeRequest[] @relation("CompanyIdentityReviewedBy")
 
@@ -596,6 +646,7 @@ model Service {
   description             String?              @db.VarChar(1000)
   descriptionTranslations Json                 @default("{}") @map("description_translations") @db.JsonB
   status                  ServiceCatalogStatus @default(ACTIVE)
+  billingModel            ServiceBillingModel  @default(PERPETUAL) @map("billing_model")
   createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -604,6 +655,7 @@ model Service {
   trainingCourseAccess TrainingCourseServiceAccess[]
 
   @@index([category, status], map: "services_category_status_idx")
+  @@index([billingModel], map: "services_billing_model_idx")
   @@map("services")
 }
 
@@ -626,6 +678,7 @@ model CompanyService {
   service         Service                        @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   features        CompanyServiceFeature[]
   lifecycleEvents CompanyServiceLifecycleEvent[]
+  subscription    Subscription?
 
   @@index([companyId, status], map: "company_services_company_status_idx")
   @@index([serviceId], map: "company_services_service_id_idx")
@@ -734,6 +787,74 @@ model CompanyServiceLifecycleEvent {
   @@index([companyId, effectiveAt(sort: Desc), id(sort: Desc)], map: "company_service_lifecycle_company_effective_idx")
   @@index([toStatus, effectiveAt], map: "company_service_lifecycle_status_effective_idx")
   @@map("company_service_lifecycle_events")
+}
+
+model Subscription {
+  id                 String             @id @default(uuid()) @db.Uuid
+  companyServiceId   String             @unique @map("company_service_id") @db.Uuid
+  term               SubscriptionTerm
+  status             SubscriptionStatus @default(ACTIVE)
+  autoRenew          Boolean            @default(false) @map("auto_renew")
+  cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
+  currentPeriodStart DateTime           @map("current_period_start") @db.Timestamptz(6)
+  currentPeriodEnd   DateTime           @map("current_period_end") @db.Timestamptz(6)
+  gracePeriodDays    Int                @default(0) @map("grace_period_days")
+  externalBillingRef String?            @map("external_billing_ref") @db.VarChar(200)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  companyService  CompanyService                @relation(fields: [companyServiceId], references: [id], onDelete: Cascade)
+  periods         SubscriptionPeriod[]
+  renewalRequests SubscriptionRenewalRequest[]
+
+  @@index([status, currentPeriodEnd], map: "subscriptions_status_period_end_idx")
+  @@index([currentPeriodEnd], map: "subscriptions_period_end_idx")
+  @@index([autoRenew, currentPeriodEnd], map: "subscriptions_auto_renew_period_end_idx")
+  @@map("subscriptions")
+}
+
+model SubscriptionPeriod {
+  id             String                   @id @default(uuid()) @db.Uuid
+  subscriptionId String                   @map("subscription_id") @db.Uuid
+  sequence       Int
+  term           SubscriptionTerm
+  startsAt       DateTime                 @map("starts_at") @db.Timestamptz(6)
+  endsAt         DateTime                 @map("ends_at") @db.Timestamptz(6)
+  source         SubscriptionPeriodSource @default(INITIAL)
+  actorUserId    String?                  @map("actor_user_id") @db.Uuid
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("SubscriptionPeriodActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@unique([subscriptionId, sequence], map: "subscription_periods_subscription_sequence_unique")
+  @@index([subscriptionId, endsAt(sort: Desc)], map: "subscription_periods_subscription_ends_at_idx")
+  @@index([actorUserId], map: "subscription_periods_actor_user_id_idx")
+  @@map("subscription_periods")
+}
+
+model SubscriptionRenewalRequest {
+  id                String                           @id @default(uuid()) @db.Uuid
+  subscriptionId    String                           @map("subscription_id") @db.Uuid
+  requestedByUserId String                           @map("requested_by_user_id") @db.Uuid
+  requestedTerm     SubscriptionTerm                 @map("requested_term")
+  status            SubscriptionRenewalRequestStatus @default(PENDING)
+  note              String?                          @db.VarChar(1000)
+  reviewNote        String?                          @map("review_note") @db.VarChar(1000)
+  reviewedByUserId  String?                          @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt        DateTime?                        @map("reviewed_at") @db.Timestamptz(6)
+  createdAt         DateTime                         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  requestedBy  User         @relation("SubscriptionRenewalRequestedBy", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  reviewedBy   User?        @relation("SubscriptionRenewalReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId, status], map: "subscription_renewal_requests_subscription_status_idx")
+  @@index([requestedByUserId], map: "subscription_renewal_requests_requested_by_idx")
+  @@index([reviewedByUserId], map: "subscription_renewal_requests_reviewed_by_idx")
+  @@index([createdAt], map: "subscription_renewal_requests_created_at_idx")
+  @@map("subscription_renewal_requests")
 }
 
 model Notification {

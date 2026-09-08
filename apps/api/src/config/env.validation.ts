@@ -11,6 +11,14 @@ export const environmentValidationSchema = Joi.object({
 
   SETTINGS_ENCRYPTION_KEY: Joi.string().length(44).base64().required(),
 
+  // Subscription periods end at the last millisecond of the local day in this
+  // zone, so a service "expiring today" stays usable until local midnight.
+  PLATFORM_TIMEZONE: Joi.string().min(1).default('Asia/Baghdad'),
+
+  // Read directly by the invitation templates; declared here so a missing or
+  // malformed value fails at boot rather than producing broken invite links.
+  ODOOKRD_PORTAL_PUBLIC_URL: Joi.string().uri().default('https://my.odoo.krd'),
+
   AUTH_SESSION_IDLE_TTL_SECONDS: Joi.number()
     .integer()
     .min(60)
