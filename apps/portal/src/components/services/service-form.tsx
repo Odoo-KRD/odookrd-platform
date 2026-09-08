@@ -2,6 +2,7 @@
 
 import type {
   ManagedService,
+  ServiceBillingModel,
   ServiceCatalogStatus,
   ServiceCategory,
 } from "@odookrd/types";
@@ -12,6 +13,7 @@ import { useActionState } from "react";
 import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
 import type { ServicesDictionary } from "@/lib/i18n/services";
+import type { SubscriptionsDictionary } from "@/lib/i18n/subscriptions";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 const categories: readonly ServiceCategory[] = [
@@ -24,6 +26,10 @@ const categories: readonly ServiceCategory[] = [
 ];
 
 const statuses: readonly ServiceCatalogStatus[] = ["ACTIVE", "INACTIVE"];
+const billingModels: readonly ServiceBillingModel[] = [
+  "PERPETUAL",
+  "SUBSCRIPTION",
+];
 
 type ServiceFormAction = (
   previousState: FormState,
@@ -33,6 +39,7 @@ type ServiceFormAction = (
 interface ServiceFormProps {
   action: ServiceFormAction;
   labels: ServicesDictionary;
+  billingLabels: SubscriptionsDictionary;
   content: ContentEditorDictionary;
   initial?: ManagedService;
   cancelHref: string;
@@ -44,6 +51,7 @@ const inputClassName =
 export function ServiceForm({
   action,
   labels,
+  billingLabels,
   content,
   initial,
   cancelHref,
@@ -126,6 +134,30 @@ export function ServiceForm({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="grid gap-2">
+          <label
+            htmlFor="service-billing-model"
+            className="text-sm font-medium text-slate-700"
+          >
+            {billingLabels.billingModel}
+          </label>
+          <select
+            id="service-billing-model"
+            name="billingModel"
+            defaultValue={initial?.billingModel ?? "PERPETUAL"}
+            className={inputClassName}
+          >
+            {billingModels.map((model) => (
+              <option key={model} value={model}>
+                {billingLabels.billingModelLabels[model]}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500">
+            {billingLabels.billingModelHint}
+          </p>
         </div>
       </div>
 

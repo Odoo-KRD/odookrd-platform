@@ -19,6 +19,7 @@ import {
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { SettingsService } from '../settings/settings.service';
+import { resolveEntitlement } from '../subscriptions/subscription-entitlement';
 
 export interface CustomerTrainingContext {
   companyId: string;
@@ -104,10 +105,40 @@ export class TrainingEntitlementService {
           category: ServiceCategory.TRAINING,
         },
       },
-      select: { serviceId: true },
+      select: {
+        serviceId: true,
+        status: true,
+        service: { select: { billingModel: true } },
+        subscription: {
+          select: {
+            status: true,
+            currentPeriodStart: true,
+            currentPeriodEnd: true,
+            gracePeriodDays: true,
+            autoRenew: true,
+            cancelAtPeriodEnd: true,
+          },
+        },
+      },
     });
 
-    return [...new Set(assignments.map((assignment) => assignment.serviceId))];
+    // Course access follows the subscription: once a training service lapses,
+    // the courses it granted close. Progress, completions and issued
+    // certificates are left untouched, so renewing restores the learner
+    // exactly where they were.
+    const entitled = assignments.filter(
+      (assignment) =>
+        resolveEntitlement(
+          {
+            billingModel: assignment.service.billingModel,
+            assignmentStatus: assignment.status,
+            subscription: assignment.subscription,
+          },
+          now,
+        ).available,
+    );
+
+    return [...new Set(entitled.map((assignment) => assignment.serviceId))];
   }
 
   customerCourseWhere(

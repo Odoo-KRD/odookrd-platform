@@ -349,6 +349,7 @@ export async function createServiceAction(
     : null;
   const category = formData.get("category");
   const status = formData.get("status");
+  const billingModel = billingModelValue(formData);
   const descriptionTranslations = localizedFormValues(
     formData,
     "description",
@@ -386,6 +387,7 @@ export async function createServiceAction(
         nameTranslations,
         category,
         status,
+        billingModel,
         description: description || null,
         descriptionTranslations,
       }),
@@ -420,6 +422,7 @@ export async function updateServiceAction(
     : null;
   const category = formData.get("category");
   const status = formData.get("status");
+  const billingModel = billingModelValue(formData);
   const descriptionTranslations = localizedFormValues(
     formData,
     "description",
@@ -450,6 +453,7 @@ export async function updateServiceAction(
           nameTranslations,
           category,
           status,
+          billingModel,
           description: description || null,
           descriptionTranslations,
         }),
@@ -1375,4 +1379,219 @@ export async function deleteFeatureDefinitionRowAction(
       message: failed(error).message ?? "The feature could not be deleted.",
     };
   }
+}
+
+function billingModelValue(formData: FormData): "PERPETUAL" | "SUBSCRIPTION" {
+  return formData.get("billingModel") === "SUBSCRIPTION"
+    ? "SUBSCRIPTION"
+    : "PERPETUAL";
+}
+
+function subscriptionEndpoint(assignmentId: string): string {
+  return `/service-assignments/${encodeURIComponent(assignmentId)}/subscription`;
+}
+
+async function subscriptionContext(assignmentId: string) {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(assignmentId)
+  ) {
+    return null;
+  }
+
+  return { token };
+}
+
+function optionalDateValue(formData: FormData, field: string): string | null {
+  const raw = formData.get(field);
+
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return null;
+  }
+
+  const parsed = new Date(raw);
+
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function boundedInteger(
+  formData: FormData,
+  field: string,
+  min: number,
+  max: number,
+): number | null | undefined {
+  const raw = formData.get(field);
+
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return undefined;
+  }
+
+  const parsed = Number(raw);
+
+  if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+    return null;
+  }
+
+  return parsed;
+}
+
+const subscriptionTerms = new Set([
+  "MONTHLY",
+  "QUARTERLY",
+  "SEMI_ANNUAL",
+  "ANNUAL",
+  "BIENNIAL",
+  "TRIENNIAL",
+  "CUSTOM",
+]);
+
+function termValue(formData: FormData): string | null {
+  const raw = formData.get("term");
+
+  return typeof raw === "string" && subscriptionTerms.has(raw) ? raw : null;
+}
+
+export async function createSubscriptionAction(
+  assignmentId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const context = await subscriptionContext(assignmentId);
+  const term = termValue(formData);
+  const gracePeriodDays = boundedInteger(formData, "gracePeriodDays", 0, 90);
+
+  if (!context || !term || gracePeriodDays === null) {
+    return { message: "Select a valid term and grace period." };
+  }
+
+  const endsAt = optionalDateValue(formData, "endsAt");
+
+  if (term === "CUSTOM" && !endsAt) {
+    return { message: "A custom term requires an end date." };
+  }
+
+  try {
+    await apiRequest(subscriptionEndpoint(assignmentId), {
+      method: "POST",
+      token: context.token,
+      body: JSON.stringify({
+        term,
+        startsAt: optionalDateValue(formData, "startsAt") ?? undefined,
+        endsAt: term === "CUSTOM" ? endsAt : undefined,
+        autoRenew: formData.get("autoRenew") === "true",
+        trial: formData.get("trial") === "true",
+        gracePeriodDays: gracePeriodDays ?? undefined,
+        externalBillingRef:
+          textValue(formData, "externalBillingRef", 200) || undefined,
+      }),
+    });
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  revalidatePath(`/admin/services/assignments/${assignmentId}`);
+
+  return { message: null };
+}
+
+export async function updateSubscriptionAction(
+  assignmentId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const context = await subscriptionContext(assignmentId);
+  const term = termValue(formData);
+  const gracePeriodDays = boundedInteger(formData, "gracePeriodDays", 0, 90);
+
+  if (!context || !term || gracePeriodDays === null) {
+    return { message: "Select a valid term and grace period." };
+  }
+
+  try {
+    await apiRequest(subscriptionEndpoint(assignmentId), {
+      method: "PATCH",
+      token: context.token,
+      body: JSON.stringify({
+        term,
+        autoRenew: formData.get("autoRenew") === "true",
+        gracePeriodDays,
+        externalBillingRef: textValue(formData, "externalBillingRef", 200),
+      }),
+    });
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  revalidatePath(`/admin/services/assignments/${assignmentId}`);
+
+  return { message: null };
+}
+
+export async function renewSubscriptionAction(
+  assignmentId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const context = await subscriptionContext(assignmentId);
+  const term = termValue(formData);
+
+  if (!context || !term) {
+    return { message: "Select a valid term." };
+  }
+
+  const endsAt = optionalDateValue(formData, "endsAt");
+
+  if (term === "CUSTOM" && !endsAt) {
+    return { message: "A custom term requires an end date." };
+  }
+
+  try {
+    await apiRequest(`${subscriptionEndpoint(assignmentId)}/renew`, {
+      method: "POST",
+      token: context.token,
+      body: JSON.stringify({
+        term,
+        endsAt: term === "CUSTOM" ? endsAt : undefined,
+      }),
+    });
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  revalidatePath(`/admin/services/assignments/${assignmentId}`);
+
+  return { message: null };
+}
+
+export async function cancelSubscriptionAction(
+  assignmentId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const context = await subscriptionContext(assignmentId);
+
+  if (!context) {
+    return { message: "You cannot cancel this subscription." };
+  }
+
+  try {
+    await apiRequest(`${subscriptionEndpoint(assignmentId)}/cancel`, {
+      method: "POST",
+      token: context.token,
+      body: JSON.stringify({
+        atPeriodEnd: formData.get("atPeriodEnd") === "true",
+        reason: textValue(formData, "reason", 1000) || undefined,
+      }),
+    });
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  revalidatePath(`/admin/services/assignments/${assignmentId}`);
+
+  return { message: null };
 }

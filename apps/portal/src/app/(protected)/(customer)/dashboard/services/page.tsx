@@ -10,12 +10,17 @@ import { EmptyState, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
 import { AssignmentStatusBadge } from "@/components/services/service-status-badge";
+import {
+  SubscriptionMeter,
+  SubscriptionStatusBadge,
+} from "@/components/services/subscription-meter";
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { customerPortalRefinementDictionaries } from "@/lib/i18n/customer-portal-refinement";
 import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
 import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
+import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
 
 interface CustomerServicesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -135,6 +140,7 @@ export default async function CustomerServicesPage({
   >(`/service-assignments?limit=20&offset=${offset}`, { token });
   const labels = customerPortalRefinementDictionaries[locale].services;
   const featureLabels = serviceFeatureDictionaries[locale];
+  const subscriptionLabels = subscriptionsDictionaries[locale];
 
   return (
     <div className="grid gap-6 sm:gap-7">
@@ -212,10 +218,18 @@ export default async function CustomerServicesPage({
                             {name}
                           </h2>
                         </div>
-                        <AssignmentStatusBadge
-                          status={assignment.status}
-                          labels={services}
-                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <AssignmentStatusBadge
+                            status={assignment.status}
+                            labels={services}
+                          />
+                          {assignment.entitlement.state !== "PERPETUAL" ? (
+                            <SubscriptionStatusBadge
+                              entitlement={assignment.entitlement}
+                              labels={subscriptionLabels}
+                            />
+                          ) : null}
+                        </div>
                       </div>
 
                       {description ? (
@@ -226,7 +240,13 @@ export default async function CustomerServicesPage({
                     </div>
                   </div>
 
-                  {assignment.expiresAt ? (
+                  {assignment.entitlement.state !== "PERPETUAL" ? (
+                    <SubscriptionMeter
+                      entitlement={assignment.entitlement}
+                      labels={subscriptionLabels}
+                      locale={locale}
+                    />
+                  ) : assignment.expiresAt ? (
                     <p className="mt-5 border-t border-line pt-4 text-xs text-muted">
                       {services.expiresAt}:{" "}
                       <span className="font-medium text-content">

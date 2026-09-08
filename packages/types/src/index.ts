@@ -238,6 +238,7 @@ export interface ManagedService {
   description: string | null;
   descriptionTranslations: LocalizedText;
   status: ServiceCatalogStatus;
+  billingModel: ServiceBillingModel;
   createdAt: string;
   updatedAt: string;
   assignmentCount: number;
@@ -334,6 +335,88 @@ export interface CompanyServiceLifecycleEvent {
   createdAt: string;
 }
 
+export type SubscriptionTerm =
+  | "MONTHLY"
+  | "QUARTERLY"
+  | "SEMI_ANNUAL"
+  | "ANNUAL"
+  | "BIENNIAL"
+  | "TRIENNIAL"
+  | "CUSTOM";
+
+export type SubscriptionStatus =
+  | "TRIAL"
+  | "ACTIVE"
+  | "GRACE"
+  | "EXPIRED"
+  | "CANCELLED";
+
+export type SubscriptionPeriodSource =
+  | "INITIAL"
+  | "MANUAL_RENEWAL"
+  | "AUTO_RENEWAL"
+  | "ADMIN_ADJUSTMENT";
+
+export type ServiceBillingModel = "PERPETUAL" | "SUBSCRIPTION";
+
+export type EntitlementState =
+  | "PERPETUAL"
+  | "TRIAL"
+  | "ACTIVE"
+  | "GRACE"
+  | "EXPIRED"
+  | "CANCELLED"
+  | "ASSIGNMENT_INACTIVE"
+  | "SUBSCRIPTION_MISSING";
+
+/**
+ * Derived access decision for one service assignment. Computed from the
+ * subscription period rather than stored, so it is accurate even before the
+ * expiry sweep has run.
+ */
+export interface ServiceEntitlement {
+  state: EntitlementState;
+  available: boolean;
+  inGrace: boolean;
+  periodStart: string | null;
+  periodEnd: string | null;
+  accessEndsAt: string | null;
+  daysRemaining: number | null;
+  elapsedRatio: number | null;
+  autoRenew: boolean;
+}
+
+export interface ServiceSubscription {
+  id: string;
+  companyServiceId: string;
+  term: SubscriptionTerm;
+  status: SubscriptionStatus;
+  autoRenew: boolean;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  gracePeriodDays: number;
+  externalBillingRef: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceSubscriptionPeriod {
+  id: string;
+  sequence: number;
+  term: SubscriptionTerm;
+  startsAt: string;
+  endsAt: string;
+  source: SubscriptionPeriodSource;
+  createdAt: string;
+}
+
+export interface ServiceSubscriptionDetails {
+  subscription: ServiceSubscription | null;
+  periods: ServiceSubscriptionPeriod[];
+  entitlement: ServiceEntitlement;
+}
+
 export interface CompanyServiceAssignment {
   id: string;
   companyId: string;
@@ -348,6 +431,7 @@ export interface CompanyServiceAssignment {
   internalNotes?: string | null;
   createdAt: string;
   updatedAt: string;
+  entitlement: ServiceEntitlement;
   company: Pick<Company, "id" | "name" | "nameTranslations" | "status">;
   service: Pick<
     ManagedService,
@@ -359,6 +443,7 @@ export interface CompanyServiceAssignment {
     | "descriptionTranslations"
     | "category"
     | "status"
+    | "billingModel"
   >;
 }
 

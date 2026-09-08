@@ -20,6 +20,7 @@ import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getServicesDictionary } from "@/lib/i18n/services-server";
+import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
 
 import {
   attachServiceFeatureDefinitionAction,
@@ -139,6 +140,7 @@ export default async function ServiceDetailsPage({
           {serviceFeatures.overview}
         </h2>
         <ServiceForm
+          billingLabels={subscriptionsDictionaries[locale]}
           action={updateServiceAction.bind(null, service.id)}
           labels={services}
           content={content}

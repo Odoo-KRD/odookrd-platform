@@ -57,7 +57,9 @@ function serviceFor(companyId: string = COMPANY_ID): ServiceAssignmentsService {
       name: 'Managed Odoo',
       category: ServiceCategory.ODOO,
       status: ServiceCatalogStatus.ACTIVE,
+      billingModel: 'PERPETUAL',
     },
+    subscription: null,
   };
 
   const prisma = {
@@ -147,5 +149,18 @@ describe('ServiceAssignmentsService company security', () => {
         companyId: OTHER_COMPANY_ID,
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('attaches a derived entitlement to a company assignment', async () => {
+    const service = serviceFor();
+
+    const result = await service.getAssignment(
+      companyPrincipal,
+      'assignment-id',
+    );
+
+    expect(result.entitlement.state).toBe('PERPETUAL');
+    expect(result.entitlement.available).toBe(true);
+    expect(result).not.toHaveProperty('subscription');
   });
 });

@@ -4,6 +4,7 @@ import {
   type CompanyServiceFeature,
   type CompanyServiceLifecycleEvent,
   type PaginatedResult,
+  type ServiceSubscriptionDetails,
 } from "@odookrd/types";
 import { PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
@@ -13,16 +14,22 @@ import { AssignmentFeatureForm } from "@/components/services/assignment-feature-
 import { ServiceAssignmentForm } from "@/components/services/service-assignment-form";
 import { ServiceLifecycleForm } from "@/components/services/service-lifecycle-form";
 import { AssignmentStatusBadge } from "@/components/services/service-status-badge";
+import { SubscriptionPanel } from "@/components/services/subscription-panel";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getServicesDictionary } from "@/lib/i18n/services-server";
+import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
 
 import {
+  cancelSubscriptionAction,
+  createSubscriptionAction,
+  renewSubscriptionAction,
   syncAssignmentFeaturesAction,
   transitionAssignmentAction,
   updateAssignmentAction,
   updateAssignmentFeatureAction,
+  updateSubscriptionAction,
 } from "../../actions";
 
 interface AssignmentDetailsPageProps {
@@ -46,7 +53,7 @@ export default async function AssignmentDetailsPage({
     redirect("/dashboard");
   }
 
-  const [assignment, features, history] = await Promise.all([
+  const [assignment, features, history, subscription] = await Promise.all([
     apiRequest<CompanyServiceAssignment>(
       `/service-assignments/${encodeURIComponent(id)}`,
       { token },
@@ -59,7 +66,15 @@ export default async function AssignmentDetailsPage({
       `/service-assignments/${encodeURIComponent(id)}/history?limit=50&offset=0`,
       { token },
     ),
+    // Isolated from the rest of the page: a subscription lookup failure should
+    // degrade this one panel, not blank the whole assignment screen.
+    apiRequest<ServiceSubscriptionDetails>(
+      `/service-assignments/${encodeURIComponent(id)}/subscription`,
+      { token },
+    ).catch((): ServiceSubscriptionDetails | null => null),
   ]);
+
+  const subscriptionLabels = subscriptionsDictionaries[locale];
 
   return (
     <div className="grid gap-7">
@@ -118,6 +133,31 @@ export default async function AssignmentDetailsPage({
             </p>
           </div>
         </div>
+      </Panel>
+
+      <Panel className="p-6 sm:p-8">
+        <h2 className="mb-1 text-base font-semibold text-slate-900">
+          {subscriptionLabels.title}
+        </h2>
+        <p className="mb-6 text-sm text-slate-500">
+          {subscriptionLabels.description}
+        </p>
+        {subscription ? (
+          <SubscriptionPanel
+            details={subscription}
+            billingModel={assignment.service.billingModel}
+            labels={subscriptionLabels}
+            createAction={createSubscriptionAction.bind(null, assignment.id)}
+            updateAction={updateSubscriptionAction.bind(null, assignment.id)}
+            renewAction={renewSubscriptionAction.bind(null, assignment.id)}
+            cancelAction={cancelSubscriptionAction.bind(null, assignment.id)}
+            locale={locale}
+          />
+        ) : (
+          <p className="text-sm text-slate-500">
+            {subscriptionLabels.noneDescription}
+          </p>
+        )}
       </Panel>
 
       <Panel className="p-6 sm:p-8">

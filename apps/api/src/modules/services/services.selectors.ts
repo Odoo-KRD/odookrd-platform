@@ -1,4 +1,5 @@
 import type { Prisma } from '../../generated/prisma/client';
+import type { Entitlement } from '../subscriptions/subscription-entitlement';
 
 export const serviceSelect = {
   id: true,
@@ -9,6 +10,7 @@ export const serviceSelect = {
   description: true,
   descriptionTranslations: true,
   status: true,
+  billingModel: true,
   createdAt: true,
   updatedAt: true,
   _count: { select: { assignments: true, features: true } },
@@ -133,6 +135,17 @@ export const assignmentSelect = {
       descriptionTranslations: true,
       category: true,
       status: true,
+      billingModel: true,
+    },
+  },
+  subscription: {
+    select: {
+      status: true,
+      currentPeriodStart: true,
+      currentPeriodEnd: true,
+      gracePeriodDays: true,
+      autoRenew: true,
+      cancelAtPeriodEnd: true,
     },
   },
 } satisfies Prisma.CompanyServiceSelect;
@@ -158,6 +171,15 @@ export type LifecycleRecord = Prisma.CompanyServiceLifecycleEventGetPayload<{
   select: typeof lifecycleSelect;
 }>;
 
-export type VisibleAssignment = Omit<AssignmentRecord, 'internalNotes'> & {
+/**
+ * An assignment as returned to a caller. Operator-only notes are dropped for
+ * company principals, the raw subscription row is replaced by its derived
+ * entitlement, and the rest of the record is passed through untouched.
+ */
+export type VisibleAssignment = Omit<
+  AssignmentRecord,
+  'internalNotes' | 'subscription'
+> & {
   internalNotes?: string | null;
+  entitlement: Entitlement;
 };

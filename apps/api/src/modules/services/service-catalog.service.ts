@@ -11,7 +11,10 @@ import {
   type BatchMutationResult,
 } from '../../common/batch/batch-mutation.dto';
 import { normalizeLocalizedText } from '../../i18n/localized-content';
-import { ServiceCatalogStatus } from '../../generated/prisma/enums';
+import {
+  ServiceBillingModel,
+  ServiceCatalogStatus,
+} from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { AUDIT_ACTIONS } from '../audit/audit.actions';
@@ -118,6 +121,7 @@ export class ServiceCatalogService {
             input.description,
           ),
           status: input.status ?? ServiceCatalogStatus.ACTIVE,
+          billingModel: input.billingModel ?? ServiceBillingModel.PERPETUAL,
         },
         select: serviceSelect,
       });
@@ -203,6 +207,9 @@ export class ServiceCatalogService {
               }
             : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
+          ...(input.billingModel !== undefined
+            ? { billingModel: input.billingModel }
+            : {}),
         },
         select: serviceSelect,
       });

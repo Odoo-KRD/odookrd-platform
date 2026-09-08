@@ -1,5 +1,6 @@
 import { AccountScope } from '../../generated/prisma/enums';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
+import { resolveEntitlement } from '../subscriptions/subscription-entitlement';
 import type {
   AssignmentFeatureRecord,
   AssignmentRecord,
@@ -81,15 +82,33 @@ export function presentLifecycleEvent(
   };
 }
 
+/**
+ * Presents one assignment, attaching its derived entitlement.
+ *
+ * The entitlement is computed rather than stored, so an expired subscription is
+ * reported accurately even before the Stage 4C sweep has run. Feature rows,
+ * notes and configuration are returned unchanged whatever the entitlement says:
+ * the data remains, tagged expired.
+ */
 export function presentAssignment(
   record: AssignmentRecord,
   principal: AuthenticatedPrincipal,
+  now: Date = new Date(),
 ): VisibleAssignment {
-  const { internalNotes, ...visible } = record;
+  const { internalNotes, subscription, ...visible } = record;
+
+  const entitlement = resolveEntitlement(
+    {
+      billingModel: record.service.billingModel,
+      assignmentStatus: record.status,
+      subscription,
+    },
+    now,
+  );
 
   if (principal.accountScope === AccountScope.PLATFORM) {
-    return { ...visible, internalNotes };
+    return { ...visible, internalNotes, entitlement };
   }
 
-  return visible;
+  return { ...visible, entitlement };
 }

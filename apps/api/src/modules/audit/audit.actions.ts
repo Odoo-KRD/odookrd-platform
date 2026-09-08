@@ -42,6 +42,11 @@ export const AUDIT_ACTIONS = {
     'service.assignment.status_transitioned',
   SERVICE_ASSIGNMENT_BATCH_TRANSITIONED:
     'service.assignment.batch_transitioned',
+
+  SUBSCRIPTION_CREATED: 'subscription.created',
+  SUBSCRIPTION_UPDATED: 'subscription.updated',
+  SUBSCRIPTION_RENEWED: 'subscription.renewed',
+  SUBSCRIPTION_CANCELLED: 'subscription.cancelled',
   FILE_UPLOADED: 'file.uploaded',
   FILE_DELETED: 'file.deleted',
 

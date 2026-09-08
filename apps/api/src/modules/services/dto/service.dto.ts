@@ -11,6 +11,7 @@ import {
 
 import { PaginationQueryDto } from '../../../common/pagination/pagination-query.dto';
 import {
+  ServiceBillingModel,
   ServiceCatalogStatus,
   ServiceCategory,
 } from '../../../generated/prisma/enums';
@@ -65,6 +66,10 @@ export class CreateServiceDto {
   @IsOptional()
   @IsEnum(ServiceCatalogStatus)
   status?: ServiceCatalogStatus;
+
+  @IsOptional()
+  @IsEnum(ServiceBillingModel)
+  billingModel?: ServiceBillingModel;
 }
 
 export class UpdateServiceDto {
@@ -96,4 +101,8 @@ export class UpdateServiceDto {
   @IsOptional()
   @IsEnum(ServiceCatalogStatus)
   status?: ServiceCatalogStatus;
+
+  @IsOptional()
+  @IsEnum(ServiceBillingModel)
+  billingModel?: ServiceBillingModel;
 }
