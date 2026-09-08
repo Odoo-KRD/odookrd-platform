@@ -30,12 +30,18 @@ import {
   ListServicesQueryDto,
   UpdateServiceDto,
 } from './dto/service.dto';
-import { ServicesService } from './services.service';
+import { ServiceCatalogService } from './service-catalog.service';
+import { ServiceFeatureDefinitionsService } from './service-feature-definitions.service';
+import { ServiceFeaturesService } from './service-features.service';
 
 @Controller('services')
 @UseGuards(AuthenticatedGuard, AuthorizationGuard)
 export class ServicesController {
-  constructor(private readonly services: ServicesService) {}
+  constructor(
+    private readonly catalog: ServiceCatalogService,
+    private readonly definitions: ServiceFeatureDefinitionsService,
+    private readonly features: ServiceFeaturesService,
+  ) {}
 
   @Get()
   @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
@@ -43,7 +49,7 @@ export class ServicesController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Query() query: ListServicesQueryDto,
   ) {
-    return this.services.listServices(principal, query);
+    return this.catalog.listServices(principal, query);
   }
 
   @Get(':id')
@@ -52,7 +58,7 @@ export class ServicesController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('id', ParseUUIDPipe) serviceId: string,
   ) {
-    return this.services.getService(principal, serviceId);
+    return this.catalog.getService(principal, serviceId);
   }
 
   @Post()
@@ -61,7 +67,7 @@ export class ServicesController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Body() input: CreateServiceDto,
   ) {
-    return this.services.createService(principal, input);
+    return this.catalog.createService(principal, input);
   }
 
   @Post('batch-status')
@@ -70,7 +76,7 @@ export class ServicesController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Body() input: BatchServiceStatusDto,
   ) {
-    return this.services.updateServiceStatuses(principal, input);
+    return this.catalog.updateServiceStatuses(principal, input);
   }
 
   @Get(':serviceId/features')
@@ -80,7 +86,7 @@ export class ServicesController {
     @Param('serviceId', ParseUUIDPipe) serviceId: string,
     @Query() query: ListServiceFeaturesQueryDto,
   ) {
-    return this.services.listServiceFeatures(principal, serviceId, query);
+    return this.features.listServiceFeatures(principal, serviceId, query);
   }
 
   @Post(':serviceId/features')
@@ -90,7 +96,7 @@ export class ServicesController {
     @Param('serviceId', ParseUUIDPipe) serviceId: string,
     @Body() input: CreateServiceFeatureDto,
   ) {
-    return this.services.createServiceFeature(principal, serviceId, input);
+    return this.features.createServiceFeature(principal, serviceId, input);
   }
 
   @Post(':serviceId/features/attach')
@@ -100,7 +106,11 @@ export class ServicesController {
     @Param('serviceId', ParseUUIDPipe) serviceId: string,
     @Body() input: AttachServiceFeatureDefinitionDto,
   ) {
-    return this.services.attachFeatureDefinition(principal, serviceId, input);
+    return this.definitions.attachFeatureDefinition(
+      principal,
+      serviceId,
+      input,
+    );
   }
 
   @Post(':serviceId/features/reorder')
@@ -110,7 +120,7 @@ export class ServicesController {
     @Param('serviceId', ParseUUIDPipe) serviceId: string,
     @Body() input: ReorderServiceFeaturesDto,
   ) {
-    return this.services.reorderServiceFeatures(principal, serviceId, input);
+    return this.features.reorderServiceFeatures(principal, serviceId, input);
   }
 
   @Patch(':serviceId/features/:featureId')
@@ -121,7 +131,7 @@ export class ServicesController {
     @Param('featureId', ParseUUIDPipe) featureId: string,
     @Body() input: UpdateServiceFeatureDto,
   ) {
-    return this.services.updateServiceFeature(
+    return this.features.updateServiceFeature(
       principal,
       serviceId,
       featureId,
@@ -136,7 +146,7 @@ export class ServicesController {
     @Param('id', ParseUUIDPipe) serviceId: string,
     @Body() input: UpdateServiceDto,
   ) {
-    return this.services.updateService(principal, serviceId, input);
+    return this.catalog.updateService(principal, serviceId, input);
   }
 
   @Delete(':id')
@@ -145,6 +155,6 @@ export class ServicesController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('id', ParseUUIDPipe) serviceId: string,
   ) {
-    return this.services.deleteService(principal, serviceId);
+    return this.catalog.deleteService(principal, serviceId);
   }
 }

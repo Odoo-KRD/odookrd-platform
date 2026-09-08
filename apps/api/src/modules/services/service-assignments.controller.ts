@@ -25,12 +25,16 @@ import {
   ListServiceAssignmentsQueryDto,
   UpdateServiceAssignmentDto,
 } from './dto/service-assignment.dto';
-import { ServicesService } from './services.service';
+import { ServiceAssignmentsService } from './service-assignments.service';
+import { ServiceLifecycleService } from './service-lifecycle.service';
 
 @Controller('service-assignments')
 @UseGuards(AuthenticatedGuard, AuthorizationGuard)
 export class ServiceAssignmentsController {
-  constructor(private readonly services: ServicesService) {}
+  constructor(
+    private readonly assignments: ServiceAssignmentsService,
+    private readonly lifecycle: ServiceLifecycleService,
+  ) {}
 
   @Get()
   @RequirePermissions(PERMISSIONS.SERVICES_READ)
@@ -38,7 +42,7 @@ export class ServiceAssignmentsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Query() query: ListServiceAssignmentsQueryDto,
   ) {
-    return this.services.listAssignments(principal, query);
+    return this.assignments.listAssignments(principal, query);
   }
 
   @Get(':id')
@@ -47,7 +51,7 @@ export class ServiceAssignmentsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('id', ParseUUIDPipe) assignmentId: string,
   ) {
-    return this.services.getAssignment(principal, assignmentId);
+    return this.assignments.getAssignment(principal, assignmentId);
   }
 
   @Post()
@@ -56,7 +60,7 @@ export class ServiceAssignmentsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Body() input: CreateServiceAssignmentDto,
   ) {
-    return this.services.createAssignment(principal, input);
+    return this.assignments.createAssignment(principal, input);
   }
 
   @Post('batch-transition')
@@ -65,7 +69,7 @@ export class ServiceAssignmentsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Body() input: BatchAssignmentTransitionDto,
   ) {
-    return this.services.transitionAssignments(principal, input);
+    return this.lifecycle.transitionAssignments(principal, input);
   }
 
   @Get(':id/features')
@@ -75,7 +79,11 @@ export class ServiceAssignmentsController {
     @Param('id', ParseUUIDPipe) assignmentId: string,
     @Query() query: PaginationQueryDto,
   ) {
-    return this.services.listAssignmentFeatures(principal, assignmentId, query);
+    return this.assignments.listAssignmentFeatures(
+      principal,
+      assignmentId,
+      query,
+    );
   }
 
   @Patch(':id/features/:featureId')
@@ -86,7 +94,7 @@ export class ServiceAssignmentsController {
     @Param('featureId', ParseUUIDPipe) featureId: string,
     @Body() input: UpdateCompanyServiceFeatureDto,
   ) {
-    return this.services.updateAssignmentFeature(
+    return this.assignments.updateAssignmentFeature(
       principal,
       assignmentId,
       featureId,
@@ -100,7 +108,7 @@ export class ServiceAssignmentsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('id', ParseUUIDPipe) assignmentId: string,
   ) {
-    return this.services.syncAssignmentFeatures(principal, assignmentId);
+    return this.assignments.syncAssignmentFeatures(principal, assignmentId);
   }
 
   @Get(':id/history')
@@ -110,7 +118,7 @@ export class ServiceAssignmentsController {
     @Param('id', ParseUUIDPipe) assignmentId: string,
     @Query() query: PaginationQueryDto,
   ) {
-    return this.services.listAssignmentHistory(principal, assignmentId, query);
+    return this.lifecycle.listAssignmentHistory(principal, assignmentId, query);
   }
 
   @Post(':id/transitions')
@@ -120,7 +128,7 @@ export class ServiceAssignmentsController {
     @Param('id', ParseUUIDPipe) assignmentId: string,
     @Body() input: CreateServiceTransitionDto,
   ) {
-    return this.services.transitionAssignment(principal, assignmentId, input);
+    return this.lifecycle.transitionAssignment(principal, assignmentId, input);
   }
 
   @Patch(':id')
@@ -130,6 +138,6 @@ export class ServiceAssignmentsController {
     @Param('id', ParseUUIDPipe) assignmentId: string,
     @Body() input: UpdateServiceAssignmentDto,
   ) {
-    return this.services.updateAssignment(principal, assignmentId, input);
+    return this.assignments.updateAssignment(principal, assignmentId, input);
   }
 }

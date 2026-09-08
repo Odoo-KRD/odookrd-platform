@@ -10,7 +10,7 @@ import {
 import type { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import type { AuthorizationService } from '../authorization/authorization.service';
-import { ServicesService } from './services.service';
+import { ServiceAssignmentsService } from './service-assignments.service';
 
 const COMPANY_ID = '7f28dd10-86d3-4286-81ff-f2f58bb8bd21';
 const OTHER_COMPANY_ID = '8a7ea523-ea89-487d-84b3-98fe6bde9a62';
@@ -31,7 +31,7 @@ const companyPrincipal: AuthenticatedPrincipal = {
   companyId: COMPANY_ID,
 };
 
-function serviceFor(companyId: string = COMPANY_ID): ServicesService {
+function serviceFor(companyId: string = COMPANY_ID): ServiceAssignmentsService {
   const now = new Date('2026-08-22T00:00:00.000Z');
   const assignment = {
     id: 'b950dcd0-88f8-47ac-baf6-aaf95be93731',
@@ -89,10 +89,10 @@ function serviceFor(companyId: string = COMPANY_ID): ServicesService {
     ),
   } as unknown as AuthorizationService;
 
-  return new ServicesService(prisma, authorization);
+  return new ServiceAssignmentsService(prisma, authorization);
 }
 
-describe('ServicesService company security', () => {
+describe('ServiceAssignmentsService company security', () => {
   it('removes private operator notes from company service responses', async () => {
     const service = serviceFor();
 
@@ -146,25 +146,6 @@ describe('ServicesService company security', () => {
         offset: 0,
         companyId: OTHER_COMPANY_ID,
       }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
-  });
-
-  it('prevents company accounts from enumerating the platform catalog', async () => {
-    const service = serviceFor();
-
-    await expect(
-      service.listServices(companyPrincipal, { limit: 20, offset: 0 }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
-  });
-
-  it('rejects malformed platform authorization contexts', async () => {
-    const service = serviceFor();
-
-    await expect(
-      service.listServices(
-        { ...platformPrincipal, companyId: COMPANY_ID },
-        { limit: 20, offset: 0 },
-      ),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

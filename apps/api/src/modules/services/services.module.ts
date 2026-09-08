@@ -6,7 +6,11 @@ import { AuthorizationModule } from '../authorization/authorization.module';
 import { ServiceFeatureDefinitionsController } from './service-feature-definitions.controller';
 import { ServiceAssignmentsController } from './service-assignments.controller';
 import { ServicesController } from './services.controller';
-import { ServicesService } from './services.service';
+import { ServiceAssignmentsService } from './service-assignments.service';
+import { ServiceCatalogService } from './service-catalog.service';
+import { ServiceFeatureDefinitionsService } from './service-feature-definitions.service';
+import { ServiceFeaturesService } from './service-features.service';
+import { ServiceLifecycleService } from './service-lifecycle.service';
 
 @Module({
   imports: [DatabaseModule, AuthModule, AuthorizationModule],
@@ -15,7 +19,19 @@ import { ServicesService } from './services.service';
     ServiceAssignmentsController,
     ServiceFeatureDefinitionsController,
   ],
-  providers: [ServicesService],
-  exports: [ServicesService],
+  providers: [
+    ServiceCatalogService,
+    ServiceFeatureDefinitionsService,
+    ServiceFeaturesService,
+    ServiceAssignmentsService,
+    ServiceLifecycleService,
+  ],
+  exports: [
+    ServiceCatalogService,
+    ServiceFeatureDefinitionsService,
+    ServiceFeaturesService,
+    ServiceAssignmentsService,
+    ServiceLifecycleService,
+  ],
 })
 export class ServicesModule {}

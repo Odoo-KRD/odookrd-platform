@@ -22,12 +22,12 @@ import {
   ListServiceFeatureDefinitionsDto,
   UpdateServiceFeatureDefinitionDto,
 } from './dto/service-feature-definition.dto';
-import { ServicesService } from './services.service';
+import { ServiceFeatureDefinitionsService } from './service-feature-definitions.service';
 
 @Controller('service-feature-definitions')
 @UseGuards(AuthenticatedGuard, AuthorizationGuard)
 export class ServiceFeatureDefinitionsController {
-  constructor(private readonly services: ServicesService) {}
+  constructor(private readonly definitions: ServiceFeatureDefinitionsService) {}
 
   @Get()
   @RequirePermissions(PERMISSIONS.SERVICES_MANAGE)
@@ -35,7 +35,7 @@ export class ServiceFeatureDefinitionsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Query() query: ListServiceFeatureDefinitionsDto,
   ) {
-    return this.services.listFeatureDefinitions(principal, query);
+    return this.definitions.listFeatureDefinitions(principal, query);
   }
 
   @Get(':id')
@@ -44,7 +44,7 @@ export class ServiceFeatureDefinitionsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('id', ParseUUIDPipe) definitionId: string,
   ) {
-    return this.services.getFeatureDefinition(principal, definitionId);
+    return this.definitions.getFeatureDefinition(principal, definitionId);
   }
 
   @Post()
@@ -53,7 +53,7 @@ export class ServiceFeatureDefinitionsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Body() input: CreateServiceFeatureDefinitionDto,
   ) {
-    return this.services.createFeatureDefinition(principal, input);
+    return this.definitions.createFeatureDefinition(principal, input);
   }
 
   @Patch(':id')
@@ -63,7 +63,7 @@ export class ServiceFeatureDefinitionsController {
     @Param('id', ParseUUIDPipe) definitionId: string,
     @Body() input: UpdateServiceFeatureDefinitionDto,
   ) {
-    return this.services.updateFeatureDefinition(
+    return this.definitions.updateFeatureDefinition(
       principal,
       definitionId,
       input,
@@ -76,6 +76,6 @@ export class ServiceFeatureDefinitionsController {
     @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('id', ParseUUIDPipe) definitionId: string,
   ) {
-    return this.services.deleteFeatureDefinition(principal, definitionId);
+    return this.definitions.deleteFeatureDefinition(principal, definitionId);
   }
 }

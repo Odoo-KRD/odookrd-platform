@@ -15,6 +15,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { TrainingModule } from './modules/training/training.module';
 import { FilesModule } from './modules/files/files.module';
 
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { WorkspaceModule } from './modules/workspace/workspace.module';
 import { UserAdministrationModule } from './modules/user-administration/user-administration.module';
 @Module({
@@ -34,6 +35,7 @@ import { UserAdministrationModule } from './modules/user-administration/user-adm
     RolesModule,
     UsersModule,
     ServicesModule,
+    SubscriptionsModule,
     SettingsModule,
     NotificationsModule,
     TrainingModule,
