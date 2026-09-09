@@ -47,6 +47,9 @@ export const AUDIT_ACTIONS = {
   SUBSCRIPTION_UPDATED: 'subscription.updated',
   SUBSCRIPTION_RENEWED: 'subscription.renewed',
   SUBSCRIPTION_CANCELLED: 'subscription.cancelled',
+  SUBSCRIPTION_RENEWAL_REQUESTED: 'subscription.renewal.requested',
+  SUBSCRIPTION_RENEWAL_APPROVED: 'subscription.renewal.approved',
+  SUBSCRIPTION_RENEWAL_REJECTED: 'subscription.renewal.rejected',
   FILE_UPLOADED: 'file.uploaded',
   FILE_DELETED: 'file.deleted',
 

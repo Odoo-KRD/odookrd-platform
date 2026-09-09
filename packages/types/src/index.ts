@@ -87,10 +87,7 @@ export interface Company {
 }
 
 export type CompanyIdentityChangeRequestStatus =
-  | "PENDING"
-  | "APPROVED"
-  | "REJECTED"
-  | "CANCELLED";
+  "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 
 export interface CompanyProfile extends Company {
   slug: string | null;
@@ -345,17 +342,10 @@ export type SubscriptionTerm =
   | "CUSTOM";
 
 export type SubscriptionStatus =
-  | "TRIAL"
-  | "ACTIVE"
-  | "GRACE"
-  | "EXPIRED"
-  | "CANCELLED";
+  "TRIAL" | "ACTIVE" | "GRACE" | "EXPIRED" | "CANCELLED";
 
 export type SubscriptionPeriodSource =
-  | "INITIAL"
-  | "MANUAL_RENEWAL"
-  | "AUTO_RENEWAL"
-  | "ADMIN_ADJUSTMENT";
+  "INITIAL" | "MANUAL_RENEWAL" | "AUTO_RENEWAL" | "ADMIN_ADJUSTMENT";
 
 export type ServiceBillingModel = "PERPETUAL" | "SUBSCRIPTION";
 
@@ -409,6 +399,36 @@ export interface ServiceSubscriptionPeriod {
   endsAt: string;
   source: SubscriptionPeriodSource;
   createdAt: string;
+}
+
+export type SubscriptionRenewalRequestStatus =
+  "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+
+export interface SubscriptionRenewalRequest {
+  id: string;
+  subscriptionId: string;
+  requestedTerm: SubscriptionTerm;
+  status: SubscriptionRenewalRequestStatus;
+  note: string | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requestedBy: { id: string; email: string; displayName: string | null };
+  reviewedBy: { id: string; email: string; displayName: string | null } | null;
+  subscription: {
+    id: string;
+    term: SubscriptionTerm;
+    status: SubscriptionStatus;
+    currentPeriodEnd: string;
+    companyService: {
+      id: string;
+      displayName: string | null;
+      companyId: string;
+      company: { id: string; name: string };
+      service: { id: string; name: string; key: string };
+    };
+  };
 }
 
 export interface ServiceSubscriptionDetails {

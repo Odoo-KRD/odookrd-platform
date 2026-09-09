@@ -1595,3 +1595,80 @@ export async function cancelSubscriptionAction(
 
   return { message: null };
 }
+
+async function renewalReviewContext(requestId: string) {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SERVICES_MANAGE,
+  );
+
+  if (
+    session.user.accountScope !== "PLATFORM" ||
+    !uuidPattern.test(requestId)
+  ) {
+    return null;
+  }
+
+  return { token };
+}
+
+export async function approveRenewalRequestAction(
+  requestId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const context = await renewalReviewContext(requestId);
+
+  if (!context) {
+    return { message: "You cannot review this renewal request." };
+  }
+
+  try {
+    await apiRequest(
+      `/subscription-renewal-requests/${encodeURIComponent(requestId)}/approve`,
+      {
+        method: "POST",
+        token: context.token,
+        body: JSON.stringify({
+          reviewNote: textValue(formData, "reviewNote", 1000) || undefined,
+        }),
+      },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  revalidatePath("/admin/services/renewals");
+
+  return { message: null };
+}
+
+export async function rejectRenewalRequestAction(
+  requestId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const context = await renewalReviewContext(requestId);
+
+  if (!context) {
+    return { message: "You cannot review this renewal request." };
+  }
+
+  try {
+    await apiRequest(
+      `/subscription-renewal-requests/${encodeURIComponent(requestId)}/reject`,
+      {
+        method: "POST",
+        token: context.token,
+        body: JSON.stringify({
+          reviewNote: textValue(formData, "reviewNote", 1000) || undefined,
+        }),
+      },
+    );
+  } catch (error: unknown) {
+    return failed(error);
+  }
+
+  revalidatePath("/admin/services/renewals");
+
+  return { message: null };
+}

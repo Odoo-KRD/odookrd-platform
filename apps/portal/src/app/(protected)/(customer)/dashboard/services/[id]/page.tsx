@@ -3,16 +3,25 @@ import {
   type CompanyServiceAssignment,
   type CompanyServiceFeature,
   type PaginatedResult,
+  type SubscriptionRenewalRequest,
 } from "@odookrd/types";
 import { PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
+import { RenewalRequestForm } from "@/components/services/renewal-request-form";
 import { AssignmentStatusBadge } from "@/components/services/service-status-badge";
+import {
+  SubscriptionMeter,
+  SubscriptionStatusBadge,
+} from "@/components/services/subscription-meter";
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
 import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
+import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
+
+import { requestRenewalAction, withdrawRenewalRequestAction } from "../actions";
 
 interface CustomerServiceDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -43,6 +52,24 @@ export default async function CustomerServiceDetailsPage({
     { token },
   );
   const featureLabels = serviceFeatureDictionaries[locale];
+  const subscriptionLabels = subscriptionsDictionaries[locale];
+
+  // Isolated: a renewal lookup failure must not blank the service page.
+  const pendingRenewal =
+    assignment.entitlement.state === "PERPETUAL"
+      ? null
+      : await apiRequest<PaginatedResult<SubscriptionRenewalRequest>>(
+          `/subscription-renewal-requests?limit=1&offset=0&status=PENDING`,
+          { token },
+        )
+          .then(
+            (result) =>
+              result.items.find(
+                (request) =>
+                  request.subscription.companyService.id === assignment.id,
+              ) ?? null,
+          )
+          .catch(() => null);
 
   return (
     <div className="grid gap-7">
@@ -65,11 +92,17 @@ export default async function CustomerServiceDetailsPage({
             <p className="text-xs font-medium text-slate-500">
               {services.status}
             </p>
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <AssignmentStatusBadge
                 status={assignment.status}
                 labels={services}
               />
+              {assignment.entitlement.state !== "PERPETUAL" ? (
+                <SubscriptionStatusBadge
+                  entitlement={assignment.entitlement}
+                  labels={subscriptionLabels}
+                />
+              ) : null}
             </div>
           </div>
           <div>
@@ -128,7 +161,35 @@ export default async function CustomerServiceDetailsPage({
             </a>
           </div>
         ) : null}
+
+        {assignment.entitlement.state !== "PERPETUAL" ? (
+          <SubscriptionMeter
+            entitlement={assignment.entitlement}
+            labels={subscriptionLabels}
+            locale={locale}
+          />
+        ) : null}
       </Panel>
+
+      {assignment.entitlement.state !== "PERPETUAL" ? (
+        <Panel className="p-6 sm:p-8">
+          <h2 className="text-base font-semibold text-slate-900">
+            {subscriptionLabels.requestRenewal}
+          </h2>
+          <div className="mt-4">
+            <RenewalRequestForm
+              entitlement={assignment.entitlement}
+              pending={pendingRenewal}
+              labels={subscriptionLabels}
+              requestAction={requestRenewalAction.bind(null, assignment.id)}
+              withdrawAction={withdrawRenewalRequestAction.bind(
+                null,
+                assignment.id,
+              )}
+            />
+          </div>
+        </Panel>
+      ) : null}
 
       {features.items.length > 0 ? (
         <Panel className="p-6 sm:p-8">

@@ -43,19 +43,25 @@ interface AccordionState {
   openGroupByDepth: Record<number, string>;
 }
 
+/**
+ * Sub-routes that have their own navigation entry and so must not also light up
+ * their parent. Without this, /admin/services/renewals would match both
+ * "Manage Services" and "Renewal Requests", since the parent is a path prefix.
+ *
+ * Add an entry here whenever a new child route gets its own sidebar item.
+ */
+const SIBLING_ROUTES: Record<string, readonly string[]> = {
+  "/admin/services": ["/admin/services/features", "/admin/services/renewals"],
+  "/dashboard/training": ["/dashboard/training/certificates"],
+};
+
 function isItemActive(pathname: string, href: string): boolean {
-  if (
-    href === "/admin/services" &&
-    (pathname === "/admin/services/features" ||
-      pathname.startsWith("/admin/services/features/"))
-  ) {
-    return false;
-  }
+  const siblings = SIBLING_ROUTES[href];
 
   if (
-    href === "/dashboard/training" &&
-    (pathname === "/dashboard/training/certificates" ||
-      pathname.startsWith("/dashboard/training/certificates/"))
+    siblings?.some(
+      (sibling) => pathname === sibling || pathname.startsWith(`${sibling}/`),
+    )
   ) {
     return false;
   }

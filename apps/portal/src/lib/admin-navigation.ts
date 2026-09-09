@@ -14,6 +14,7 @@ export interface AdminNavigationLabels {
   services: string;
   manageServices: string;
   featureDefinitions: string;
+  renewalRequests: string;
   training: string;
   trainingCourses: string;
   trainingCategories: string;
@@ -109,6 +110,11 @@ export function buildAdminNavigation(
           kind: "item",
           href: "/admin/services/features",
           label: labels.featureDefinitions,
+        },
+        {
+          kind: "item",
+          href: "/admin/services/renewals",
+          label: labels.renewalRequests,
         },
       ],
     });

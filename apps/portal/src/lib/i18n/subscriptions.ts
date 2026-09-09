@@ -41,6 +41,25 @@ export interface SubscriptionsDictionary {
   inGrace: string;
   yes: string;
   no: string;
+  requestRenewal: string;
+  requestRenewalHint: string;
+  requestRenewalSubmit: string;
+  requestRenewalSubmitting: string;
+  requestPending: string;
+  withdrawRequest: string;
+  renewalQueue: string;
+  renewalQueueDescription: string;
+  renewalQueueEmpty: string;
+  requestedBy: string;
+  requestedAt: string;
+  approve: string;
+  approving: string;
+  reject: string;
+  rejecting: string;
+  reviewNote: string;
+  note: string;
+  company: string;
+  service: string;
   billingModel: string;
   billingModelHint: string;
   billingModelLabels: Record<"PERPETUAL" | "SUBSCRIPTION", string>;
@@ -93,6 +112,26 @@ const en: SubscriptionsDictionary = {
   inGrace: "In grace period",
   yes: "Yes",
   no: "No",
+  requestRenewal: "Request renewal",
+  requestRenewalHint:
+    "Ask an operator to extend this subscription. They will review and confirm.",
+  requestRenewalSubmit: "Send request",
+  requestRenewalSubmitting: "Sending…",
+  requestPending: "A renewal request is awaiting review.",
+  withdrawRequest: "Withdraw request",
+  renewalQueue: "Renewal requests",
+  renewalQueueDescription: "Customer requests awaiting review.",
+  renewalQueueEmpty: "No renewal requests are awaiting review.",
+  requestedBy: "Requested by",
+  requestedAt: "Requested",
+  approve: "Approve and renew",
+  approving: "Approving…",
+  reject: "Reject",
+  rejecting: "Rejecting…",
+  reviewNote: "Review note",
+  note: "Note",
+  company: "Company",
+  service: "Service",
   billingModel: "Billing model",
   billingModelHint: "Subscription-billed services expire unless renewed.",
   billingModelLabels: {
@@ -170,6 +209,26 @@ const ku: SubscriptionsDictionary = {
   inGrace: "لە ماوەی خۆشگوزەرانیدا",
   yes: "بەڵێ",
   no: "نەخێر",
+  requestRenewal: "داواکردنی نوێکردنەوە",
+  requestRenewalHint:
+    "داوا لە بەڕێوەبەر بکە بۆ درێژکردنەوەی ئەم بەشداریکردنە. پێداچوونەوەی بۆ دەکرێت.",
+  requestRenewalSubmit: "ناردنی داواکاری",
+  requestRenewalSubmitting: "دەنێردرێت…",
+  requestPending: "داواکارییەکی نوێکردنەوە چاوەڕێی پێداچوونەوەیە.",
+  withdrawRequest: "کشانەوەی داواکاری",
+  renewalQueue: "داواکارییەکانی نوێکردنەوە",
+  renewalQueueDescription: "داواکاری کڕیارەکان کە چاوەڕێی پێداچوونەوەن.",
+  renewalQueueEmpty: "هیچ داواکارییەکی نوێکردنەوە چاوەڕێ نییە.",
+  requestedBy: "داواکراوە لەلایەن",
+  requestedAt: "بەرواری داواکاری",
+  approve: "پەسەندکردن و نوێکردنەوە",
+  approving: "پەسەند دەکرێت…",
+  reject: "ڕەتکردنەوە",
+  rejecting: "ڕەت دەکرێتەوە…",
+  reviewNote: "تێبینی پێداچوونەوە",
+  note: "تێبینی",
+  company: "کۆمپانیا",
+  service: "خزمەتگوزاری",
   billingModel: "شێوازی پسوڵە",
   billingModelHint:
     "خزمەتگوزارییە بەشداریکراوەکان بەسەردەچن ئەگەر نوێ نەکرێنەوە.",
@@ -246,6 +305,26 @@ const ar: SubscriptionsDictionary = {
   inGrace: "في فترة السماح",
   yes: "نعم",
   no: "لا",
+  requestRenewal: "طلب التجديد",
+  requestRenewalHint:
+    "اطلب من المشغل تمديد هذا الاشتراك. سيقوم بالمراجعة والتأكيد.",
+  requestRenewalSubmit: "إرسال الطلب",
+  requestRenewalSubmitting: "جارٍ الإرسال…",
+  requestPending: "هناك طلب تجديد قيد المراجعة.",
+  withdrawRequest: "سحب الطلب",
+  renewalQueue: "طلبات التجديد",
+  renewalQueueDescription: "طلبات العملاء قيد المراجعة.",
+  renewalQueueEmpty: "لا توجد طلبات تجديد قيد المراجعة.",
+  requestedBy: "مقدم الطلب",
+  requestedAt: "تاريخ الطلب",
+  approve: "الموافقة والتجديد",
+  approving: "جارٍ الموافقة…",
+  reject: "رفض",
+  rejecting: "جارٍ الرفض…",
+  reviewNote: "ملاحظة المراجعة",
+  note: "ملاحظة",
+  company: "الشركة",
+  service: "الخدمة",
   billingModel: "نموذج الفوترة",
   billingModelHint: "الخدمات المشتركة تنتهي ما لم يتم تجديدها.",
   billingModelLabels: {
