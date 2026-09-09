@@ -12,6 +12,8 @@ import {
 import { SubscriptionRenewalRequestService } from './subscription-renewal-request.service';
 import { SubscriptionAdministrationService } from './subscription-administration.service';
 import { SubscriptionReminderService } from './subscription-reminder.service';
+import { SubscriptionReportingController } from './subscription-reporting.controller';
+import { SubscriptionReportingService } from './subscription-reporting.service';
 import { SubscriptionSweepService } from './subscription-sweep.service';
 import { SubscriptionWorkerService } from './subscription-worker.service';
 
@@ -32,11 +34,13 @@ import { SubscriptionWorkerService } from './subscription-worker.service';
     SubscriptionAdministrationController,
     SubscriptionRenewalRequestController,
     AssignmentRenewalRequestController,
+    SubscriptionReportingController,
   ],
   providers: [
     SubscriptionAdministrationService,
     SubscriptionRenewalRequestService,
     SubscriptionReminderService,
+    SubscriptionReportingService,
     SubscriptionSweepService,
     SubscriptionWorkerService,
   ],
@@ -44,6 +48,7 @@ import { SubscriptionWorkerService } from './subscription-worker.service';
     SubscriptionAdministrationService,
     SubscriptionRenewalRequestService,
     SubscriptionReminderService,
+    SubscriptionReportingService,
     SubscriptionSweepService,
   ],
 })
