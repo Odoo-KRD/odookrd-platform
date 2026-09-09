@@ -51,7 +51,11 @@ interface AccordionState {
  * Add an entry here whenever a new child route gets its own sidebar item.
  */
 const SIBLING_ROUTES: Record<string, readonly string[]> = {
-  "/admin/services": ["/admin/services/features", "/admin/services/renewals"],
+  "/admin/services": [
+    "/admin/services/features",
+    "/admin/services/renewals",
+    "/admin/services/pipeline",
+  ],
   "/dashboard/training": ["/dashboard/training/certificates"],
 };
 

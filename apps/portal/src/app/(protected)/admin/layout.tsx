@@ -71,6 +71,7 @@ export default async function ProtectedAdminLayout({
     manageServices: serviceFeatureDictionaries[locale].manageServices,
     featureDefinitions: serviceFeatureDictionaries[locale].featureDefinitions,
     renewalRequests: serviceFeatureDictionaries[locale].renewalRequests,
+    renewalPipeline: serviceFeatureDictionaries[locale].renewalPipeline,
     training: trainingDictionaries[locale].navigation,
     trainingCourses: trainingDictionaries[locale].coursesNavigation,
     trainingCategories: trainingDictionaries[locale].categoriesNavigation,

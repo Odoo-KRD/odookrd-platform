@@ -431,6 +431,37 @@ export interface SubscriptionRenewalRequest {
   };
 }
 
+export type SubscriptionPipelineBucket =
+  "OVERDUE" | "WITHIN_7" | "WITHIN_30" | "WITHIN_60" | "WITHIN_90";
+
+export interface SubscriptionPipelineItem {
+  subscriptionId: string;
+  assignmentId: string;
+  companyId: string;
+  companyName: string;
+  serviceName: string;
+  term: SubscriptionTerm;
+  status: SubscriptionStatus;
+  autoRenew: boolean;
+  gracePeriodDays: number;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  externalBillingRef: string | null;
+  bucket: SubscriptionPipelineBucket;
+  entitlement: ServiceEntitlement;
+}
+
+export interface SubscriptionPipelineReport {
+  summary: {
+    counts: Record<SubscriptionPipelineBucket, number>;
+    total: number;
+    autoRenewing: number;
+    needsAttention: number;
+  };
+  items: SubscriptionPipelineItem[];
+  timeZone: string;
+}
+
 export interface ServiceSubscriptionDetails {
   subscription: ServiceSubscription | null;
   periods: ServiceSubscriptionPeriod[];

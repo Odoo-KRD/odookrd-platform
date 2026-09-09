@@ -41,6 +41,18 @@ export interface SubscriptionsDictionary {
   inGrace: string;
   yes: string;
   no: string;
+  pipeline: string;
+  pipelineDescription: string;
+  pipelineEmpty: string;
+  needsAttention: string;
+  autoRenewing: string;
+  totalUpcoming: string;
+  exportPipeline: string;
+  exportHistory: string;
+  bucketLabels: Record<
+    "OVERDUE" | "WITHIN_7" | "WITHIN_30" | "WITHIN_60" | "WITHIN_90",
+    string
+  >;
   requestRenewal: string;
   requestRenewalHint: string;
   requestRenewalSubmit: string;
@@ -112,6 +124,22 @@ const en: SubscriptionsDictionary = {
   inGrace: "In grace period",
   yes: "Yes",
   no: "No",
+  pipeline: "Renewal pipeline",
+  pipelineDescription:
+    "Subscriptions reaching the end of their period within 90 days.",
+  pipelineEmpty: "No subscriptions are due for renewal in the next 90 days.",
+  needsAttention: "Needs attention",
+  autoRenewing: "Renewing automatically",
+  totalUpcoming: "Upcoming",
+  exportPipeline: "Export pipeline (CSV)",
+  exportHistory: "Export renewal history (CSV)",
+  bucketLabels: {
+    OVERDUE: "Overdue",
+    WITHIN_7: "Within 7 days",
+    WITHIN_30: "Within 30 days",
+    WITHIN_60: "Within 60 days",
+    WITHIN_90: "Within 90 days",
+  },
   requestRenewal: "Request renewal",
   requestRenewalHint:
     "Ask an operator to extend this subscription. They will review and confirm.",
@@ -209,6 +237,22 @@ const ku: SubscriptionsDictionary = {
   inGrace: "لە ماوەی خۆشگوزەرانیدا",
   yes: "بەڵێ",
   no: "نەخێر",
+  pipeline: "ڕیزی نوێکردنەوە",
+  pipelineDescription: "بەشداریکردنەکان کە لە ماوەی ٩٠ ڕۆژدا کۆتاییان دێت.",
+  pipelineEmpty:
+    "هیچ بەشداریکردنێک لە ٩٠ ڕۆژی داهاتوودا پێویستی بە نوێکردنەوە نییە.",
+  needsAttention: "پێویستی بە سەرنجە",
+  autoRenewing: "خۆکار نوێدەبێتەوە",
+  totalUpcoming: "داهاتوو",
+  exportPipeline: "هەناردەکردنی ڕیز (CSV)",
+  exportHistory: "هەناردەکردنی مێژووی نوێکردنەوە (CSV)",
+  bucketLabels: {
+    OVERDUE: "دواکەوتوو",
+    WITHIN_7: "لە ماوەی ٧ ڕۆژدا",
+    WITHIN_30: "لە ماوەی ٣٠ ڕۆژدا",
+    WITHIN_60: "لە ماوەی ٦٠ ڕۆژدا",
+    WITHIN_90: "لە ماوەی ٩٠ ڕۆژدا",
+  },
   requestRenewal: "داواکردنی نوێکردنەوە",
   requestRenewalHint:
     "داوا لە بەڕێوەبەر بکە بۆ درێژکردنەوەی ئەم بەشداریکردنە. پێداچوونەوەی بۆ دەکرێت.",
@@ -305,6 +349,21 @@ const ar: SubscriptionsDictionary = {
   inGrace: "في فترة السماح",
   yes: "نعم",
   no: "لا",
+  pipeline: "خط التجديد",
+  pipelineDescription: "الاشتراكات التي تنتهي مدتها خلال ٩٠ يومًا.",
+  pipelineEmpty: "لا توجد اشتراكات تحتاج إلى تجديد خلال ٩٠ يومًا.",
+  needsAttention: "يحتاج إلى متابعة",
+  autoRenewing: "يتجدد تلقائيًا",
+  totalUpcoming: "القادمة",
+  exportPipeline: "تصدير الخط (CSV)",
+  exportHistory: "تصدير سجل التجديد (CSV)",
+  bucketLabels: {
+    OVERDUE: "متأخر",
+    WITHIN_7: "خلال ٧ أيام",
+    WITHIN_30: "خلال ٣٠ يومًا",
+    WITHIN_60: "خلال ٦٠ يومًا",
+    WITHIN_90: "خلال ٩٠ يومًا",
+  },
   requestRenewal: "طلب التجديد",
   requestRenewalHint:
     "اطلب من المشغل تمديد هذا الاشتراك. سيقوم بالمراجعة والتأكيد.",

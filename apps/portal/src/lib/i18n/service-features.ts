@@ -13,6 +13,7 @@ export interface ServiceFeaturesDictionary {
   features: string;
   featureDefinitions: string;
   renewalRequests: string;
+  renewalPipeline: string;
   featureDefinitionsDescription: string;
   newFeatureDefinition: string;
   editFeatureDefinition: string;
@@ -91,6 +92,7 @@ export const serviceFeatureDictionaries: Record<
     features: "تایبەتمەندییەکان",
     featureDefinitions: "تایبەتمەندییەکان",
     renewalRequests: "داواکارییەکانی نوێکردنەوە",
+    renewalPipeline: "ڕیزی نوێکردنەوە",
     featureDefinitionsDescription:
       "تایبەتمەندییە ئامادەکراوەکان بەپێی پۆلی خزمەتگوزاری بەڕێوە ببە.",
     newFeatureDefinition: "زیادکردنی تایبەتمەندیی ئامادەکراو",
@@ -188,6 +190,7 @@ export const serviceFeatureDictionaries: Record<
     features: "المميزات",
     featureDefinitions: "المميزات",
     renewalRequests: "طلبات التجديد",
+    renewalPipeline: "خط التجديد",
     featureDefinitionsDescription:
       "إدارة المميزات المعرفة مسبقاً حسب فئة الخدمة.",
     newFeatureDefinition: "إضافة ميزة معرفة مسبقاً",
@@ -284,6 +287,7 @@ export const serviceFeatureDictionaries: Record<
     features: "Features",
     featureDefinitions: "Features",
     renewalRequests: "Renewal Requests",
+    renewalPipeline: "Renewal Pipeline",
     featureDefinitionsDescription:
       "Manage reusable predefined features by service category.",
     newFeatureDefinition: "Add predefined feature",
