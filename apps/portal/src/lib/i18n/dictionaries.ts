@@ -1,6 +1,6 @@
 import type { Locale } from "@odookrd/types";
 
-import { commonTranslations } from "@/lib/i18n/common";
+import { commonTranslations } from "@/lib/i18n/shared";
 import type { Dictionary } from "@/lib/i18n/types";
 
 export type { Dictionary } from "@/lib/i18n/types";

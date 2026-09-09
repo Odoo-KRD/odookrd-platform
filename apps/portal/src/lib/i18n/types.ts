@@ -52,6 +52,24 @@ export interface AdminDictionary {
     expandSidebar: string;
     platformAdministration: string;
     companyAdministration: string;
+    dashboard: string;
+    services: string;
+    manageServices: string;
+    featureDefinitions: string;
+    renewalRequests: string;
+    renewalPipeline: string;
+    training: string;
+    trainingCourses: string;
+    trainingCategories: string;
+    trainingCertificateTemplates: string;
+    trainingCertificates: string;
+    trainingReports: string;
+    notifications: string;
+    deliveryLog: string;
+    providerStatus: string;
+    testEmail: string;
+    broadcasts: string;
+    settings: string;
   };
   overview: {
     title: string;

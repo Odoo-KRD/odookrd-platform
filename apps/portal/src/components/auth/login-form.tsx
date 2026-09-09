@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-import type { CustomerPortalRefinementDictionary } from "@/lib/i18n/portal/refinements";
+import type { CustomerPortalRefinementDictionary } from "@/lib/i18n/customer/refinements";
 
 interface LoginFormProps {
   messages: Dictionary["login"];

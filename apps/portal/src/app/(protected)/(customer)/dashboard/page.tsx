@@ -17,8 +17,8 @@ import { formatDate } from "@/lib/format";
 import {
   customerDashboardV2Dictionaries,
   type CustomerDashboardV2Dictionary,
-} from "@/lib/i18n/portal/dashboard";
-import { getFrontendDictionary } from "@/lib/i18n/frontend/server";
+} from "@/lib/i18n/customer/dashboard";
+import { getFrontendDictionary } from "@/lib/i18n/public/server";
 import { localizeTrainingText } from "@/lib/training-display";
 
 function DashboardIcon({

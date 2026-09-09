@@ -1,4 +1,4 @@
-import { frontendTranslations } from "@/lib/i18n/frontend/translations";
+import { frontendTranslations } from "@/lib/i18n/public/translations";
 import { getDictionary } from "@/lib/i18n/server";
 
 export async function getFrontendDictionary() {

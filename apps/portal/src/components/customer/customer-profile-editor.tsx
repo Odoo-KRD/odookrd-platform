@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { ImageUploader } from "@/components/files/image-uploader";
 import { LanguageSelect } from "@/components/preferences/language-select";
-import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/portal/dashboard";
+import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/customer/dashboard";
 
 interface CustomerProfileEditorProps {
   initialProfile: CustomerAccountProfile;

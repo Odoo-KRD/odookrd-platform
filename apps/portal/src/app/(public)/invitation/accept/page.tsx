@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { AcceptInvitationForm } from "@/components/invitations/accept-invitation-form";
 import { LanguageSwitcher } from "@/components/preferences/language-switcher";
-import { activationCopy } from "@/lib/i18n/portal/activation";
+import { activationCopy } from "@/lib/i18n/customer/activation";
 import { getDictionary } from "@/lib/i18n/server";
-import { frontendTranslations } from "@/lib/i18n/frontend/translations";
+import { frontendTranslations } from "@/lib/i18n/public/translations";
 import { getSession } from "@/lib/session";
 
 export default async function AcceptInvitationPage() {

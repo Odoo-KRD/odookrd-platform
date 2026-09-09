@@ -1,4 +1,4 @@
-import { portalDictionaries } from "@/lib/i18n/portal";
+import { portalDictionaries } from "@/lib/i18n/customer";
 import { getDictionary } from "@/lib/i18n/server";
 
 export async function getPortalDictionary() {

@@ -24,15 +24,6 @@ import { LanguageSwitcher } from "@/components/preferences/language-switcher";
 import { buildAdminNavigation } from "@/lib/admin-navigation";
 import { hasAdminAccess } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin/server";
-import { notificationAdministrationDictionaries } from "@/lib/i18n/notifications/administration";
-import { notificationBroadcastDictionaries } from "@/lib/i18n/notifications/broadcast";
-import { portalDictionaries } from "@/lib/i18n/portal";
-import { serviceFeatureDictionaries } from "@/lib/i18n/services/features";
-import { servicesDictionaries } from "@/lib/i18n/services";
-import { settingsDictionaries } from "@/lib/i18n/settings";
-import { trainingDictionaries } from "@/lib/i18n/training";
-import { trainingCertificateDictionaries } from "@/lib/i18n/training/certificates";
-import { trainingReportsDictionaries } from "@/lib/i18n/training/reports";
 import { getPublicSettings } from "@/lib/public-settings";
 import { requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
@@ -56,36 +47,32 @@ export default async function ProtectedAdminLayout({
     redirect("/dashboard");
   }
 
-  const notificationLabels = notificationAdministrationDictionaries[locale];
-  const broadcastLabels = notificationBroadcastDictionaries[locale];
-
+  // Every sidebar label now lives in one place: admin.navigation.
   const navigation = buildAdminNavigation(session, {
-    dashboard: portalDictionaries[locale].navigation.dashboard,
+    dashboard: admin.navigation.dashboard,
     overview: admin.navigation.overview,
     companies: admin.navigation.companies,
     myCompany: admin.navigation.myCompany,
     users: admin.navigation.users,
     manageUsers: admin.navigation.manageUsers,
     manageRoles: admin.navigation.manageRoles,
-    services: servicesDictionaries[locale].title,
-    manageServices: serviceFeatureDictionaries[locale].manageServices,
-    featureDefinitions: serviceFeatureDictionaries[locale].featureDefinitions,
-    renewalRequests: serviceFeatureDictionaries[locale].renewalRequests,
-    renewalPipeline: serviceFeatureDictionaries[locale].renewalPipeline,
-    training: trainingDictionaries[locale].navigation,
-    trainingCourses: trainingDictionaries[locale].coursesNavigation,
-    trainingCategories: trainingDictionaries[locale].categoriesNavigation,
-    trainingCertificateTemplates:
-      trainingCertificateDictionaries[locale].templatesNavigation,
-    trainingCertificates:
-      trainingCertificateDictionaries[locale].administrationNavigation,
-    trainingReports: trainingReportsDictionaries[locale].navigation,
-    notifications: notificationLabels.navigation,
-    deliveryLog: notificationLabels.deliveryLog,
-    providerStatus: notificationLabels.providerStatus,
-    testEmail: notificationLabels.testEmail,
-    broadcasts: broadcastLabels.logType,
-    settings: settingsDictionaries[locale].title,
+    services: admin.navigation.services,
+    manageServices: admin.navigation.manageServices,
+    featureDefinitions: admin.navigation.featureDefinitions,
+    renewalRequests: admin.navigation.renewalRequests,
+    renewalPipeline: admin.navigation.renewalPipeline,
+    training: admin.navigation.training,
+    trainingCourses: admin.navigation.trainingCourses,
+    trainingCategories: admin.navigation.trainingCategories,
+    trainingCertificateTemplates: admin.navigation.trainingCertificateTemplates,
+    trainingCertificates: admin.navigation.trainingCertificates,
+    trainingReports: admin.navigation.trainingReports,
+    notifications: admin.navigation.notifications,
+    deliveryLog: admin.navigation.deliveryLog,
+    providerStatus: admin.navigation.providerStatus,
+    testEmail: admin.navigation.testEmail,
+    broadcasts: admin.navigation.broadcasts,
+    settings: admin.navigation.settings,
   });
 
   const administrationLabel =

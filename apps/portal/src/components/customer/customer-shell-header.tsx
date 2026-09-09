@@ -23,7 +23,7 @@ import {
   type AdminNavigationEntry,
 } from "@/components/admin/navigation";
 import { LanguageSelect } from "@/components/preferences/language-select";
-import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/portal/dashboard";
+import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/customer/dashboard";
 
 interface CustomerShellHeaderProps {
   siteTitle: string;

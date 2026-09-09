@@ -17,8 +17,8 @@ import {
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { customerPortalRefinementDictionaries } from "@/lib/i18n/portal/refinements";
-import { getFrontendDictionary } from "@/lib/i18n/frontend/server";
+import { customerPortalRefinementDictionaries } from "@/lib/i18n/customer/refinements";
+import { getFrontendDictionary } from "@/lib/i18n/public/server";
 import { serviceFeatureDictionaries } from "@/lib/i18n/services/features";
 import { subscriptionsDictionaries } from "@/lib/i18n/services/subscriptions";
 
