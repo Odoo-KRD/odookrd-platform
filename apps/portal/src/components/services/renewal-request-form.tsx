@@ -11,7 +11,7 @@ import type { FormState } from "@/lib/forms";
 import {
   SUBSCRIPTION_TERMS,
   type SubscriptionsDictionary,
-} from "@/lib/i18n/subscriptions";
+} from "@/lib/i18n/services/subscriptions";
 
 interface RenewalRequestFormProps {
   entitlement: ServiceEntitlement;

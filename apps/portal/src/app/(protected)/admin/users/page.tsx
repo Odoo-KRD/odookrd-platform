@@ -18,9 +18,9 @@ import { CompanyFilter } from "@/components/users/company-filter";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
-import { adminTableDictionaries } from "@/lib/i18n/admin-table";
-import { getUsersDictionary } from "@/lib/i18n/users-server";
+import { adminLifecycleDictionaries } from "@/lib/i18n/companies/lifecycle";
+import { adminTableDictionaries } from "@/lib/i18n/admin/table";
+import { getUsersDictionary } from "@/lib/i18n/users/server";
 
 import {
   archiveUserRowAction,

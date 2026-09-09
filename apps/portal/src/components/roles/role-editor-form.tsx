@@ -9,7 +9,7 @@ import { ActionButton } from "@odookrd/ui";
 import { useActionState, useMemo, useState } from "react";
 
 import type { FormState } from "@/lib/forms";
-import type { RoleAdministrationDictionary } from "@/lib/i18n/role-administration";
+import type { RoleAdministrationDictionary } from "@/lib/i18n/users/roles";
 
 interface RoleEditorFormProps {
   action: (previousState: FormState, formData: FormData) => Promise<FormState>;

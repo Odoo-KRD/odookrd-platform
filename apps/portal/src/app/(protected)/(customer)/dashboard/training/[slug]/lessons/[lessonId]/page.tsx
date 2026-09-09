@@ -17,11 +17,11 @@ import { LessonMediaPlayer } from "@/components/training/lesson-media-player";
 import { LessonTypeIcon } from "@/components/training/lesson-type-icon";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
-import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
-import { trainingAssessmentDictionaries } from "@/lib/i18n/training-assessment";
-import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
-import { trainingMediaDictionaries } from "@/lib/i18n/training-media";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training/customer-workspace";
+import { trainingAssessmentDictionaries } from "@/lib/i18n/training/assessment";
+import { trainingLessonEditorDictionaries } from "@/lib/i18n/training/lesson-editor";
+import { trainingMediaDictionaries } from "@/lib/i18n/training/media";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 import { localizeTrainingText } from "@/lib/training-display";
 
 function formatBytes(value: number): string {

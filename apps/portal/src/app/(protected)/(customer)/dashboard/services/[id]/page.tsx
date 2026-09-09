@@ -17,9 +17,9 @@ import {
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
-import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
-import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
+import { getFrontendDictionary } from "@/lib/i18n/frontend/server";
+import { serviceFeatureDictionaries } from "@/lib/i18n/services/features";
+import { subscriptionsDictionaries } from "@/lib/i18n/services/subscriptions";
 
 import { requestRenewalAction, withdrawRenewalRequestAction } from "../actions";
 

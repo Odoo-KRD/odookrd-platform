@@ -7,7 +7,7 @@ import {
 import type { CompanyProfile, CompanyStatus } from "@odookrd/types";
 import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
-import type { CompanyProfileV2Dictionary } from "@/lib/i18n/company-profile-v2";
+import type { CompanyProfileV2Dictionary } from "@/lib/i18n/companies/profile";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 function PencilIcon() {

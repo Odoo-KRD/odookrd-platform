@@ -18,7 +18,7 @@ import {
 
 import { ServiceFeatureAttachmentForm } from "@/components/services/service-feature-attachment-form";
 import type { FormState } from "@/lib/forms";
-import type { ServiceFeaturesDictionary } from "@/lib/i18n/service-features";
+import type { ServiceFeaturesDictionary } from "@/lib/i18n/services/features";
 import type { ServicesDictionary } from "@/lib/i18n/services";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 

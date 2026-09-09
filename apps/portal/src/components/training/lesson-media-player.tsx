@@ -11,7 +11,7 @@ import type {
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { TrainingMediaDictionary } from "@/lib/i18n/training-media";
+import type { TrainingMediaDictionary } from "@/lib/i18n/training/media";
 import { BrandedVideoPlayer } from "./branded-video-player";
 import { LessonArticleViewer } from "./lesson-article-viewer";
 import { PdfSlideViewer } from "./pdf-slide-viewer";

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { FeatureDefinitionForm } from "@/components/services/feature-definition-form";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getServicesDictionary } from "@/lib/i18n/services-server";
+import { getServicesDictionary } from "@/lib/i18n/services/server";
 
 import { createFeatureDefinitionAction } from "../../actions";
 

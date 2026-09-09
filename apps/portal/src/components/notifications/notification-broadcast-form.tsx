@@ -9,7 +9,7 @@ import { ActionButton, Badge } from "@odookrd/ui";
 import { useActionState, useMemo, useState } from "react";
 
 import type { NotificationBroadcastFormState } from "@/app/(protected)/admin/notifications/new/actions";
-import type { NotificationBroadcastDictionary } from "@/lib/i18n/notification-broadcast";
+import type { NotificationBroadcastDictionary } from "@/lib/i18n/notifications/broadcast";
 
 interface NotificationBroadcastFormProps {
   action: (

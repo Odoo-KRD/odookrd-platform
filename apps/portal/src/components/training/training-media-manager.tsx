@@ -7,7 +7,7 @@ import type {
 } from "@odookrd/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { TrainingMediaDictionary } from "@/lib/i18n/training-media";
+import type { TrainingMediaDictionary } from "@/lib/i18n/training/media";
 
 interface VideoMetadata {
   durationSeconds?: number;

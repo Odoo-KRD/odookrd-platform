@@ -21,8 +21,8 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import type { TrainingCertificateDesignerDictionary } from "@/lib/i18n/training-certificate-designer";
-import type { TrainingCertificateDictionary } from "@/lib/i18n/training-certificates";
+import type { TrainingCertificateDesignerDictionary } from "@/lib/i18n/training/certificate-designer";
+import type { TrainingCertificateDictionary } from "@/lib/i18n/training/certificates";
 
 const maximumImageBytes = 10_485_760;
 const canvasWidth = 1600;

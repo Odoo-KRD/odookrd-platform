@@ -15,9 +15,9 @@ import { UserStatusForm } from "@/components/users/user-status-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { roleAdministrationDictionaries } from "@/lib/i18n/role-administration";
-import { getUsersDictionary } from "@/lib/i18n/users-server";
-import { userInvitationAdminDictionaries } from "@/lib/i18n/user-invitations";
+import { roleAdministrationDictionaries } from "@/lib/i18n/users/roles";
+import { getUsersDictionary } from "@/lib/i18n/users/server";
+import { userInvitationAdminDictionaries } from "@/lib/i18n/users/invitations";
 
 import { updateUserRolesAction, updateUserStatusAction } from "../actions";
 import {

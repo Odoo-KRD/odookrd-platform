@@ -15,9 +15,9 @@ import {
 import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
-import { adminTableDictionaries } from "@/lib/i18n/admin-table";
-import { getServicesDictionary } from "@/lib/i18n/services-server";
+import { adminLifecycleDictionaries } from "@/lib/i18n/companies/lifecycle";
+import { adminTableDictionaries } from "@/lib/i18n/admin/table";
+import { getServicesDictionary } from "@/lib/i18n/services/server";
 
 import {
   archiveFeatureDefinitionRowAction,

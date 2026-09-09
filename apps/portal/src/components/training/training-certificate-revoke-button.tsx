@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import type { TrainingCertificateDictionary } from "@/lib/i18n/training-certificates";
+import type { TrainingCertificateDictionary } from "@/lib/i18n/training/certificates";
 
 export function TrainingCertificateRevokeButton({
   certificateId,

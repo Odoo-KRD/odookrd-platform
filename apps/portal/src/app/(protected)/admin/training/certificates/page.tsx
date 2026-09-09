@@ -6,8 +6,8 @@ import { TrainingCertificateRevokeButton } from "@/components/training/training-
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training/certificates";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 
 export default async function TrainingCertificatesAdminPage() {
   const [{ session, token }, { locale }] = await Promise.all([

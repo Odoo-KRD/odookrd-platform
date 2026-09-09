@@ -1,12 +1,12 @@
 import type { Locale } from "@odookrd/types";
 
-import { adminKu } from "./ku";
-import { adminAr } from "./ar";
-import { adminEn } from "./en";
-import type { AdminTranslations } from "../types";
+import { adminTranslations } from "@/lib/i18n/admin/translations";
+import type { AdminDictionary } from "@/lib/i18n/types";
 
-export const adminTranslations: Record<Locale, AdminTranslations> = {
-  ku: adminKu,
-  ar: adminAr,
-  en: adminEn,
+export type { AdminDictionary } from "@/lib/i18n/types";
+
+export const adminDictionaries: Record<Locale, AdminDictionary> = {
+  ku: adminTranslations.ku.administration,
+  ar: adminTranslations.ar.administration,
+  en: adminTranslations.en.administration,
 };

@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 
 import { ProviderTestEmailForm } from "@/components/notifications/provider-test-email-form";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { notificationAdministrationDictionaries } from "@/lib/i18n/notifications/administration";
 
 import { sendNotificationTestEmailAction } from "../actions";
 

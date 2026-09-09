@@ -2,7 +2,7 @@ import type { Locale, ServiceEntitlement } from "@odookrd/types";
 
 import { formatDate } from "@/lib/format";
 
-import type { SubscriptionsDictionary } from "@/lib/i18n/subscriptions";
+import type { SubscriptionsDictionary } from "@/lib/i18n/services/subscriptions";
 
 /**
  * How urgent the remaining period is. Drives colour on both the badge and the

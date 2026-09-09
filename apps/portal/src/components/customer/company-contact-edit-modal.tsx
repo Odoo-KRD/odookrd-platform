@@ -5,7 +5,7 @@ import type { CompanyProfile } from "@odookrd/types";
 import { CompanyContactForm } from "@/components/customer/company-contact-form";
 import { CompanyEditModalDialog } from "@/components/companies/company-edit-modal";
 import type { FormState } from "@/lib/forms";
-import type { CompanyProfileV2Dictionary } from "@/lib/i18n/company-profile-v2";
+import type { CompanyProfileV2Dictionary } from "@/lib/i18n/companies/profile";
 
 function PencilIcon() {
   return (

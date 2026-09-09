@@ -7,7 +7,7 @@ import { useCompanyEditAction } from "@/components/companies/company-edit-modal"
 import { ImageUploader } from "@/components/files/image-uploader";
 import { ModalDialog } from "@/components/ui/modal-dialog";
 import type { FormState } from "@/lib/forms";
-import type { CompanyProfileV2Dictionary } from "@/lib/i18n/company-profile-v2";
+import type { CompanyProfileV2Dictionary } from "@/lib/i18n/companies/profile";
 
 function PencilIcon() {
   return (

@@ -7,9 +7,9 @@ import {
   type AdminDashboardSection,
 } from "@/components/admin/admin-dashboard";
 import { hasPermission } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { adminDashboardDictionaries } from "@/lib/i18n/admin-dashboard";
-import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { adminDashboardDictionaries } from "@/lib/i18n/admin/dashboard";
+import { notificationAdministrationDictionaries } from "@/lib/i18n/notifications/administration";
 import { servicesDictionaries } from "@/lib/i18n/services";
 import { settingsDictionaries } from "@/lib/i18n/settings";
 import { requireSession } from "@/lib/session";

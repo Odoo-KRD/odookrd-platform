@@ -17,7 +17,7 @@ import {
 
 import type { SettingsFormState } from "@/app/(protected)/admin/settings/actions";
 import type { SettingsDictionary } from "@/lib/i18n/settings";
-import type { SettingsNavigationDictionary } from "@/lib/i18n/settings-navigation";
+import type { SettingsNavigationDictionary } from "@/lib/i18n/settings/navigation";
 import { useRouter } from "next/navigation";
 
 type SettingsAction = (

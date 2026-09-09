@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { AdminActionButton } from "@/components/admin/admin-action-controls";
 
 import type { FormState } from "@/lib/forms";
-import type { RoleAdministrationDictionary } from "@/lib/i18n/role-administration";
+import type { RoleAdministrationDictionary } from "@/lib/i18n/users/roles";
 
 interface DeleteRoleFormProps {
   action: (previousState: FormState, formData: FormData) => Promise<FormState>;

@@ -9,8 +9,8 @@ import { PageHeading, Panel } from "@odookrd/ui";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
-import { settingsNavigationDictionaries } from "@/lib/i18n/settings-navigation";
-import { getSettingsDictionary } from "@/lib/i18n/settings-server";
+import { settingsNavigationDictionaries } from "@/lib/i18n/settings/navigation";
+import { getSettingsDictionary } from "@/lib/i18n/settings/server";
 
 import { updateSettingsAction } from "./actions";
 

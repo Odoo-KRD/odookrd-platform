@@ -9,8 +9,8 @@ import { redirect } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training/customer";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 import { localizeTrainingText } from "@/lib/training-display";
 
 import {

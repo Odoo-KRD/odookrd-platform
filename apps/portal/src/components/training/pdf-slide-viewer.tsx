@@ -3,7 +3,7 @@
 import type { TrainingCustomerSlideMedia } from "@odookrd/types";
 import { useEffect, useRef, useState } from "react";
 
-import type { TrainingMediaDictionary } from "@/lib/i18n/training-media";
+import type { TrainingMediaDictionary } from "@/lib/i18n/training/media";
 
 interface PdfViewport {
   width: number;

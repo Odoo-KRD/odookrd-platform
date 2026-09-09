@@ -2,7 +2,7 @@ import type { Locale, TrainingContinueLearningItem } from "@odookrd/types";
 import Image from "next/image";
 import Link from "next/link";
 
-import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
+import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training/customer-workspace";
 import { localizeTrainingText } from "@/lib/training-display";
 
 export function TrainingContinueLearning({

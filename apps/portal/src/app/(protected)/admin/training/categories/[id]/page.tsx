@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { TrainingCategoryForm } from "@/components/training/training-forms";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 
 import { updateTrainingCategoryAction } from "../../actions";
 

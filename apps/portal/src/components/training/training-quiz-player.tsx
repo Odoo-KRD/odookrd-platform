@@ -13,7 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   trainingQuizPlayerDictionaries,
   type TrainingQuizPlayerDictionary,
-} from "@/lib/i18n/training-quiz-player";
+} from "@/lib/i18n/training/quiz-player";
 
 function localizedText(
   base: string | null,

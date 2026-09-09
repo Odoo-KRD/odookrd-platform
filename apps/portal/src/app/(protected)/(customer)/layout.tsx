@@ -15,9 +15,9 @@ import type {
 import { CustomerShellHeader } from "@/components/customer/customer-shell-header";
 import { apiRequest } from "@/lib/api";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
-import { customerDashboardV2Dictionaries } from "@/lib/i18n/customer-dashboard-v2";
-import { frontendTranslations } from "@/lib/i18n/frontend";
-import { getPortalDictionary } from "@/lib/i18n/portal-server";
+import { customerDashboardV2Dictionaries } from "@/lib/i18n/portal/dashboard";
+import { frontendTranslations } from "@/lib/i18n/frontend/translations";
+import { getPortalDictionary } from "@/lib/i18n/portal/server";
 import { getPublicSettings } from "@/lib/public-settings";
 import { getSessionToken, requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";

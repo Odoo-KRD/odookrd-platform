@@ -12,9 +12,9 @@ import { redirect } from "next/navigation";
 import { TrainingCourseForm } from "@/components/training/training-forms";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
-import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
-import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training/certificates";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training/customer";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 
 import { updateTrainingCourseAction } from "../../actions";
 

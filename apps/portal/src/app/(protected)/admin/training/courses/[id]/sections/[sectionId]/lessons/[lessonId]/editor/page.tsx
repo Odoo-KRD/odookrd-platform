@@ -6,8 +6,8 @@ import { notFound, redirect } from "next/navigation";
 import { TrainingLessonEditor } from "@/components/training/training-lesson-editor";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
-import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
+import { trainingLessonEditorDictionaries } from "@/lib/i18n/training/lesson-editor";
 import { localizeTrainingText } from "@/lib/training-display";
 
 type EditorTab = "general" | "content" | "resources" | "review";

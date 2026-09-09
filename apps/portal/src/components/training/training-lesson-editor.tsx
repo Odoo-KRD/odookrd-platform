@@ -23,7 +23,7 @@ import {
 } from "@/components/training/localized-rich-text-editor";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 import type { TrainingDictionary } from "@/lib/i18n/training";
-import type { TrainingLessonEditorDictionary } from "@/lib/i18n/training-lesson-editor";
+import type { TrainingLessonEditorDictionary } from "@/lib/i18n/training/lesson-editor";
 
 type EditorTab = "general" | "content" | "resources" | "review";
 type VideoSource = "LOCAL" | "AWS" | "URL";

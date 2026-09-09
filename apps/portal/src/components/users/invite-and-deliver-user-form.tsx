@@ -15,7 +15,7 @@ import type { AdminDictionary } from "@/lib/i18n/admin";
 import {
   userInvitationAdminDictionaries,
   type UserInvitationAdminDictionary,
-} from "@/lib/i18n/user-invitations";
+} from "@/lib/i18n/users/invitations";
 import type { UsersDictionary } from "@/lib/i18n/users";
 
 interface InviteAndDeliverUserFormProps {

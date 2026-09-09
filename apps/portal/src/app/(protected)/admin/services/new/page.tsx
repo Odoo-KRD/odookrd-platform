@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 
 import { ServiceForm } from "@/components/services/service-form";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getServicesDictionary } from "@/lib/i18n/services-server";
-import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
+import { getServicesDictionary } from "@/lib/i18n/services/server";
+import { subscriptionsDictionaries } from "@/lib/i18n/services/subscriptions";
 
 import { createServiceAction } from "../actions";
 

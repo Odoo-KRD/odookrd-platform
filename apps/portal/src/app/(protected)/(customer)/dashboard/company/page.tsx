@@ -10,8 +10,8 @@ import { CompanyIdentityRequestForm } from "@/components/customer/company-identi
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { companyProfileV2Dictionaries } from "@/lib/i18n/company-profile-v2";
-import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
+import { companyProfileV2Dictionaries } from "@/lib/i18n/companies/profile";
+import { getFrontendDictionary } from "@/lib/i18n/frontend/server";
 import Image from "next/image";
 
 import {

@@ -18,8 +18,8 @@ import { SubscriptionPanel } from "@/components/services/subscription-panel";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { getServicesDictionary } from "@/lib/i18n/services-server";
-import { subscriptionsDictionaries } from "@/lib/i18n/subscriptions";
+import { getServicesDictionary } from "@/lib/i18n/services/server";
+import { subscriptionsDictionaries } from "@/lib/i18n/services/subscriptions";
 
 import {
   cancelSubscriptionAction,

@@ -17,11 +17,11 @@ import { AdminRecordDetailsAction } from "@/components/admin/admin-record-detail
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { adminLifecycleDictionaries } from "@/lib/i18n/admin-lifecycle";
-import { adminTableDictionaries } from "@/lib/i18n/admin-table";
-import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
-import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { adminLifecycleDictionaries } from "@/lib/i18n/companies/lifecycle";
+import { adminTableDictionaries } from "@/lib/i18n/admin/table";
+import { notificationAdministrationDictionaries } from "@/lib/i18n/notifications/administration";
+import { notificationBroadcastDictionaries } from "@/lib/i18n/notifications/broadcast";
 
 const PAGE_SIZE = 25;
 

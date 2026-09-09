@@ -20,10 +20,10 @@ import { CompanyStatusBadge } from "@/components/companies/company-status-badge"
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { adminTableDictionaries } from "@/lib/i18n/admin-table";
-import { companyProfileV2Dictionaries } from "@/lib/i18n/company-profile-v2";
-import { serviceFeatureDictionaries } from "@/lib/i18n/service-features";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { adminTableDictionaries } from "@/lib/i18n/admin/table";
+import { companyProfileV2Dictionaries } from "@/lib/i18n/companies/profile";
+import { serviceFeatureDictionaries } from "@/lib/i18n/services/features";
 import { servicesDictionaries } from "@/lib/i18n/services";
 
 import {

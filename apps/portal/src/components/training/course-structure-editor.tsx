@@ -32,7 +32,7 @@ import {
 } from "@/components/training/localized-rich-text-editor";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 import type { TrainingDictionary } from "@/lib/i18n/training";
-import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
+import { trainingLessonEditorDictionaries } from "@/lib/i18n/training/lesson-editor";
 
 type EditorDialog =
   | { kind: "section-create" }

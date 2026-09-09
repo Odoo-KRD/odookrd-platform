@@ -10,8 +10,8 @@ import { notFound } from "next/navigation";
 
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
-import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training/customer";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 import { localizeTrainingText } from "@/lib/training-display";
 
 import {

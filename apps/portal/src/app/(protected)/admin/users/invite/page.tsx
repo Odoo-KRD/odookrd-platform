@@ -9,8 +9,8 @@ import { PageHeading, Panel } from "@odookrd/ui";
 import { InviteAndDeliverUserForm } from "@/components/users/invite-and-deliver-user-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
-import { getUsersDictionary } from "@/lib/i18n/users-server";
-import { userInvitationAdminDictionaries } from "@/lib/i18n/user-invitations";
+import { getUsersDictionary } from "@/lib/i18n/users/server";
+import { userInvitationAdminDictionaries } from "@/lib/i18n/users/invitations";
 
 import { inviteAndDeliverUserAction } from "../invitation-actions";
 

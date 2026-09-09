@@ -5,8 +5,8 @@ import Link from "next/link";
 import { RoleEditorForm } from "@/components/roles/role-editor-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { roleAdministrationDictionaries } from "@/lib/i18n/role-administration";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { roleAdministrationDictionaries } from "@/lib/i18n/users/roles";
 
 import { createRoleAction } from "../actions";
 

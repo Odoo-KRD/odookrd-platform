@@ -7,8 +7,8 @@ import Link from "next/link";
 import { NotificationBroadcastForm } from "@/components/notifications/notification-broadcast-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { notificationBroadcastDictionaries } from "@/lib/i18n/notifications/broadcast";
 
 import { sendNotificationBroadcastAction } from "../../new/actions";
 

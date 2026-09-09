@@ -13,7 +13,7 @@ import { useActionState } from "react";
 import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
 import type { ServicesDictionary } from "@/lib/i18n/services";
-import type { SubscriptionsDictionary } from "@/lib/i18n/subscriptions";
+import type { SubscriptionsDictionary } from "@/lib/i18n/services/subscriptions";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 const categories: readonly ServiceCategory[] = [

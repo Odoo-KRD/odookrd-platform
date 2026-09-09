@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import type { Locale } from "@odookrd/types";
 import type { InvitationDictionary } from "@/lib/i18n/types";
-import { activationCopy } from "@/lib/i18n/activation-copy";
+import { activationCopy } from "@/lib/i18n/portal/activation";
 
 interface AcceptInvitationFormProps {
   labels: InvitationDictionary;

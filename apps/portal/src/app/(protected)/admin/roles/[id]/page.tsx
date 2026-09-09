@@ -10,8 +10,8 @@ import { DeleteRoleForm } from "@/components/roles/delete-role-form";
 import { RoleEditorForm } from "@/components/roles/role-editor-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext, hasPermission } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { roleAdministrationDictionaries } from "@/lib/i18n/role-administration";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { roleAdministrationDictionaries } from "@/lib/i18n/users/roles";
 
 import { deleteRoleAction, updateRoleAction } from "../actions";
 

@@ -23,9 +23,9 @@ import {
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { adminTableDictionaries } from "@/lib/i18n/admin-table";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
-import { trainingReportsDictionaries } from "@/lib/i18n/training-reports";
+import { adminTableDictionaries } from "@/lib/i18n/admin/table";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
+import { trainingReportsDictionaries } from "@/lib/i18n/training/reports";
 
 interface TrainingReportsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

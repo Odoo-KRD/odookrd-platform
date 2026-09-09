@@ -15,12 +15,12 @@ import { TrainingCertificateIssuer } from "@/components/training/training-certif
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
-import { trainingCustomerDictionaries } from "@/lib/i18n/training-customer";
-import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training-customer-workspace";
-import { trainingAssessmentDictionaries } from "@/lib/i18n/training-assessment";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
-import { trainingLessonEditorDictionaries } from "@/lib/i18n/training-lesson-editor";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training/certificates";
+import { trainingCustomerDictionaries } from "@/lib/i18n/training/customer";
+import { trainingCustomerWorkspaceDictionaries } from "@/lib/i18n/training/customer-workspace";
+import { trainingAssessmentDictionaries } from "@/lib/i18n/training/assessment";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
+import { trainingLessonEditorDictionaries } from "@/lib/i18n/training/lesson-editor";
 import { localizeTrainingText } from "@/lib/training-display";
 
 function CountGlyph({ kind }: { kind: "sections" | "lessons" }) {

@@ -14,8 +14,8 @@ import { redirect } from "next/navigation";
 import { CourseStructureEditor } from "@/components/training/course-structure-editor";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
-import { trainingQuizDictionaries } from "@/lib/i18n/training-quiz";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
+import { trainingQuizDictionaries } from "@/lib/i18n/training/quiz";
 
 export default async function TrainingCourseEditorPage({
   params,

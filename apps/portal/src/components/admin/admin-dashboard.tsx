@@ -7,7 +7,7 @@ import type {
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import type { AdminDashboardDictionary } from "@/lib/i18n/admin-dashboard";
+import type { AdminDashboardDictionary } from "@/lib/i18n/admin/dashboard";
 
 export interface AdminDashboardSection {
   id: DashboardSectionKey;

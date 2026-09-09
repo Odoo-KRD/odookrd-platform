@@ -6,8 +6,8 @@ import { notFound } from "next/navigation";
 import { TrainingQuizPlayer } from "@/components/training/training-quiz-player";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
-import { trainingAssessmentDictionaries } from "@/lib/i18n/training-assessment";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingAssessmentDictionaries } from "@/lib/i18n/training/assessment";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 import { localizeTrainingText } from "@/lib/training-display";
 
 export default async function CustomerTrainingFinalQuizPage({

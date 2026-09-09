@@ -1,4 +1,4 @@
-import { adminTranslations } from "@/lib/i18n/admin/index";
+import { adminTranslations } from "@/lib/i18n/admin/translations";
 import { adminDictionaries } from "@/lib/i18n/admin";
 import { getDictionary } from "@/lib/i18n/server";
 

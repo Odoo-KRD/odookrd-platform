@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { TrainingQuizBuilder } from "@/components/training/training-quiz-builder";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
-import { trainingQuizDictionaries } from "@/lib/i18n/training-quiz";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
+import { trainingQuizDictionaries } from "@/lib/i18n/training/quiz";
 import { localizeTrainingText } from "@/lib/training-display";
 
 export default async function TrainingCourseFinalQuizPage({

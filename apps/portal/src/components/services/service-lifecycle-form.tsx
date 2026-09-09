@@ -4,7 +4,7 @@ import type { CompanyServiceStatus } from "@odookrd/types";
 import { useActionState, useId, useState } from "react";
 
 import type { FormState } from "@/lib/forms";
-import type { ServiceFeaturesDictionary } from "@/lib/i18n/service-features";
+import type { ServiceFeaturesDictionary } from "@/lib/i18n/services/features";
 import type { ServicesDictionary } from "@/lib/i18n/services";
 
 interface ServiceLifecycleFormProps {

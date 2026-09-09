@@ -14,7 +14,7 @@ import { TrainingQuizLocalizedField } from "@/components/training/training-quiz-
 import {
   trainingQuizDictionaries,
   type TrainingQuizDictionary,
-} from "@/lib/i18n/training-quiz";
+} from "@/lib/i18n/training/quiz";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 type QuizTarget =

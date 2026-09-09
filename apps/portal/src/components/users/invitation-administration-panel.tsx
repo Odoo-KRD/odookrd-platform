@@ -12,7 +12,7 @@ import { useActionState, useState } from "react";
 import {
   userInvitationAdminDictionaries,
   type UserInvitationAdminDictionary,
-} from "@/lib/i18n/user-invitations";
+} from "@/lib/i18n/users/invitations";
 
 interface InvitationOperationState {
   message: string | null;

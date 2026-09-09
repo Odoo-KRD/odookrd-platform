@@ -7,8 +7,8 @@ import { redirect } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { notificationAdministrationDictionaries } from "@/lib/i18n/notification-administration";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { notificationAdministrationDictionaries } from "@/lib/i18n/notifications/administration";
 
 export default async function NotificationProvidersPage() {
   const [{ session, token }, { locale }] = await Promise.all([

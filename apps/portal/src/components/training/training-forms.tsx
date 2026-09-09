@@ -18,7 +18,7 @@ import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import { CourseCoverField } from "@/components/training/course-cover-field";
 import type { FormState } from "@/lib/forms";
 import type { TrainingDictionary } from "@/lib/i18n/training";
-import type { TrainingCertificateDictionary } from "@/lib/i18n/training-certificates";
+import type { TrainingCertificateDictionary } from "@/lib/i18n/training/certificates";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 type TrainingFormAction = (

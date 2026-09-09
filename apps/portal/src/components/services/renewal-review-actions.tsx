@@ -3,7 +3,7 @@
 import { useActionState, useId } from "react";
 
 import type { FormState } from "@/lib/forms";
-import type { SubscriptionsDictionary } from "@/lib/i18n/subscriptions";
+import type { SubscriptionsDictionary } from "@/lib/i18n/services/subscriptions";
 
 type Action = (state: FormState, formData: FormData) => Promise<FormState>;
 

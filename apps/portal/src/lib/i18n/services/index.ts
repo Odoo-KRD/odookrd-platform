@@ -1,6 +1,6 @@
 import type { Locale } from "@odookrd/types";
 
-import { adminTranslations } from "@/lib/i18n/admin/index";
+import { adminTranslations } from "@/lib/i18n/admin/translations";
 import type { ServicesDictionary } from "@/lib/i18n/types";
 
 export type { ServicesDictionary } from "@/lib/i18n/types";

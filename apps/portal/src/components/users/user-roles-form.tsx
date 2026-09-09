@@ -6,7 +6,7 @@ import { useActionState, useMemo, useState } from "react";
 
 import type { FormState } from "@/lib/forms";
 import type { AdminDictionary } from "@/lib/i18n/admin";
-import type { RoleAdministrationDictionary } from "@/lib/i18n/role-administration";
+import type { RoleAdministrationDictionary } from "@/lib/i18n/users/roles";
 import type { UsersDictionary } from "@/lib/i18n/users";
 
 interface UserRolesFormProps {

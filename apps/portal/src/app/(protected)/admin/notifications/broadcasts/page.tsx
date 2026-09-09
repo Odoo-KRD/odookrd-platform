@@ -3,8 +3,8 @@ import { PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
 import { getAdminApiContext } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
-import { notificationBroadcastDictionaries } from "@/lib/i18n/notification-broadcast";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { notificationBroadcastDictionaries } from "@/lib/i18n/notifications/broadcast";
 
 export default async function NotificationBroadcastsPage() {
   const [, { locale }] = await Promise.all([

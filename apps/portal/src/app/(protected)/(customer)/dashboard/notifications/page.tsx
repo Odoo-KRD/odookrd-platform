@@ -9,7 +9,7 @@ import Link from "next/link";
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
+import { getFrontendDictionary } from "@/lib/i18n/frontend/server";
 
 import {
   markAllNotificationsReadAction,

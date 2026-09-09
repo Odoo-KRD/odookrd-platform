@@ -143,10 +143,12 @@ export const customerDashboardV2Dictionaries: Record<
       inProgress: "لە بەردەوامیدا",
       notStarted: "دەست پێ نەکراوە",
       myLearning: "فێربوونی من",
-      myLearningDescription: "بەردەوام بە لە شوێنی دواوە یان بڕوانامەی کۆرسی تەواوکراو ببینە.",
+      myLearningDescription:
+        "بەردەوام بە لە شوێنی دواوە یان بڕوانامەی کۆرسی تەواوکراو ببینە.",
       viewAllCourses: "بینینی هەموو کۆرسەکان",
       noCourses: "هێشتا کۆرسێک بۆ تۆ دیاری نەکراوە.",
-      noCoursesDescription: "کاتێک دەستگەیشتنت بۆ کۆرسێک چالاک بکرێت، لێرە دەردەکەوێت.",
+      noCoursesDescription:
+        "کاتێک دەستگەیشتنت بۆ کۆرسێک چالاک بکرێت، لێرە دەردەکەوێت.",
       lessonsCompleted: "وانە تەواوکراوە",
       recentActivity: "دوا چالاکی",
       noRecentActivity: "هێشتا چالاکییەک تۆمار نەکراوە",
@@ -164,13 +166,15 @@ export const customerDashboardV2Dictionaries: Record<
     profile: {
       eyebrow: "هەژماری من",
       title: "پڕۆفایلی من",
-      description: "زانیارییە کەسییەکان، وێنە، زمان و ناوی بڕوانامەکەت بەڕێوەببە.",
+      description:
+        "زانیارییە کەسییەکان، وێنە، زمان و ناوی بڕوانامەکەت بەڕێوەببە.",
       avatar: "وێنەی پڕۆفایل",
       avatarDescription: "وێنەیەکی پیشەیی بۆ ناسنامەی هەژمارەکەت زیاد بکە.",
       uploadAvatar: "بارکردنی وێنە",
       changeAvatar: "گۆڕینی وێنە",
       removeAvatar: "سڕینەوەی وێنە",
-      avatarHint: "JPEG، PNG یان WebP — زۆرترین 10MB. وێنەکە بە شێوەی 512×512 ئامادە دەکرێت.",
+      avatarHint:
+        "JPEG، PNG یان WebP — زۆرترین 10MB. وێنەکە بە شێوەی 512×512 ئامادە دەکرێت.",
       displayName: "ناوی پیشاندان",
       displayNamePlaceholder: "ناوی تەواو",
       email: "ئیمەیڵ",
@@ -238,7 +242,8 @@ export const customerDashboardV2Dictionaries: Record<
       myLearningDescription: "واصل من آخر نقطة أو افتح شهادة الدورة المكتملة.",
       viewAllCourses: "عرض كل الدورات",
       noCourses: "لا توجد دورات مخصصة لك حالياً.",
-      noCoursesDescription: "ستظهر الدورات هنا عند منح حسابك صلاحية الوصول إليها.",
+      noCoursesDescription:
+        "ستظهر الدورات هنا عند منح حسابك صلاحية الوصول إليها.",
       lessonsCompleted: "درساً مكتملاً",
       recentActivity: "آخر نشاط",
       noRecentActivity: "لا يوجد نشاط مسجل بعد",
@@ -256,13 +261,15 @@ export const customerDashboardV2Dictionaries: Record<
     profile: {
       eyebrow: "حسابي",
       title: "ملفي الشخصي",
-      description: "إدارة هويتك الشخصية والصورة واللغة والاسم المستخدم في الشهادة.",
+      description:
+        "إدارة هويتك الشخصية والصورة واللغة والاسم المستخدم في الشهادة.",
       avatar: "صورة الملف الشخصي",
       avatarDescription: "أضف صورة احترافية لهوية حسابك.",
       uploadAvatar: "رفع صورة",
       changeAvatar: "تغيير الصورة",
       removeAvatar: "حذف الصورة",
-      avatarHint: "JPEG أو PNG أو WebP — حتى 10MB. يتم تجهيز الصورة بمقاس 512×512.",
+      avatarHint:
+        "JPEG أو PNG أو WebP — حتى 10MB. يتم تجهيز الصورة بمقاس 512×512.",
       displayName: "اسم العرض",
       displayNamePlaceholder: "الاسم الكامل",
       email: "البريد الإلكتروني",
@@ -315,22 +322,26 @@ export const customerDashboardV2Dictionaries: Record<
       eyebrow: "Customer Portal",
       welcome: "Welcome, {name}",
       welcomeFallback: "Welcome",
-      description: "A concise view of your services, learning, and account activity.",
+      description:
+        "A concise view of your services, learning, and account activity.",
       activeServices: "Active Services",
       coursesInProgress: "Courses In Progress",
       completedCourses: "Completed Courses",
       unreadNotifications: "Unread Notifications",
       learningProgress: "Learning Progress",
-      learningProgressDescription: "Overall status across your assigned courses.",
+      learningProgressDescription:
+        "Overall status across your assigned courses.",
       averageProgress: "Average progress",
       completed: "Completed",
       inProgress: "In Progress",
       notStarted: "Not Started",
       myLearning: "My Learning",
-      myLearningDescription: "Continue where you left off or open a certificate for a completed course.",
+      myLearningDescription:
+        "Continue where you left off or open a certificate for a completed course.",
       viewAllCourses: "View all courses",
       noCourses: "No courses are assigned to you yet.",
-      noCoursesDescription: "Courses will appear here as soon as access is assigned to your account.",
+      noCoursesDescription:
+        "Courses will appear here as soon as access is assigned to your account.",
       lessonsCompleted: "lessons completed",
       recentActivity: "Recent activity",
       noRecentActivity: "No activity recorded yet",
@@ -348,13 +359,15 @@ export const customerDashboardV2Dictionaries: Record<
     profile: {
       eyebrow: "My Account",
       title: "My Profile",
-      description: "Manage your personal identity, avatar, language, and certificate name.",
+      description:
+        "Manage your personal identity, avatar, language, and certificate name.",
       avatar: "Profile photo",
       avatarDescription: "Add a professional image to your account identity.",
       uploadAvatar: "Upload photo",
       changeAvatar: "Change photo",
       removeAvatar: "Remove photo",
-      avatarHint: "JPEG, PNG or WebP — up to 10MB. The image is normalized to 512×512.",
+      avatarHint:
+        "JPEG, PNG or WebP — up to 10MB. The image is normalized to 512×512.",
       displayName: "Display Name",
       displayNamePlaceholder: "Full name",
       email: "Email",
@@ -363,7 +376,8 @@ export const customerDashboardV2Dictionaries: Record<
       whatsappPlaceholder: "+9647XXXXXXXXX",
       preferredLanguage: "Preferred Language",
       certificateName: "Certificate Name",
-      certificateNamePlaceholder: "Name exactly as it should appear on certificates",
+      certificateNamePlaceholder:
+        "Name exactly as it should appear on certificates",
       saveChanges: "Save Changes",
       saving: "Saving...",
       saved: "Your changes have been saved.",

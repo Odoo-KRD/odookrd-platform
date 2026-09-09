@@ -11,8 +11,8 @@ import {
   hasPermission,
 } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
-import { customerDashboardV2Dictionaries } from "@/lib/i18n/customer-dashboard-v2";
-import { getFrontendDictionary } from "@/lib/i18n/frontend-server";
+import { customerDashboardV2Dictionaries } from "@/lib/i18n/portal/dashboard";
+import { getFrontendDictionary } from "@/lib/i18n/frontend/server";
 
 export default async function CustomerProfilePage() {
   const [{ session, token }, { locale, dictionary, workspace }] =

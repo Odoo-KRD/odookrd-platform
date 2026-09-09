@@ -2,7 +2,7 @@
 
 import { ActionButton, Panel } from "@odookrd/ui";
 
-import { adminTranslations } from "@/lib/i18n/admin/index";
+import { adminTranslations } from "@/lib/i18n/admin/translations";
 
 interface AdminErrorProps {
   error: Error & { digest?: string };

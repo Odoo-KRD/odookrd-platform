@@ -5,7 +5,7 @@ import { ActionButton, Badge } from "@odookrd/ui";
 import { useActionState } from "react";
 
 import type { TestEmailState } from "@/app/(protected)/admin/notifications/actions";
-import type { NotificationAdministrationDictionary } from "@/lib/i18n/notification-administration";
+import type { NotificationAdministrationDictionary } from "@/lib/i18n/notifications/administration";
 
 interface ProviderTestEmailFormProps {
   action: (

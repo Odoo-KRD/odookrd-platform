@@ -10,7 +10,7 @@ import { notFound } from "next/navigation";
 import { TrainingVideoEnrichmentManager } from "@/components/training/training-video-enrichment-manager";
 import { ApiRequestError, apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 
 const labels: Record<
   Locale,

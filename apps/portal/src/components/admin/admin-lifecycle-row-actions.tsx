@@ -16,7 +16,7 @@ import {
 } from "@/components/admin/admin-action-menu";
 import type { AdminActionIconName } from "@/components/admin/admin-action-icons";
 
-import type { AdminLifecycleLabels } from "@/lib/i18n/admin-lifecycle";
+import type { AdminLifecycleLabels } from "@/lib/i18n/companies/lifecycle";
 
 type LifecycleOperation = "archive" | "restore" | "delete";
 

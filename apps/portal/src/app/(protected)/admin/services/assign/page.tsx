@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import { ServiceAssignmentForm } from "@/components/services/service-assignment-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { getServicesDictionary } from "@/lib/i18n/services-server";
+import { getServicesDictionary } from "@/lib/i18n/services/server";
 
 import {
   createAssignmentAction,

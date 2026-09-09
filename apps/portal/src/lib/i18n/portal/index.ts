@@ -1,6 +1,6 @@
 import type { Locale } from "@odookrd/types";
 
-import { frontendTranslations } from "@/lib/i18n/frontend";
+import { frontendTranslations } from "@/lib/i18n/frontend/translations";
 import type { PortalDictionary } from "@/lib/i18n/types";
 
 export type { PortalDictionary } from "@/lib/i18n/types";

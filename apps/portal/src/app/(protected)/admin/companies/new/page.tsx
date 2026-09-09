@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { CompanyForm } from "@/components/companies/company-form";
 import { requireAdminPermission } from "@/lib/authorization";
-import { getAdminDictionary } from "@/lib/i18n/admin-server";
+import { getAdminDictionary } from "@/lib/i18n/admin/server";
 
 import { createCompanyAction } from "../actions";
 

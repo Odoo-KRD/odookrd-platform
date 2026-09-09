@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import { ImageUploader } from "@/components/files/image-uploader";
 import type { FormState } from "@/lib/forms";
-import type { CompanyProfileV2Dictionary } from "@/lib/i18n/company-profile-v2";
+import type { CompanyProfileV2Dictionary } from "@/lib/i18n/companies/profile";
 
 export function CompanyIdentityRequestForm({
   action,

@@ -8,9 +8,9 @@ import { redirect } from "next/navigation";
 import { TrainingCertificateTemplateForm } from "@/components/training/training-certificate-template-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
-import { trainingCertificateDesignerDictionaries } from "@/lib/i18n/training-certificate-designer";
-import { trainingCertificateDictionaries } from "@/lib/i18n/training-certificates";
-import { getTrainingDictionary } from "@/lib/i18n/training-server";
+import { trainingCertificateDesignerDictionaries } from "@/lib/i18n/training/certificate-designer";
+import { trainingCertificateDictionaries } from "@/lib/i18n/training/certificates";
+import { getTrainingDictionary } from "@/lib/i18n/training/server";
 
 export default async function NewTrainingCertificateTemplatePage() {
   const [{ session, token }, { locale }] = await Promise.all([
