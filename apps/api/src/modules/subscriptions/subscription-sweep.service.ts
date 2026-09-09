@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { SubscriptionReminderService } from './subscription-reminder.service';
 import { planSweepToCurrent, type SweepCandidate } from './subscription-sweep';
 import {
   DEFAULT_PLATFORM_TIMEZONE,
@@ -13,6 +14,7 @@ export interface SweepOutcome {
   examined: number;
   renewed: number;
   statusChanged: number;
+  remindersSent: number;
 }
 
 /** Namespaced constant so the lock cannot collide with another advisory lock. */
@@ -25,6 +27,7 @@ export class SubscriptionSweepService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly reminders: SubscriptionReminderService,
     configService: ConfigService,
   ) {
     this.timeZone =
@@ -47,7 +50,13 @@ export class SubscriptionSweepService {
 
     if (!locked) {
       // Another API instance is already sweeping. Skipping is correct.
-      return { skipped: true, examined: 0, renewed: 0, statusChanged: 0 };
+      return {
+        skipped: true,
+        examined: 0,
+        renewed: 0,
+        statusChanged: 0,
+        remindersSent: 0,
+      };
     }
 
     try {
@@ -139,7 +148,24 @@ export class SubscriptionSweepService {
       }
     }
 
-    return { skipped: false, examined: due.length, renewed, statusChanged };
+    // Reminders run after renewals so an auto-renewed subscription is already
+    // on its new period and does not warn anyone about the old one.
+    let remindersSent = 0;
+
+    try {
+      const outcome = await this.reminders.run(now);
+      remindersSent = outcome.sent;
+    } catch {
+      this.logger.error('Subscription reminder pass failed.');
+    }
+
+    return {
+      skipped: false,
+      examined: due.length,
+      renewed,
+      statusChanged,
+      remindersSent,
+    };
   }
 
   private async acquireLock(): Promise<boolean> {

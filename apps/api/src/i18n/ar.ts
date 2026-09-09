@@ -17,6 +17,23 @@ export const apiAr = {
     invitationGreeting: 'تمت دعوتك لإنشاء حساب.',
     invitationAction: 'قبول الدعوة',
     serviceAssignedSubject: 'تم تخصيص خدمة جديدة لشركتك',
+
+    subscriptionExpiringSubject: 'اشتراك خدمة على وشك الانتهاء',
+
+    subscriptionExpiringBody:
+      'أحد اشتراكات خدماتك يقترب من تاريخ التجديد. اطلب التجديد من البوابة للحفاظ على استمرار الخدمة.',
+
+    subscriptionExpiredSubject: 'انتهى اشتراك خدمة',
+
+    subscriptionExpiredBody:
+      'وصل اشتراك خدمة إلى نهاية مدته. جدده من البوابة لاستعادة الوصول.',
+
+    subscriptionGraceEndedSubject: 'انتهى الوصول إلى إحدى الخدمات',
+
+    subscriptionGraceEndedBody:
+      'انتهت فترة السماح لاشتراك الخدمة وتوقف الوصول. بياناتك محفوظة وستتوفر مرة أخرى بعد التجديد.',
+
+    subscriptionExpiresOnLabel: 'تنتهي في',
     serviceAssignedBody: 'تتوفر خدمة جديدة في لوحة المعلومات.',
     securityNoticeSubject: 'إشعار أمان الحساب',
   },

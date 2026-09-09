@@ -25,6 +25,13 @@ export interface ApiTranslations {
     invitationAction: string;
     serviceAssignedSubject: string;
     serviceAssignedBody: string;
+    subscriptionExpiringSubject: string;
+    subscriptionExpiringBody: string;
+    subscriptionExpiredSubject: string;
+    subscriptionExpiredBody: string;
+    subscriptionGraceEndedSubject: string;
+    subscriptionGraceEndedBody: string;
+    subscriptionExpiresOnLabel: string;
     securityNoticeSubject: string;
   };
 }

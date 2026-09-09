@@ -143,6 +143,17 @@ enum SubscriptionPeriodSource {
   @@map("subscription_period_source")
 }
 
+enum SubscriptionReminderMilestone {
+  T_MINUS_30
+  T_MINUS_14
+  T_MINUS_7
+  T_MINUS_1
+  EXPIRED
+  GRACE_ENDED
+
+  @@map("subscription_reminder_milestone")
+}
+
 enum SubscriptionRenewalRequestStatus {
   PENDING
   APPROVED
@@ -806,6 +817,7 @@ model Subscription {
   companyService  CompanyService                @relation(fields: [companyServiceId], references: [id], onDelete: Cascade)
   periods         SubscriptionPeriod[]
   renewalRequests SubscriptionRenewalRequest[]
+  reminders       SubscriptionReminder[]
 
   @@index([status, currentPeriodEnd], map: "subscriptions_status_period_end_idx")
   @@index([currentPeriodEnd], map: "subscriptions_period_end_idx")
@@ -831,6 +843,23 @@ model SubscriptionPeriod {
   @@index([subscriptionId, endsAt(sort: Desc)], map: "subscription_periods_subscription_ends_at_idx")
   @@index([actorUserId], map: "subscription_periods_actor_user_id_idx")
   @@map("subscription_periods")
+}
+
+/// One row per reminder actually sent. The period end is part of the key, so a
+/// renewal moves the subscription to a new period and re-arms every milestone
+/// without any cleanup.
+model SubscriptionReminder {
+  id             String                        @id @default(uuid()) @db.Uuid
+  subscriptionId String                        @map("subscription_id") @db.Uuid
+  milestone      SubscriptionReminderMilestone
+  periodEnd      DateTime                      @map("period_end") @db.Timestamptz(6)
+  sentAt         DateTime                      @default(now()) @map("sent_at") @db.Timestamptz(6)
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, milestone, periodEnd], map: "subscription_reminders_unique")
+  @@index([subscriptionId, periodEnd], map: "subscription_reminders_subscription_period_idx")
+  @@map("subscription_reminders")
 }
 
 model SubscriptionRenewalRequest {

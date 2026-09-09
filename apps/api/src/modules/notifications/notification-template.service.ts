@@ -7,6 +7,12 @@ export interface NotificationTemplateVariablesByKey {
   'service.assigned': {
     serviceName?: string;
   };
+  'subscription.reminder': {
+    serviceName?: string;
+    milestone: string;
+    expiresOn: string;
+    daysRemaining?: number;
+  };
   'security.notice': {
     message: string;
   };
@@ -44,6 +50,36 @@ export class NotificationTemplateService {
             ? `${copy.serviceAssignedBody}\n\n${serviceName}`
             : copy.serviceAssignedBody,
         };
+      }
+
+      case 'subscription.reminder': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['subscription.reminder'];
+        const serviceName = input.serviceName?.trim();
+
+        const heading =
+          input.milestone === 'EXPIRED'
+            ? copy.subscriptionExpiredSubject
+            : input.milestone === 'GRACE_ENDED'
+              ? copy.subscriptionGraceEndedSubject
+              : copy.subscriptionExpiringSubject;
+
+        const lead =
+          input.milestone === 'EXPIRED'
+            ? copy.subscriptionExpiredBody
+            : input.milestone === 'GRACE_ENDED'
+              ? copy.subscriptionGraceEndedBody
+              : copy.subscriptionExpiringBody;
+
+        const lines = [lead];
+
+        if (serviceName) {
+          lines.push(serviceName);
+        }
+
+        lines.push(`${copy.subscriptionExpiresOnLabel}: ${input.expiresOn}`);
+
+        return { title: heading, body: lines.join('\n\n') };
       }
 
       case 'security.notice': {

@@ -50,9 +50,12 @@ export class SubscriptionWorkerService
     try {
       const outcome = await this.sweep.sweep();
 
-      if (!outcome.skipped && (outcome.renewed || outcome.statusChanged)) {
+      if (
+        !outcome.skipped &&
+        (outcome.renewed || outcome.statusChanged || outcome.remindersSent)
+      ) {
         this.logger.log(
-          `Subscription sweep renewed ${outcome.renewed} and updated ${outcome.statusChanged} of ${outcome.examined}.`,
+          `Subscription sweep renewed ${outcome.renewed}, updated ${outcome.statusChanged} of ${outcome.examined}, sent ${outcome.remindersSent} reminders.`,
         );
       }
     } catch {
