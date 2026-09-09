@@ -349,9 +349,6 @@ export interface ContentEditorDictionary {
 
 export interface AdminTranslations {
   administration: AdminDictionary;
-  users: UsersDictionary;
-  settings: SettingsDictionary;
-  services: ServicesDictionary;
   errors: AdminErrorDictionary;
   content: ContentEditorDictionary;
 }
@@ -459,7 +456,6 @@ export interface NotificationCenterDictionary {
 }
 
 export interface FrontendTranslations {
-  portal: PortalDictionary;
   services: FrontendServicesDictionary;
   invitations: InvitationDictionary;
   workspace: CustomerWorkspaceDictionary;
