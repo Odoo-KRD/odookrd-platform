@@ -49,7 +49,6 @@ if (dsn) {
 
 export const sentryEnabled = Boolean(dsn);
 
-
 // A one-line signal at boot, so a missing or malformed DSN is visible in the
 // journal instead of failing silently.
 console.log(
