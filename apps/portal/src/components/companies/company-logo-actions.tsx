@@ -245,7 +245,7 @@ export function CompanyLogoActions({
         aria-expanded={menuOpen}
         aria-controls={menuOpen ? menuId : undefined}
         onClick={toggleMenu}
-        className="absolute bottom-2 right-2 inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-white/95 px-2.5 text-xs font-semibold text-content opacity-0 shadow-sm transition hover:bg-white group-hover/logo:opacity-100 group-focus-within/logo:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+        className="absolute bottom-2 end-2 inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-white/95 px-2.5 text-xs font-semibold text-content opacity-0 shadow-sm transition hover:bg-white group-hover/logo:opacity-100 group-focus-within/logo:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
       >
         <PencilIcon />
         {labels.edit}

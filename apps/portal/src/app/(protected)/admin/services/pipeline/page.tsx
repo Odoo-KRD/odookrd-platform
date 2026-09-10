@@ -134,7 +134,7 @@ export default async function RenewalPipelinePage() {
         <Panel className="overflow-x-auto p-6 sm:p-8">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+              <tr className="text-start text-xs uppercase tracking-wide text-slate-500">
                 <th className="pb-3">{labels.company}</th>
                 <th className="pb-3">{labels.service}</th>
                 <th className="pb-3">{labels.term}</th>

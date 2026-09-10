@@ -124,7 +124,7 @@ export function LoginForm({ messages, labels, redirectTo }: LoginFormProps) {
             dir="ltr"
             maxLength={128}
             required
-            className="h-11 w-full rounded-md border border-line bg-white py-0 pl-3.5 pr-11 text-sm text-content outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+            className="h-11 w-full rounded-md border border-line bg-white py-0 ps-3.5 pe-11 text-sm text-content outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           />
           <button
             type="button"
@@ -133,7 +133,7 @@ export function LoginForm({ messages, labels, redirectTo }: LoginFormProps) {
             }
             aria-pressed={showPassword}
             onClick={() => setShowPassword((current) => !current)}
-            className="absolute right-1 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted transition hover:bg-surface-subtle hover:text-content"
+            className="absolute end-1 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-muted transition hover:bg-surface-subtle hover:text-content"
           >
             <EyeIcon hidden={showPassword} />
           </button>

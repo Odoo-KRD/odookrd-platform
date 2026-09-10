@@ -299,8 +299,11 @@ export function CustomerShellHeader({
                 </summary>
 
                 <div className="absolute end-0 top-[calc(100%+0.65rem)] z-50 w-[min(92vw,24rem)] overflow-hidden rounded-xl border border-line bg-white shadow-xl">
-                  <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3.5">
-                    <div>
+                  {/* min-w-0 lets the heading shrink and the action keep its
+                      width. Kurdish "mark all as read" is a third longer than
+                      the English, and without this the two fought for space. */}
+                  <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3.5">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-content">
                         {labels.recentNotifications}
                       </p>
@@ -309,10 +312,13 @@ export function CustomerShellHeader({
                       </p>
                     </div>
                     {unreadCount > 0 ? (
-                      <form action={markAllNotificationsReadAction}>
+                      <form
+                        action={markAllNotificationsReadAction}
+                        className="shrink-0"
+                      >
                         <button
                           type="submit"
-                          className="text-xs font-semibold text-brand hover:text-brand-hover"
+                          className="text-start text-xs font-semibold text-brand hover:text-brand-hover"
                         >
                           {labels.markAllRead}
                         </button>

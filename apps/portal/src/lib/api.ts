@@ -2,11 +2,14 @@ import { cookies } from "next/headers";
 
 import { LOCALE_COOKIE_NAME } from "@/lib/constants";
 import { DEFAULT_LOCALE, isSupportedLocale } from "@/lib/i18n/config";
+import { getRequestId } from "@/lib/request-id";
 
 export class ApiRequestError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    /** Correlates this failure with the API log line that produced it. */
+    public readonly requestId?: string,
   ) {
     super(message);
     this.name = "ApiRequestError";
@@ -75,6 +78,11 @@ export async function apiRequest<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
+  // Shared by every call in this render and echoed back by the API, so one
+  // page failure traces to one identifier across both services.
+  const requestId = await getRequestId();
+  headers.set("x-request-id", requestId);
+
   let response: Response;
 
   try {
@@ -88,6 +96,7 @@ export async function apiRequest<T>(
     throw new ApiRequestError(
       502,
       "The API service is temporarily unavailable.",
+      requestId,
     );
   }
 
@@ -101,7 +110,11 @@ export async function apiRequest<T>(
     body = await response.json();
   } catch {
     if (response.ok) {
-      throw new ApiRequestError(502, "The API returned an invalid response.");
+      throw new ApiRequestError(
+        502,
+        "The API returned an invalid response.",
+        requestId,
+      );
     }
   }
 
@@ -111,9 +124,11 @@ export async function apiRequest<T>(
         ? "The API service is temporarily unavailable."
         : "The request could not be completed.";
 
+    // Prefer the id the API actually used; it will match its own log line.
     throw new ApiRequestError(
       response.status,
       response.status >= 500 ? fallback : getErrorMessage(body, fallback),
+      response.headers.get("x-request-id") ?? requestId,
     );
   }
 

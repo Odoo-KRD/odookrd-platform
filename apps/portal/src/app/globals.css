@@ -54,6 +54,23 @@ body {
   font-family: var(--font-sans);
 }
 
+/*
+ * Arabic-script faces such as Noto Kufi Arabic render optically larger than
+ * the Latin fallback at the same font-size, so Kurdish and Arabic text looked
+ * a size bigger than the English beside it.
+ *
+ * Scaling the root for RTL brings them into balance and, because every Tailwind
+ * size is rem-based, it corrects the whole interface with one rule rather than
+ * per component. Adjust --rtl-font-scale by eye if it still reads heavy.
+ */
+:root {
+  --rtl-font-scale: 0.92;
+}
+
+html[dir="rtl"] {
+  font-size: calc(100% * var(--rtl-font-scale));
+}
+
 button,
 input,
 select,

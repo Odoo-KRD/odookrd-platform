@@ -436,7 +436,7 @@ export function SubscriptionPanel({
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+              <tr className="text-start text-xs uppercase tracking-wide text-slate-500">
                 <th className="py-2">{labels.sequence}</th>
                 <th className="py-2">{labels.term}</th>
                 <th className="py-2">{labels.periodStart}</th>

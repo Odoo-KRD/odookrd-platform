@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggerModule } from 'nestjs-pino';
 
 import { environmentValidationSchema } from './config/env.validation';
+import { buildLoggerOptions } from './infrastructure/logging/logger.config';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthorizationModule } from './modules/authorization/authorization.module';
@@ -21,6 +23,11 @@ import { UserAdministrationModule } from './modules/user-administration/user-adm
 @Module({
   imports: [
     UserAdministrationModule,
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        buildLoggerOptions(config.get<string>('NODE_ENV') ?? 'development'),
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,

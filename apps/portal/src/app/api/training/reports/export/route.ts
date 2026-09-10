@@ -55,6 +55,8 @@ export async function GET(request: NextRequest) {
         headers: {
           Accept: "text/csv",
           "Accept-Language": request.headers.get("accept-language") ?? "ku",
+          "x-request-id":
+            request.headers.get("x-request-id") ?? crypto.randomUUID(),
           Authorization: `Bearer ${token}`,
         },
         cache: "no-store",
