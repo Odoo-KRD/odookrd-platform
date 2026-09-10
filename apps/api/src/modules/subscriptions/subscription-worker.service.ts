@@ -4,6 +4,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 
 import { SubscriptionSweepService } from './subscription-sweep.service';
 
@@ -58,8 +59,16 @@ export class SubscriptionWorkerService
           `Subscription sweep renewed ${outcome.renewed}, updated ${outcome.statusChanged} of ${outcome.examined}, sent ${outcome.remindersSent} reminders.`,
         );
       }
-    } catch {
+    } catch (error: unknown) {
+      // The sweep runs unattended every five minutes and mutates data, so a
+      // run that starts failing must reach someone rather than sitting in the
+      // journal until a customer notices.
       this.logger.error('Subscription sweep failed.');
+      Sentry.withScope((scope) => {
+        scope.setTag('job', 'subscription-sweep');
+        scope.setLevel('error');
+        Sentry.captureException(error);
+      });
     } finally {
       this.running = false;
     }

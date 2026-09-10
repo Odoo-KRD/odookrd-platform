@@ -9,3 +9,4 @@ allowBuilds:
   "prisma@7.9.1": true
   unrs-resolver: true
   "sharp@0.34.3": true
+  '@sentry/cli': false

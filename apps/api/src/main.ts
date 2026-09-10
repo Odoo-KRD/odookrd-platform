@@ -1,3 +1,7 @@
+// Must be first: the Sentry SDK patches Node internals before the modules
+// it instruments are loaded.
+import './instrument';
+
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';

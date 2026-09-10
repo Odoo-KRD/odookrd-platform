@@ -331,6 +331,7 @@ export interface FrontendServicesDictionary {
 }
 
 export interface AdminErrorDictionary {
+  reference: string;
   title: string;
   description: string;
   retry: string;

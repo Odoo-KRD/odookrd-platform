@@ -9,7 +9,7 @@ interface AdminErrorProps {
   reset: () => void;
 }
 
-export default function AdminError({ reset }: AdminErrorProps) {
+export default function AdminError({ error, reset }: AdminErrorProps) {
   const language =
     typeof document === "undefined" ? "ku" : document.documentElement.lang;
   const messages =
@@ -23,6 +23,14 @@ export default function AdminError({ reset }: AdminErrorProps) {
     <Panel className="p-8">
       <h2 className="text-lg font-semibold text-slate-900">{messages.title}</h2>
       <p className="mt-3 text-sm text-slate-500">{messages.description}</p>
+      {/* Next's digest also appears in the server log and the Sentry event, so
+          a customer quoting it turns a vague report into one lookup. */}
+      {error.digest ? (
+        <p className="mt-2 text-xs text-slate-400">
+          {messages.reference}:{" "}
+          <span className="font-mono">{error.digest}</span>
+        </p>
+      ) : null}
       <div className="mt-6">
         <ActionButton type="button" onClick={reset}>
           {messages.retry}

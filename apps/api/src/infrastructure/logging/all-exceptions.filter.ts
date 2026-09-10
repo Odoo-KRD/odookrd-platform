@@ -6,9 +6,14 @@ import {
   Logger,
   type ExceptionFilter,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import type { Request, Response } from 'express';
 
-type RequestWithId = Request & { id?: unknown };
+type RequestWithId = Request & {
+  id?: unknown;
+  // Attached by AuthenticatedGuard once a session resolves.
+  auth?: { userId?: string; companyId?: string | null };
+};
 
 /**
  * Catches everything that reaches the edge.
@@ -55,6 +60,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
             : { name: 'UnknownException', message: String(exception) },
         stack: exception instanceof Error ? exception.stack : undefined,
       });
+
+      this.report(exception, request, requestId, status);
     } else {
       this.logger.warn({
         message: 'Request rejected',
@@ -81,5 +88,46 @@ export class AllExceptionsFilter implements ExceptionFilter {
       .json(
         typeof body === 'string' ? { statusCode: status, message: body } : body,
       );
+  }
+
+  /**
+   * Sends server faults to Sentry.
+   *
+   * Identifiers only: the user and company ids are enough to find who was
+   * affected, and an email in an external system buys nothing you cannot look
+   * up locally. The request id is a tag so an event links straight to the log
+   * line that recorded it.
+   *
+   * A no-op when SENTRY_DSN is unset, so development and CI are unaffected.
+   */
+  private report(
+    exception: unknown,
+    request: RequestWithId,
+    requestId: string | number | string[] | undefined,
+    status: number,
+  ): void {
+    Sentry.withScope((scope) => {
+      if (typeof requestId === 'string') {
+        scope.setTag('request_id', requestId);
+      }
+
+      scope.setTag('http_status', String(status));
+      scope.setContext('request', {
+        method: request.method,
+        path: request.url?.split('?')[0],
+      });
+
+      const principal = request.auth;
+
+      if (principal?.userId) {
+        scope.setUser({ id: principal.userId });
+      }
+
+      if (principal?.companyId) {
+        scope.setTag('company_id', principal.companyId);
+      }
+
+      Sentry.captureException(exception);
+    });
   }
 }

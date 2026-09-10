@@ -16,6 +16,7 @@ const en = {
     },
   },
   errors: {
+    reference: "Reference",
     title: "Something went wrong",
     description: "This section could not be loaded. Please try again.",
     retry: sharedText.en.actions.retry,
@@ -48,6 +49,7 @@ const ku = {
     },
   },
   errors: {
+    reference: "ژمارەی ئاماژە",
     title: "هەڵەیەک ڕوویدا",
     description: "نەتوانرا ئەم بەشە بار بکرێت. تکایە دووبارە هەوڵ بدەوە.",
     retry: sharedText.ku.actions.retry,
@@ -80,6 +82,7 @@ const ar = {
     },
   },
   errors: {
+    reference: "الرقم المرجعي",
     title: "حدث خطأ",
     description: "تعذر تحميل هذا القسم. يرجى المحاولة مرة أخرى.",
     retry: sharedText.ar.actions.retry,

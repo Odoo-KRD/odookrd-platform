@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { SubscriptionReminderService } from './subscription-reminder.service';
@@ -142,9 +143,15 @@ export class SubscriptionSweepService {
           });
           statusChanged += 1;
         }
-      } catch {
-        // One bad row must not abort the sweep for everyone else.
+      } catch (error: unknown) {
+        // One bad row must not abort the sweep for everyone else, but it still
+        // needs to reach someone.
         this.logger.error(`Subscription sweep failed for ${row.id}.`);
+        Sentry.withScope((scope) => {
+          scope.setTag('job', 'subscription-sweep');
+          scope.setTag('subscription_id', row.id);
+          Sentry.captureException(error);
+        });
       }
     }
 

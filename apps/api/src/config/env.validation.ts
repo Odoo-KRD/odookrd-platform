@@ -13,6 +13,10 @@ export const environmentValidationSchema = Joi.object({
 
   // Subscription periods end at the last millisecond of the local day in this
   // zone, so a service "expiring today" stays usable until local midnight.
+  // Optional: no DSN means error reporting is simply off.
+  SENTRY_DSN: Joi.string().allow('').default(''),
+  SENTRY_RELEASE: Joi.string().allow('').default(''),
+
   PLATFORM_TIMEZONE: Joi.string().min(1).default('Asia/Baghdad'),
 
   // Read directly by the invitation templates; declared here so a missing or
