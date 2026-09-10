@@ -1,4 +1,5 @@
 import type { Locale } from "@odookrd/types";
+import { sharedText } from "../shared";
 
 export interface TrainingAssessmentDictionary {
   locked: string;
@@ -33,7 +34,7 @@ export const trainingAssessmentDictionaries: Record<
     reviewFinalQuiz: "Review final quiz",
     requiredForCompletion: "Required for completion",
     backToCourse: "Back to course",
-    courseCompleted: "Course completed",
+    courseCompleted: sharedText.en.labels.courseCompleted,
     courseCompletedDescription:
       "You have completed all required learning for this course.",
     completedOn: "Completed on",

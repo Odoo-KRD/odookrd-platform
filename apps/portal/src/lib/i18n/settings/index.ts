@@ -3,6 +3,7 @@ import type { Locale } from "@odookrd/types";
 import { uiChrome } from "../ui-chrome";
 
 import type { SettingsDictionary } from "../types";
+import { sharedText } from "../shared";
 
 export type { SettingsDictionary } from "../types";
 
@@ -17,10 +18,10 @@ const en = {
   selectScope: "Settings scope",
   platformDefaults: "Platform defaults",
   save: "Save settings",
-  saving: "Saving...",
+  saving: sharedText.en.actions.saving,
   saved: "Settings saved successfully.",
-  configured: "Configured",
-  notConfigured: "Not configured",
+  configured: sharedText.en.labels.configured,
+  notConfigured: sharedText.en.labels.notConfigured,
   clearSecret: "Clear current secret",
   secretPlaceholder: "Leave blank to preserve the current value",
   readOnly: "Read only",
@@ -49,9 +50,9 @@ const en = {
     COMPANY: "Company",
   },
   localeOptions: {
-    ku: "Kurdish",
-    ar: "Arabic",
-    en: "English",
+    ku: sharedText.en.languages.ku,
+    ar: sharedText.en.languages.ar,
+    en: sharedText.en.languages.en,
   },
   booleanOptions: {
     enabled: uiChrome.en.enabled,
@@ -175,9 +176,9 @@ const ku = {
   selectScope: "مەودای ڕێکخستن",
   platformDefaults: "بنەمای پلاتفۆرم",
   save: "پاشەکەوتکردنی ڕێکخستنەکان",
-  saving: "پاشەکەوت دەکرێت...",
+  saving: sharedText.ku.actions.saving,
   saved: "ڕێکخستنەکان بە سەرکەوتوویی پاشەکەوت کران.",
-  configured: "ڕێکخراوە",
+  configured: sharedText.ku.labels.configured,
   notConfigured: "ڕێک نەخراوە",
   clearSecret: "سڕینەوەی نهێنی هەنووکەیی",
   secretPlaceholder: "بە بەتاڵی بهێڵەرەوە بۆ پاراستنی بەهای هەنووکەیی",
@@ -207,9 +208,9 @@ const ku = {
     COMPANY: "کۆمپانیا",
   },
   localeOptions: {
-    ku: "کوردی",
-    ar: "عەرەبی",
-    en: "ئینگلیزی",
+    ku: sharedText.ku.languages.ku,
+    ar: sharedText.ku.languages.ar,
+    en: sharedText.ku.languages.en,
   },
   booleanOptions: {
     enabled: uiChrome.ku.enabled,
@@ -333,7 +334,7 @@ const ar = {
   selectScope: "نطاق الإعدادات",
   platformDefaults: "إعدادات المنصة الافتراضية",
   save: "حفظ الإعدادات",
-  saving: "جارٍ الحفظ...",
+  saving: sharedText.ar.actions.saving,
   saved: "تم حفظ الإعدادات بنجاح.",
   configured: "تم الإعداد",
   notConfigured: "غير معدّ",
@@ -365,9 +366,9 @@ const ar = {
     COMPANY: "الشركة",
   },
   localeOptions: {
-    ku: "الكردية",
-    ar: "العربية",
-    en: "الإنجليزية",
+    ku: sharedText.ar.languages.ku,
+    ar: sharedText.ar.languages.ar,
+    en: sharedText.ar.languages.en,
   },
   booleanOptions: {
     enabled: uiChrome.ar.enabled,

@@ -28,6 +28,8 @@ import {
   deleteTrainingCourseRowAction,
   restoreTrainingCourseRowAction,
 } from "../actions";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface TrainingCoursesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -245,7 +247,7 @@ export default async function TrainingCoursesPage({
     result.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted">
-          {result.pagination.total} {training.records}
+          {plural(recordsPhrase, locale, result.pagination.total)}
         </p>
         <div className="flex items-center gap-2">
           {result.pagination.offset > 0 ? (
@@ -295,6 +297,7 @@ export default async function TrainingCoursesPage({
       />
 
       <AdminDataTable
+        locale={locale}
         columns={[
           { key: "cover", label: training.coverImage, className: "w-20" },
           { key: "title", label: training.courseTitle },

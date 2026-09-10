@@ -14,6 +14,8 @@ import {
   trainingQuizPlayerDictionaries,
   type TrainingQuizPlayerDictionary,
 } from "@/lib/i18n/training/quiz-player";
+import { plural } from "@/lib/i18n/plural";
+import { questionsPhrase } from "@/lib/i18n/shared/plurals";
 
 function localizedText(
   base: string | null,
@@ -367,7 +369,7 @@ export function TrainingQuizPlayer({
             </div>
 
             <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
-              {summary.questionCount} {labels.questions}
+              {plural(questionsPhrase, locale, summary.questionCount)}
             </span>
           </div>
 

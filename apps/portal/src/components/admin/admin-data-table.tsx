@@ -1,5 +1,7 @@
 "use client";
 
+import type { Locale } from "@odookrd/types";
+
 import Link from "next/link";
 
 import {
@@ -19,6 +21,8 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { plural } from "@/lib/i18n/plural";
+import { selectedPhrase } from "@/lib/i18n/shared/plurals";
 
 export type AdminTableTone =
   "neutral" | "accent" | "success" | "warning" | "danger";
@@ -112,6 +116,7 @@ export interface AdminDataTableActionResult {
 }
 
 interface AdminDataTableProps {
+  locale: Locale;
   columns: readonly AdminDataTableColumn[];
   rows: readonly AdminDataTableRow[];
   labels: AdminDataTableLabels;
@@ -231,6 +236,7 @@ function renderCell(cell: AdminTableCell): ReactNode {
 }
 
 export function AdminDataTable({
+  locale,
   columns,
   rows,
   labels,
@@ -420,7 +426,7 @@ export function AdminDataTable({
               <input key={id} type="hidden" name="selectedIds" value={id} />
             ))}
             <span className="whitespace-nowrap text-xs font-medium text-muted">
-              {selectedIds.size} {labels.selected}
+              {plural(selectedPhrase, locale, selectedIds.size)}
             </span>
             <label className="sr-only" htmlFor={batchActionId}>
               {labels.batchAction}

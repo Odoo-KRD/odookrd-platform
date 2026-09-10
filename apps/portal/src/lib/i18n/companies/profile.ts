@@ -1,6 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
 import { uiChrome } from "../ui-chrome";
+import { sharedText } from "../shared";
 
 export interface CompanyProfileV2Dictionary {
   eyebrow: string;
@@ -76,7 +77,7 @@ export const companyProfileV2Dictionaries: Record<
     contact: "زانیاری پەیوەندی",
     contactDescription:
       "ئەم زانیارییانە دەتوانرێت لەلایەن بەڕێوەبەری کۆمپانیاوە نوێ بکرێنەوە.",
-    slug: "Slug",
+    slug: sharedText.ku.labels.slug,
     status: "دۆخ",
     logo: uiChrome.ku.logo,
     noLogo: "هیچ لۆگۆیەک دانەنراوە.",
@@ -93,7 +94,7 @@ export const companyProfileV2Dictionaries: Record<
     profileCompleteness: "تەواوی پڕۆفایل",
     complete: "تەواو",
     saveContact: "پاشەکەوتکردنی زانیاری پەیوەندی",
-    saving: "پاشەکەوت دەکرێت...",
+    saving: sharedText.ku.actions.saving,
     saved: "زانیاری کۆمپانیا پاشەکەوت کرا.",
     requestIdentity: "پێشنیاری گۆڕینی ناسنامە",
     requestIdentityDescription:
@@ -107,10 +108,10 @@ export const companyProfileV2Dictionaries: Record<
     approved: "پەسەندکراو",
     rejected: "ڕەتکراوە",
     cancelled: "هەڵوەشاوە",
-    requestedAt: "نێردراوە لە",
+    requestedAt: sharedText.ku.labels.requestedAt,
     reviewedAt: "پێداچوونەوە کراوە لە",
-    reviewNote: "تێبینی پێداچوونەوە",
-    requestedBy: "داواکراوە لەلایەن",
+    reviewNote: sharedText.ku.labels.reviewNote,
+    requestedBy: sharedText.ku.labels.requestedBy,
     noRequests: "هێشتا هیچ پێشنیارێکی گۆڕینی ناسنامە نییە.",
     platformManaged: "ناسنامەی پارێزراو",
     platformManagedDescription:
@@ -124,7 +125,7 @@ export const companyProfileV2Dictionaries: Record<
     removeLogo: "سڕینەوەی لۆگۆ",
     reviewRequests: "پێداچوونەوەی داواکارییەکان",
     approve: "پەسەندکردن",
-    reject: "ڕەتکردنەوە",
+    reject: sharedText.ku.labels.reject,
     currentLogo: "لۆگۆی ئێستا",
     proposedChanges: "گۆڕانکارییە پێشنیارکراوەکان",
     proposedLogoIncluded: "لۆگۆی نوێ لە پێشنیارەکەدایە.",
@@ -139,7 +140,7 @@ export const companyProfileV2Dictionaries: Record<
     identity: "هوية الشركة",
     contact: "معلومات الاتصال",
     contactDescription: "يمكن لمسؤول الشركة تحديث معلومات الاتصال مباشرة.",
-    slug: "Slug",
+    slug: sharedText.ar.labels.slug,
     status: "الحالة",
     logo: uiChrome.ar.logo,
     noLogo: "لم يتم تعيين شعار للشركة.",
@@ -156,7 +157,7 @@ export const companyProfileV2Dictionaries: Record<
     profileCompleteness: "اكتمال الملف",
     complete: "مكتمل",
     saveContact: "حفظ معلومات الاتصال",
-    saving: "جارٍ الحفظ...",
+    saving: sharedText.ar.actions.saving,
     saved: "تم حفظ معلومات الشركة.",
     requestIdentity: "اقتراح تغيير الهوية",
     requestIdentityDescription:
@@ -170,10 +171,10 @@ export const companyProfileV2Dictionaries: Record<
     approved: "مقبول",
     rejected: "مرفوض",
     cancelled: "ملغي",
-    requestedAt: "أرسل في",
+    requestedAt: sharedText.ar.labels.requestedAt,
     reviewedAt: "تمت المراجعة في",
-    reviewNote: "ملاحظة المراجعة",
-    requestedBy: "مقدم الطلب",
+    reviewNote: sharedText.ar.labels.reviewNote,
+    requestedBy: sharedText.ar.labels.requestedBy,
     noRequests: "لا توجد اقتراحات لتغيير الهوية حتى الآن.",
     platformManaged: "هوية محمية",
     platformManagedDescription:
@@ -187,7 +188,7 @@ export const companyProfileV2Dictionaries: Record<
     removeLogo: "إزالة الشعار",
     reviewRequests: "مراجعة الطلبات",
     approve: "موافقة",
-    reject: "رفض",
+    reject: sharedText.ar.labels.reject,
     currentLogo: "الشعار الحالي",
     proposedChanges: "التغييرات المقترحة",
     proposedLogoIncluded: "يتضمن الطلب شعاراً جديداً.",
@@ -203,7 +204,7 @@ export const companyProfileV2Dictionaries: Record<
     contact: "Contact information",
     contactDescription:
       "Company administrators can update these contact details directly.",
-    slug: "Slug",
+    slug: sharedText.en.labels.slug,
     status: "Status",
     logo: uiChrome.en.logo,
     noLogo: "No company logo has been configured.",
@@ -220,7 +221,7 @@ export const companyProfileV2Dictionaries: Record<
     profileCompleteness: "Profile completeness",
     complete: "complete",
     saveContact: "Save contact information",
-    saving: "Saving...",
+    saving: sharedText.en.actions.saving,
     saved: "Company information saved.",
     requestIdentity: "Suggest identity change",
     requestIdentityDescription:
@@ -234,10 +235,10 @@ export const companyProfileV2Dictionaries: Record<
     approved: "Approved",
     rejected: "Rejected",
     cancelled: "Cancelled",
-    requestedAt: "Requested",
+    requestedAt: sharedText.en.labels.requestedAt,
     reviewedAt: "Reviewed",
-    reviewNote: "Review note",
-    requestedBy: "Requested by",
+    reviewNote: sharedText.en.labels.reviewNote,
+    requestedBy: sharedText.en.labels.requestedBy,
     noRequests: "No company identity requests have been submitted yet.",
     platformManaged: "Protected identity",
     platformManagedDescription:
@@ -251,7 +252,7 @@ export const companyProfileV2Dictionaries: Record<
     removeLogo: "Remove logo",
     reviewRequests: "Review requests",
     approve: "Approve",
-    reject: "Reject",
+    reject: sharedText.en.labels.reject,
     currentLogo: "Current logo",
     proposedChanges: "Proposed changes",
     proposedLogoIncluded: "A new logo is included in this request.",

@@ -26,6 +26,8 @@ import {
   deleteTrainingCategoryRowAction,
   restoreTrainingCategoryRowAction,
 } from "../actions";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface TrainingCategoriesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -180,7 +182,7 @@ export default async function TrainingCategoriesPage({
     result.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted">
-          {result.pagination.total} {training.records}
+          {plural(recordsPhrase, locale, result.pagination.total)}
         </p>
         <div className="flex items-center gap-2">
           {result.pagination.offset > 0 ? (
@@ -228,6 +230,7 @@ export default async function TrainingCategoriesPage({
       />
 
       <AdminDataTable
+        locale={locale}
         columns={[
           { key: "name", label: training.name },
           { key: "key", label: training.key },

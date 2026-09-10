@@ -1,4 +1,5 @@
 import type { Locale, NotificationDeliveryStatus } from "@odookrd/types";
+import { sharedText } from "../shared";
 
 export interface UserInvitationAdminDictionary {
   inviteDescription: string;
@@ -66,11 +67,11 @@ export const userInvitationAdminDictionaries: Record<
     finalAdminDescription:
       "تا کاتێک بەڕێوەبەرێکی چالاکی تری کۆمپانیا نییە، ناتوانرێت ڕۆڵی بەڕێوەبەر لەم هەژمارە لاببرێت.",
     deliveryStatuses: {
-      PENDING: "چاوەڕوان",
-      PROCESSING: "لە جێبەجێکردندایە",
-      SENT: "نێردرا",
-      FAILED: "سەرکەوتوو نەبوو",
-      SKIPPED: "پەڕێنرا",
+      PENDING: sharedText.ku.status.PENDING,
+      PROCESSING: sharedText.ku.status.PROCESSING,
+      SENT: sharedText.ku.status.SENT,
+      FAILED: sharedText.ku.status.FAILED,
+      SKIPPED: sharedText.ku.status.SKIPPED,
     },
   },
   ar: {
@@ -98,17 +99,17 @@ export const userInvitationAdminDictionaries: Record<
     linkGenerated: "تم إنشاء رابط جديد.",
     oneTimeLinkNotice:
       "سيظهر هذا الرابط الآن فقط. إنشاء رابط جديد يبطل الرابط السابق.",
-    copyLink: "نسخ الرابط",
-    copied: "تم النسخ",
+    copyLink: sharedText.ar.labels.copyLink,
+    copied: sharedText.ar.labels.copied,
     finalAdminTitle: "حماية آخر مدير",
     finalAdminDescription:
       "لا يمكن إزالة دور مدير الشركة من هذا الحساب حتى يوجد مدير شركة فعّال آخر.",
     deliveryStatuses: {
-      PENDING: "قيد الانتظار",
-      PROCESSING: "قيد المعالجة",
-      SENT: "تم الإرسال",
-      FAILED: "فشل",
-      SKIPPED: "تم التخطي",
+      PENDING: sharedText.ar.status.PENDING,
+      PROCESSING: sharedText.ar.status.PROCESSING,
+      SENT: sharedText.ar.status.SENT,
+      FAILED: sharedText.ar.status.FAILED,
+      SKIPPED: sharedText.ar.status.SKIPPED,
     },
   },
   en: {
@@ -128,7 +129,7 @@ export const userInvitationAdminDictionaries: Record<
     activeInvitation: "Active invitation",
     expiredInvitation: "Invitation expired",
     noInvitation: "There is no active invitation.",
-    invitationExpires: "Expires",
+    invitationExpires: sharedText.en.labels.invitationExpires,
     resendInvitation: "Resend invitation",
     resendingInvitation: "Resending invitation...",
     generateNewLink: "Generate new link",
@@ -137,17 +138,17 @@ export const userInvitationAdminDictionaries: Record<
     linkGenerated: "A fresh invitation link was generated.",
     oneTimeLinkNotice:
       "This link is shown only now. Generating another link invalidates the previous one.",
-    copyLink: "Copy link",
-    copied: "Copied",
+    copyLink: sharedText.en.labels.copyLink,
+    copied: sharedText.en.labels.copied,
     finalAdminTitle: "Final administrator protection",
     finalAdminDescription:
       "This company-administrator role cannot be removed until another active company administrator exists.",
     deliveryStatuses: {
-      PENDING: "Pending",
-      PROCESSING: "Processing",
-      SENT: "Sent",
-      FAILED: "Failed",
-      SKIPPED: "Skipped",
+      PENDING: sharedText.en.status.PENDING,
+      PROCESSING: sharedText.en.status.PROCESSING,
+      SENT: sharedText.en.status.SENT,
+      FAILED: sharedText.en.status.FAILED,
+      SKIPPED: sharedText.en.status.SKIPPED,
     },
   },
 };

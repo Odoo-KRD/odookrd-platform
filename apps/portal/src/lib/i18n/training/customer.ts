@@ -1,6 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
 import { uiChrome } from "../ui-chrome";
+import { sharedText } from "../shared";
 
 export interface TrainingCustomerDictionary {
   navigation: string;
@@ -71,7 +72,7 @@ export const trainingCustomerDictionaries: Record<
     catalogDescription:
       "ئەو کۆرسانە ببینە کە بۆ کۆمپانیا یان هەژماری تۆ بەردەستن.",
     searchPlaceholder: "گەڕان لە کۆرسەکان...",
-    allCategories: "هەموو پۆلەکان",
+    allCategories: sharedText.ku.labels.allCategories,
     filter: uiChrome.ku.filter,
     clear: "پاککردنەوە",
     records: "کۆرس",
@@ -103,10 +104,10 @@ export const trainingCustomerDictionaries: Record<
     userAccess: "دیاریکردنی فێرخواز",
     addRule: "زیادکردنی یاسای دەستگەیشتن",
     update: "نوێکردنەوە",
-    remove: "لابردن",
+    remove: sharedText.ku.actions.remove,
     company: "کۆمپانیا",
-    service: "خزمەتگوزاری",
-    learner: "فێرخواز",
+    service: sharedText.ku.labels.service,
+    learner: sharedText.ku.labels.learner,
     audienceMode: "شێوازی دەستگەیشتن",
     allUsers: "هەموو بەکارهێنەران",
     assignedUsers: "تەنها فێرخوازانی دیاریکراو",
@@ -133,7 +134,7 @@ export const trainingCustomerDictionaries: Record<
     catalogTitle: "دوراتي",
     catalogDescription: "استعرض الدورات المتاحة لشركتك أو لحسابك بشكل مباشر.",
     searchPlaceholder: "البحث في الدورات...",
-    allCategories: "كل التصنيفات",
+    allCategories: sharedText.ar.labels.allCategories,
     filter: uiChrome.ar.filter,
     clear: "مسح",
     records: "دورة",
@@ -162,10 +163,10 @@ export const trainingCustomerDictionaries: Record<
     userAccess: "تعيين المتعلمين",
     addRule: "إضافة قاعدة وصول",
     update: "تحديث",
-    remove: "إزالة",
+    remove: sharedText.ar.actions.remove,
     company: "الشركة",
-    service: "الخدمة",
-    learner: "المتعلم",
+    service: sharedText.ar.labels.service,
+    learner: sharedText.ar.labels.learner,
     audienceMode: "نمط الوصول",
     allUsers: "جميع المستخدمين",
     assignedUsers: "المستخدمون المعيّنون فقط",
@@ -192,15 +193,15 @@ export const trainingCustomerDictionaries: Record<
     catalogDescription:
       "Browse courses made available to your company or directly to your account.",
     searchPlaceholder: "Search courses...",
-    allCategories: "All categories",
+    allCategories: sharedText.en.labels.allCategories,
     filter: uiChrome.en.filter,
     clear: "Clear",
     records: "courses",
     previous: uiChrome.en.previous,
     next: uiChrome.en.next,
     viewCourse: "View course",
-    sections: "Sections",
-    lessons: "Lessons",
+    sections: sharedText.en.labels.sections,
+    lessons: sharedText.en.labels.lessons,
     noCoursesTitle: "No courses available",
     noCoursesDescription:
       "No training courses are currently entitled to your account.",
@@ -225,10 +226,10 @@ export const trainingCustomerDictionaries: Record<
     userAccess: "Learner assignments",
     addRule: "Add access rule",
     update: "Update",
-    remove: "Remove",
+    remove: sharedText.en.actions.remove,
     company: "Company",
-    service: "Service",
-    learner: "Learner",
+    service: sharedText.en.labels.service,
+    learner: sharedText.en.labels.learner,
     audienceMode: "Audience mode",
     allUsers: "All users",
     assignedUsers: "Assigned users only",

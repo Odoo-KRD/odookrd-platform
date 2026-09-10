@@ -21,6 +21,8 @@ import { customerPortalRefinementDictionaries } from "@/lib/i18n/customer/refine
 import { getFrontendDictionary } from "@/lib/i18n/public/server";
 import { serviceFeatureDictionaries } from "@/lib/i18n/services/features";
 import { subscriptionsDictionaries } from "@/lib/i18n/services/subscriptions";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface CustomerServicesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -370,7 +372,7 @@ export default async function CustomerServicesPage({
           className="flex items-center justify-between gap-4 border-t border-line pt-4"
         >
           <p className="text-xs text-muted">
-            {result.pagination.total} {services.records}
+            {plural(recordsPhrase, locale, result.pagination.total)}
           </p>
           <div className="flex gap-2">
             {result.pagination.offset > 0 ? (

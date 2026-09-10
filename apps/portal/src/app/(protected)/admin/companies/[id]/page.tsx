@@ -493,6 +493,7 @@ export default async function CompanyDetailsPage({
           </div>
 
           <AdminDataTable
+            locale={locale}
             columns={[
               { key: "service", label: services.service },
               { key: "status", label: services.status },

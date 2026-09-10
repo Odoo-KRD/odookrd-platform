@@ -126,6 +126,7 @@ export default async function RolesPage() {
       />
 
       <AdminDataTable
+        locale={locale}
         columns={[
           { key: "name", label: labels.name },
           { key: "key", label: labels.key },

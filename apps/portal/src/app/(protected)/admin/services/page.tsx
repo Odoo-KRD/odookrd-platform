@@ -31,6 +31,8 @@ import {
   deleteServiceRowAction,
   restoreServiceRowAction,
 } from "./actions";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface ServicesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -335,7 +337,7 @@ export default async function ServicesPage({
     catalog.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-slate-500">
-          {catalog.pagination.total} {services.records}
+          {plural(recordsPhrase, locale, catalog.pagination.total)}
         </p>
         <div className="flex gap-2">
           {catalog.pagination.offset > 0 ? (
@@ -370,7 +372,7 @@ export default async function ServicesPage({
     assignments.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-slate-500">
-          {assignments.pagination.total} {services.records}
+          {plural(recordsPhrase, locale, assignments.pagination.total)}
         </p>
         <div className="flex gap-2">
           {assignments.pagination.offset > 0 ? (
@@ -423,6 +425,7 @@ export default async function ServicesPage({
         </div>
 
         <AdminDataTable
+          locale={locale}
           columns={[
             { key: "name", label: services.name },
             { key: "key", label: services.key },
@@ -508,6 +511,7 @@ export default async function ServicesPage({
           {serviceFeatures.companyServices}
         </h2>
         <AdminDataTable
+          locale={locale}
           columns={[
             { key: "company", label: services.company },
             { key: "service", label: services.service },

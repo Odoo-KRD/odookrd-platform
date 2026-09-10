@@ -1,17 +1,18 @@
 import type { Locale } from "@odookrd/types";
 
 import type { PortalDictionary } from "../types";
+import { sharedText } from "../shared";
 
 export type { PortalDictionary } from "../types";
 
 const en = {
   navigation: {
     label: "Customer navigation",
-    dashboard: "Dashboard",
+    dashboard: sharedText.en.labels.dashboard,
     administration: "Company administration",
     portal: "Customer workspace",
-    collapseSidebar: "Collapse sidebar",
-    expandSidebar: "Expand sidebar",
+    collapseSidebar: sharedText.en.labels.collapseSidebar,
+    expandSidebar: sharedText.en.labels.expandSidebar,
   },
   dashboard: {
     title: "Customer dashboard",
@@ -20,10 +21,10 @@ const en = {
     accountDescription: "Details for your active customer account.",
     email: "Email address",
     status: "Account status",
-    active: "Active",
+    active: sharedText.en.status.active,
     accountType: "Account type",
-    companyAdministrator: "Company administrator",
-    companyUser: "Company user",
+    companyAdministrator: sharedText.en.labels.companyAdministrator,
+    companyUser: sharedText.en.labels.companyUser,
     administrationTitle: "Company administration",
     administrationDescription:
       "Manage your company information and authorized users.",
@@ -34,7 +35,7 @@ const en = {
 const ku = {
   navigation: {
     label: "ڕێنوێنی کڕیار",
-    dashboard: "داشبۆرد",
+    dashboard: sharedText.ku.labels.dashboard,
     administration: "بەڕێوەبردنی کۆمپانیا",
     portal: "ژینگەی کڕیار",
     collapseSidebar: "بچووککردنەوەی مێنیوی لاتەنیشت",
@@ -48,10 +49,10 @@ const ku = {
     accountDescription: "وردەکارییەکانی هەژماری چالاکت.",
     email: "ئیمەیڵ",
     status: "دۆخی هەژمار",
-    active: "چالاک",
+    active: sharedText.ku.status.active,
     accountType: "جۆری هەژمار",
-    companyAdministrator: "بەڕێوەبەری کۆمپانیا",
-    companyUser: "بەکارهێنەری کۆمپانیا",
+    companyAdministrator: sharedText.ku.labels.companyAdministrator,
+    companyUser: sharedText.ku.labels.companyUser,
     administrationTitle: "بەڕێوەبردنی کۆمپانیا",
     administrationDescription:
       "دەستگەیشتن بە زانیارییەکانی کۆمپانیا و بەڕێوەبردنی بەکارهێنەران.",
@@ -62,11 +63,11 @@ const ku = {
 const ar = {
   navigation: {
     label: "تنقل العميل",
-    dashboard: "لوحة المعلومات",
+    dashboard: sharedText.ar.labels.dashboard,
     administration: "إدارة الشركة",
     portal: "مساحة العميل",
-    collapseSidebar: "طي الشريط الجانبي",
-    expandSidebar: "توسيع الشريط الجانبي",
+    collapseSidebar: sharedText.ar.labels.collapseSidebar,
+    expandSidebar: sharedText.ar.labels.expandSidebar,
   },
   dashboard: {
     title: "لوحة معلومات العميل",
@@ -75,10 +76,10 @@ const ar = {
     accountDescription: "تفاصيل حسابك النشط.",
     email: "البريد الإلكتروني",
     status: "حالة الحساب",
-    active: "نشط",
+    active: sharedText.ar.status.active,
     accountType: "نوع الحساب",
-    companyAdministrator: "مدير الشركة",
-    companyUser: "مستخدم الشركة",
+    companyAdministrator: sharedText.ar.labels.companyAdministrator,
+    companyUser: sharedText.ar.labels.companyUser,
     administrationTitle: "إدارة الشركة",
     administrationDescription: "إدارة معلومات الشركة والمستخدمين المصرح لهم.",
     openAdministration: "فتح الإدارة",

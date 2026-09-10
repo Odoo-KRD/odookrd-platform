@@ -1,6 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
 import type { AdminTranslations } from "../types";
+import { sharedText } from "../shared";
 
 const en = {
   administration: {
@@ -17,19 +18,19 @@ const en = {
   errors: {
     title: "Something went wrong",
     description: "This section could not be loaded. Please try again.",
-    retry: "Try again",
+    retry: sharedText.en.actions.retry,
   },
   content: {
     locale: "en",
-    translations: "Translations",
-    saveTranslations: "Save translations",
-    discardTranslations: "Discard",
-    defaultLanguage: "Primary language",
-    optionalLanguage: "Optional",
+    translations: sharedText.en.labels.translations,
+    saveTranslations: sharedText.en.labels.saveTranslations,
+    discardTranslations: sharedText.en.labels.discardTranslations,
+    defaultLanguage: sharedText.en.languages.defaultLanguage,
+    optionalLanguage: sharedText.en.languages.optionalLanguage,
     languages: {
-      ku: "Kurdish",
-      ar: "Arabic",
-      en: "English",
+      ku: sharedText.en.languages.ku,
+      ar: sharedText.en.languages.ar,
+      en: sharedText.en.languages.en,
     },
   },
 } satisfies AdminTranslations;
@@ -49,19 +50,19 @@ const ku = {
   errors: {
     title: "هەڵەیەک ڕوویدا",
     description: "نەتوانرا ئەم بەشە بار بکرێت. تکایە دووبارە هەوڵ بدەوە.",
-    retry: "دووبارە هەوڵدانەوە",
+    retry: sharedText.ku.actions.retry,
   },
   content: {
     locale: "ku",
-    translations: "وەرگێڕانەکان",
-    saveTranslations: "پاشەکەوتکردنی وەرگێڕانەکان",
-    discardTranslations: "پاشگەزبوونەوە",
-    defaultLanguage: "زمانی سەرەکی",
-    optionalLanguage: "ئارەزوومەندانە",
+    translations: sharedText.ku.labels.translations,
+    saveTranslations: sharedText.ku.labels.saveTranslations,
+    discardTranslations: sharedText.ku.labels.discardTranslations,
+    defaultLanguage: sharedText.ku.languages.defaultLanguage,
+    optionalLanguage: sharedText.ku.languages.optionalLanguage,
     languages: {
-      ku: "کوردی",
-      ar: "عەرەبی",
-      en: "ئینگلیزی",
+      ku: sharedText.ku.languages.ku,
+      ar: sharedText.ku.languages.ar,
+      en: sharedText.ku.languages.en,
     },
   },
 } satisfies AdminTranslations;
@@ -81,19 +82,19 @@ const ar = {
   errors: {
     title: "حدث خطأ",
     description: "تعذر تحميل هذا القسم. يرجى المحاولة مرة أخرى.",
-    retry: "إعادة المحاولة",
+    retry: sharedText.ar.actions.retry,
   },
   content: {
     locale: "ar",
-    translations: "الترجمات",
-    saveTranslations: "حفظ الترجمات",
-    discardTranslations: "إلغاء",
-    defaultLanguage: "اللغة الأساسية",
-    optionalLanguage: "اختياري",
+    translations: sharedText.ar.labels.translations,
+    saveTranslations: sharedText.ar.labels.saveTranslations,
+    discardTranslations: sharedText.ar.labels.discardTranslations,
+    defaultLanguage: sharedText.ar.languages.defaultLanguage,
+    optionalLanguage: sharedText.ar.languages.optionalLanguage,
     languages: {
-      ku: "الكردية",
-      ar: "العربية",
-      en: "الإنجليزية",
+      ku: sharedText.ar.languages.ku,
+      ar: sharedText.ar.languages.ar,
+      en: sharedText.ar.languages.en,
     },
   },
 } satisfies AdminTranslations;

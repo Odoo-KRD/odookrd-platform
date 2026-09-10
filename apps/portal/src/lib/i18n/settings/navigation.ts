@@ -1,4 +1,5 @@
 import type { Locale } from "@odookrd/types";
+import { sharedText } from "../shared";
 
 export interface SettingsNavigationDictionary {
   categoriesLabel: string;
@@ -63,8 +64,8 @@ export const settingsNavigationDictionaries: Record<
       general: "گشتی",
       video: "ڤیدیۆ",
       progress: "پێشکەوتن",
-      quizzes: "تاقیکردنەوەکان",
-      certificates: "بڕوانامەکان",
+      quizzes: sharedText.ku.labels.quizzes,
+      certificates: sharedText.ku.labels.certificates,
     },
     playerSettingsGroups: {
       delivery: "گەیاندنی ڤیدیۆ",
@@ -345,8 +346,8 @@ export const settingsNavigationDictionaries: Record<
       general: "عام",
       video: "الفيديو",
       progress: "التقدم",
-      quizzes: "الاختبارات",
-      certificates: "الشهادات",
+      quizzes: sharedText.ar.labels.quizzes,
+      certificates: sharedText.ar.labels.certificates,
     },
     playerSettingsGroups: {
       delivery: "توصيل الفيديو",
@@ -626,8 +627,8 @@ export const settingsNavigationDictionaries: Record<
       general: "General",
       video: "Video",
       progress: "Progress",
-      quizzes: "Quizzes",
-      certificates: "Certificates",
+      quizzes: sharedText.en.labels.quizzes,
+      certificates: sharedText.en.labels.certificates,
     },
     playerSettingsGroups: {
       delivery: "Video Delivery",

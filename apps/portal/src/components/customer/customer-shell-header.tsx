@@ -24,6 +24,8 @@ import {
 } from "@/components/admin/navigation";
 import { LanguageSelect } from "@/components/preferences/language-select";
 import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/customer/dashboard";
+import { plural } from "@/lib/i18n/plural";
+import { unreadPhrase } from "@/lib/i18n/shared/plurals";
 
 interface CustomerShellHeaderProps {
   siteTitle: string;
@@ -303,7 +305,7 @@ export function CustomerShellHeader({
                         {labels.recentNotifications}
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
-                        {unreadCount} {labels.unread}
+                        {plural(unreadPhrase, locale, unreadCount)}
                       </p>
                     </div>
                     {unreadCount > 0 ? (

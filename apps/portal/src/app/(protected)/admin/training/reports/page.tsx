@@ -482,6 +482,7 @@ export default async function TrainingReportsPage({
 
     content = (
       <AdminDataTable
+        locale={locale}
         columns={columns}
         rows={rows}
         labels={adminTableDictionaries[locale]}

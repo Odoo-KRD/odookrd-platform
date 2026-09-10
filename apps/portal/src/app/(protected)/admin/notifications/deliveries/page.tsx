@@ -326,6 +326,7 @@ export default async function NotificationDeliveriesPage({
       />
 
       <AdminDataTable
+        locale={locale}
         columns={[
           { key: "created", label: labels.created },
           { key: "company", label: labels.company },

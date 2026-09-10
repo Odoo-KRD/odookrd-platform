@@ -1,4 +1,5 @@
 import type { Locale } from "@odookrd/types";
+import { sharedText } from "../shared";
 
 export interface CustomerPortalRefinementDictionary {
   login: {
@@ -54,8 +55,8 @@ export const customerPortalRefinementDictionaries: Record<
     },
     services: {
       eyebrow: "خزمەتگوزارییەکان",
-      totalServices: "کۆی خزمەتگوزاری",
-      features: "تایبەتمەندییەکان",
+      totalServices: sharedText.ku.labels.totalServices,
+      features: sharedText.ku.labels.features,
       moreFeatures: "{count}+ تایبەتمەندی تر",
       viewDetails: "بینینی وردەکاری",
       accessService: "چوونە ناو خزمەتگوزاری",
@@ -91,8 +92,8 @@ export const customerPortalRefinementDictionaries: Record<
     },
     services: {
       eyebrow: "الخدمات",
-      totalServices: "إجمالي الخدمات",
-      features: "المزايا",
+      totalServices: sharedText.ar.labels.totalServices,
+      features: sharedText.ar.labels.features,
       moreFeatures: "+{count} مزايا أخرى",
       viewDetails: "عرض التفاصيل",
       accessService: "الدخول إلى الخدمة",
@@ -127,8 +128,8 @@ export const customerPortalRefinementDictionaries: Record<
     },
     services: {
       eyebrow: "Services",
-      totalServices: "Total services",
-      features: "Features",
+      totalServices: sharedText.en.labels.totalServices,
+      features: sharedText.en.labels.features,
       moreFeatures: "+{count} more features",
       viewDetails: "View details",
       accessService: "Access service",

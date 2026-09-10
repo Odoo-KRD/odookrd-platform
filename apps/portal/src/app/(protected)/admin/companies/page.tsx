@@ -26,6 +26,8 @@ import {
   deleteCompanyRowAction,
   restoreCompanyRowAction,
 } from "./actions";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface CompaniesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -194,7 +196,7 @@ export default async function CompaniesPage({
     result.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted">
-          {result.pagination.total} {companies.records}
+          {plural(recordsPhrase, locale, result.pagination.total)}
         </p>
 
         <div className="flex items-center gap-2">
@@ -237,6 +239,7 @@ export default async function CompaniesPage({
       />
 
       <AdminDataTable
+        locale={locale}
         columns={[
           { key: "name", label: companies.name },
           { key: "status", label: companies.status },

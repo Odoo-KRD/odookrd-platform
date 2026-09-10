@@ -24,6 +24,8 @@ import {
   deleteFeatureDefinitionRowAction,
   restoreFeatureDefinitionRowAction,
 } from "../actions";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface FeatureDefinitionsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -149,6 +151,7 @@ export default async function FeatureDefinitionsPage({
       />
 
       <AdminDataTable
+        locale={locale}
         labels={adminTableDictionaries[locale]}
         columns={[
           { key: "name", label: serviceFeatures.featureName },
@@ -214,7 +217,7 @@ export default async function FeatureDefinitionsPage({
         }
         footer={
           <p className="text-xs text-muted">
-            {definitions.pagination.total} {services.records}
+            {plural(recordsPhrase, locale, definitions.pagination.total)}
           </p>
         }
       />

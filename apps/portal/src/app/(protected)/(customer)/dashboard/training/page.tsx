@@ -15,6 +15,8 @@ import { customerPortalRefinementDictionaries } from "@/lib/i18n/customer/refine
 import { trainingCustomerDictionaries } from "@/lib/i18n/training/customer";
 import { getTrainingDictionary } from "@/lib/i18n/training/server";
 import { localizeTrainingText } from "@/lib/training-display";
+import { plural } from "@/lib/i18n/plural";
+import { recordsPhrase } from "@/lib/i18n/shared/plurals";
 
 interface TrainingCatalogPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -221,7 +223,7 @@ export default async function CustomerTrainingCatalogPage({
                 </h2>
               </div>
               <p className="text-sm text-muted">
-                {result.pagination.total} {labels.records}
+                {plural(recordsPhrase, locale, result.pagination.total)}
               </p>
             </div>
 
@@ -378,9 +380,7 @@ export default async function CustomerTrainingCatalogPage({
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm text-muted">
-            <p>
-              {result.pagination.total} {labels.records}
-            </p>
+            <p>{plural(recordsPhrase, locale, result.pagination.total)}</p>
             <div className="flex items-center gap-2">
               {result.pagination.offset > 0 ? (
                 <Link
