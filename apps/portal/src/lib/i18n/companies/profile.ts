@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface CompanyProfileV2Dictionary {
   eyebrow: string;
   title: string;
@@ -76,7 +78,7 @@ export const companyProfileV2Dictionaries: Record<
       "ئەم زانیارییانە دەتوانرێت لەلایەن بەڕێوەبەری کۆمپانیاوە نوێ بکرێنەوە.",
     slug: "Slug",
     status: "دۆخ",
-    logo: "لۆگۆ",
+    logo: uiChrome.ku.logo,
     noLogo: "هیچ لۆگۆیەک دانەنراوە.",
     email: "ئیمەیڵی کۆمپانیا",
     website: "وێبسایت",
@@ -114,8 +116,8 @@ export const companyProfileV2Dictionaries: Record<
     platformManagedDescription:
       "ناو و لۆگۆ تەنها دوای پەسەندکردنی بەڕێوەبەری پلاتفۆرم دەگۆڕدرێن.",
     editCompany: "دەستکاری پڕۆفایلی کۆمپانیا",
-    edit: "دەستکاری",
-    close: "داخستن",
+    edit: uiChrome.ku.edit,
+    close: uiChrome.ku.close,
     save: "پاشەکەوتکردن",
     confirmRemoveLogo: "دڵنیایت لە سڕینەوەی لۆگۆی کۆمپانیا؟",
     updateLogo: "نوێکردنەوەی لۆگۆ",
@@ -139,7 +141,7 @@ export const companyProfileV2Dictionaries: Record<
     contactDescription: "يمكن لمسؤول الشركة تحديث معلومات الاتصال مباشرة.",
     slug: "Slug",
     status: "الحالة",
-    logo: "الشعار",
+    logo: uiChrome.ar.logo,
     noLogo: "لم يتم تعيين شعار للشركة.",
     email: "بريد الشركة",
     website: "الموقع الإلكتروني",
@@ -177,8 +179,8 @@ export const companyProfileV2Dictionaries: Record<
     platformManagedDescription:
       "لا يتم تغيير الاسم أو الشعار إلا بعد موافقة مسؤول المنصة.",
     editCompany: "تعديل ملف الشركة",
-    edit: "تعديل",
-    close: "إغلاق",
+    edit: uiChrome.ar.edit,
+    close: uiChrome.ar.close,
     save: "حفظ",
     confirmRemoveLogo: "هل أنت متأكد من حذف شعار الشركة؟",
     updateLogo: "تحديث الشعار",
@@ -203,7 +205,7 @@ export const companyProfileV2Dictionaries: Record<
       "Company administrators can update these contact details directly.",
     slug: "Slug",
     status: "Status",
-    logo: "Logo",
+    logo: uiChrome.en.logo,
     noLogo: "No company logo has been configured.",
     email: "Company email",
     website: "Website",
@@ -241,8 +243,8 @@ export const companyProfileV2Dictionaries: Record<
     platformManagedDescription:
       "Company name and logo change only after Platform Admin approval.",
     editCompany: "Edit company profile",
-    edit: "Edit",
-    close: "Close",
+    edit: uiChrome.en.edit,
+    close: uiChrome.en.close,
     save: "Save",
     confirmRemoveLogo: "Are you sure you want to remove the company logo?",
     updateLogo: "Update logo",

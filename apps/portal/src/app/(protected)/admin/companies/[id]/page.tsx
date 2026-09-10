@@ -50,7 +50,7 @@ function requestTone(
 export default async function CompanyDetailsPage({
   params,
 }: CompanyDetailsPageProps) {
-  const [{ session, token }, { locale, admin, content }, { id }] =
+  const [{ session, token }, { locale, companies, content }, { id }] =
     await Promise.all([
       getAdminApiContext(PERMISSIONS.COMPANIES_READ),
       getAdminDictionary(),
@@ -163,13 +163,13 @@ export default async function CompanyDetailsPage({
     <div className="grid gap-7">
       <PageHeading
         title={company.name}
-        description={admin.companies.detailsTitle}
+        description={companies.detailsTitle}
         actions={
           <Link
             href="/admin/companies"
             className="inline-flex h-10 items-center rounded-md border border-line bg-white px-4 text-sm font-medium text-content hover:bg-surface-subtle"
           >
-            {admin.companies.cancel}
+            {companies.cancel}
           </Link>
         }
       />
@@ -184,9 +184,9 @@ export default async function CompanyDetailsPage({
                 labels={profileLabels}
                 content={content}
                 statusLabels={{
-                  ACTIVE: admin.companies.statusActive,
-                  SUSPENDED: admin.companies.statusSuspended,
-                  ARCHIVED: admin.companies.statusArchived,
+                  ACTIVE: companies.statusActive,
+                  SUSPENDED: companies.statusSuspended,
+                  ARCHIVED: companies.statusArchived,
                 }}
               />
             </div>
@@ -246,14 +246,14 @@ export default async function CompanyDetailsPage({
                   <dd className="mt-1.5">
                     <CompanyStatusBadge
                       status={company.status}
-                      labels={admin.companies}
+                      labels={companies}
                     />
                   </dd>
                 </div>
 
                 <div>
                   <dt className="text-xs font-medium text-muted">
-                    {admin.companies.created}
+                    {companies.created}
                   </dt>
                   <dd className="mt-1 text-sm font-medium text-content">
                     {formatDate(company.createdAt, locale)}
@@ -262,7 +262,7 @@ export default async function CompanyDetailsPage({
 
                 <div>
                   <dt className="text-xs font-medium text-muted">
-                    {admin.companies.updated}
+                    {companies.updated}
                   </dt>
                   <dd className="mt-1 text-sm font-medium text-content">
                     {formatDate(company.updatedAt, locale)}

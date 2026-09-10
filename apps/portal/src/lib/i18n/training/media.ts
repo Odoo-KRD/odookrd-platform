@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface TrainingMediaDictionary {
   title: string;
   description: string;
@@ -71,7 +73,7 @@ export const trainingMediaDictionaries: Record<
     playbackUrl: "HLS Playback URL",
     sourceSize: "قەبارەی سەرچاوە (byte)",
     processedSize: "قەبارەی پرۆسەکراو (byte)",
-    duration: "ماوە",
+    duration: uiChrome.ku.duration,
     resolution: "ڕوونی",
     uploadProcess: "بارکردن و پرۆسەکردن",
     saveManual: "پاشەکەوتکردنی HLS",
@@ -117,7 +119,7 @@ export const trainingMediaDictionaries: Record<
     playbackUrl: "HLS Playback URL",
     sourceSize: "حجم المصدر (byte)",
     processedSize: "الحجم المعالج (byte)",
-    duration: "المدة",
+    duration: uiChrome.ar.duration,
     resolution: "الدقة",
     uploadProcess: "رفع ومعالجة",
     saveManual: "حفظ HLS",
@@ -166,7 +168,7 @@ export const trainingMediaDictionaries: Record<
     playbackUrl: "HLS Playback URL",
     sourceSize: "Source size (bytes)",
     processedSize: "Processed size (bytes)",
-    duration: "Duration",
+    duration: uiChrome.en.duration,
     resolution: "Resolution",
     uploadProcess: "Upload & process",
     saveManual: "Save HLS",

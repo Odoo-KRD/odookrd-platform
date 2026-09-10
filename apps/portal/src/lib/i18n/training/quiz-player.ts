@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface TrainingQuizPlayerDictionary {
   loading: string;
   unavailable: string;
@@ -56,8 +58,8 @@ export const trainingQuizPlayerDictionaries: Record<
     timeRemaining: "کاتی ماوە",
     saving: "پاشەکەوت دەکرێت...",
     saved: "پاشەکەوت کرا",
-    previous: "پێشوو",
-    next: "دواتر",
+    previous: uiChrome.ku.previous,
+    next: uiChrome.ku.next,
     submit: "ناردنی وەڵامەکان",
     submitConfirm:
       "دڵنیایت لە ناردنی تاقیکردنەوە؟ دوای ناردن ناتوانیت وەڵامەکان بگۆڕیت.",
@@ -91,8 +93,8 @@ export const trainingQuizPlayerDictionaries: Record<
     timeRemaining: "الوقت المتبقي",
     saving: "جارٍ الحفظ...",
     saved: "تم الحفظ",
-    previous: "السابق",
-    next: "التالي",
+    previous: uiChrome.ar.previous,
+    next: uiChrome.ar.next,
     submit: "إرسال الإجابات",
     submitConfirm:
       "هل أنت متأكد من إرسال الاختبار؟ لن تتمكن من تعديل الإجابات بعد الإرسال.",
@@ -126,8 +128,8 @@ export const trainingQuizPlayerDictionaries: Record<
     timeRemaining: "Time remaining",
     saving: "Saving...",
     saved: "Saved",
-    previous: "Previous",
-    next: "Next",
+    previous: uiChrome.en.previous,
+    next: uiChrome.en.next,
     submit: "Submit answers",
     submitConfirm:
       "Submit this quiz? You will not be able to change your answers afterward.",

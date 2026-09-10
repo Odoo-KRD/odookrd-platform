@@ -43,7 +43,10 @@ export function CustomerWorkspace({
           <p className="text-xs font-medium text-slate-500">
             {dictionary.workspace.signedInAs}
           </p>
-          <p dir="ltr" className="mt-2 w-fit text-sm font-medium text-slate-900">
+          <p
+            dir="ltr"
+            className="mt-2 w-fit text-sm font-medium text-slate-900"
+          >
             {session.user.email}
           </p>
         </div>

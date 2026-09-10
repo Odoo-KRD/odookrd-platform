@@ -1,11 +1,11 @@
 import type { CompanyStatus } from "@odookrd/types";
 import { Badge } from "@odookrd/ui";
 
-import type { AdminDictionary } from "@/lib/i18n/admin";
+import type { CompaniesDictionary } from "@/lib/i18n/types";
 
 interface CompanyStatusBadgeProps {
   status: CompanyStatus;
-  labels: AdminDictionary["companies"];
+  labels: CompaniesDictionary;
 }
 
 export function CompanyStatusBadge({

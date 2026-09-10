@@ -142,10 +142,10 @@ function Avatar({
     return (
       <Image
         src={`/api/workspace/profile/avatar${version}`}
-	alt=""
-   	width={48}
-    	height={48}
-	unoptimized
+        alt=""
+        width={48}
+        height={48}
+        unoptimized
         className={`${className} shrink-0 rounded-full border border-line object-cover`}
       />
     );
@@ -243,10 +243,10 @@ export function CustomerShellHeader({
 
             {/* OdooKRD brand mark */}
             <Image
-              	src="/brand/odookrd-logo.svg"
-              	alt="OdooKRD"
-		width={40}
-		height={40}
+              src="/brand/odookrd-logo.svg"
+              alt="OdooKRD"
+              width={40}
+              height={40}
               className="size-10 shrink-0 rounded-lg border border-line bg-white object-contain"
             />
 
@@ -278,7 +278,8 @@ export function CustomerShellHeader({
 
             {canNotifications ? (
               <details
-                ref={menus.ref(0)} open={menus.openMenu === 0}
+                ref={menus.ref(0)}
+                open={menus.openMenu === 0}
                 onToggle={menus.onToggle}
                 onClickCapture={menus.onActionClick}
                 className="group relative"
@@ -386,7 +387,8 @@ export function CustomerShellHeader({
             ) : null}
 
             <details
-              ref={menus.ref(1)} open={menus.openMenu === 1}
+              ref={menus.ref(1)}
+              open={menus.openMenu === 1}
               onToggle={menus.onToggle}
               onClickCapture={menus.onActionClick}
               className="group relative"
@@ -588,7 +590,6 @@ export function CustomerShellHeader({
   );
 }
 
-
 function useDismissibleHeaderMenus(pathname: string | null) {
   const refs = useRef<[HTMLDetailsElement | null, HTMLDetailsElement | null]>([
     null,
@@ -601,8 +602,7 @@ function useDismissibleHeaderMenus(pathname: string | null) {
   }>({ pathname, open: null });
 
   // A route change closes the menus without an effect-driven state update.
-  const openMenu =
-    menuState.pathname === pathname ? menuState.open : null;
+  const openMenu = menuState.pathname === pathname ? menuState.open : null;
 
   const closeAll = useCallback(() => {
     setMenuState({ pathname, open: null });
@@ -644,23 +644,14 @@ function useDismissibleHeaderMenus(pathname: string | null) {
     (event: SyntheticEvent<HTMLDetailsElement>) => {
       const active = event.currentTarget;
       const index: 0 | 1 | null =
-        refs.current[0] === active
-          ? 0
-          : refs.current[1] === active
-            ? 1
-            : null;
+        refs.current[0] === active ? 0 : refs.current[1] === active ? 1 : null;
 
       if (index === null) return;
 
       const isOpen = active.open;
       setMenuState((previous) => {
-        const current =
-          previous.pathname === pathname ? previous.open : null;
-        const next = isOpen
-          ? index
-          : current === index
-            ? null
-            : current;
+        const current = previous.pathname === pathname ? previous.open : null;
+        const next = isOpen ? index : current === index ? null : current;
 
         if (previous.pathname === pathname && previous.open === next) {
           return previous;
@@ -687,6 +678,5 @@ function useDismissibleHeaderMenus(pathname: string | null) {
 
   return { ref, openMenu, onToggle, onActionClick, closeAll };
 }
-
 
 // data-odookrd-directional-values: isolated profile values.

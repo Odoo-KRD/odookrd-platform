@@ -7,7 +7,7 @@ import { useActionState } from "react";
 
 import { LocalizedTextFields } from "@/components/i18n/localized-text-fields";
 import type { FormState } from "@/lib/forms";
-import type { AdminDictionary } from "@/lib/i18n/admin";
+import type { CompaniesDictionary } from "@/lib/i18n/types";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 
 type CompanyFormAction = (
@@ -17,7 +17,7 @@ type CompanyFormAction = (
 
 interface CompanyFormProps {
   action: CompanyFormAction;
-  labels: AdminDictionary["companies"];
+  labels: CompaniesDictionary;
   content: ContentEditorDictionary;
   initialName?: string;
   initialTranslations?: LocalizedText;

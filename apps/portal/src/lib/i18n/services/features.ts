@@ -5,6 +5,7 @@ import type {
   ServiceFeatureValueType,
 } from "@odookrd/types";
 import type { NumberFeatureUnit } from "@/lib/service-feature-units";
+import { uiChrome } from "../ui-chrome";
 
 export interface ServiceFeaturesDictionary {
   overview: string;
@@ -140,7 +141,7 @@ export const serviceFeatureDictionaries: Record<
     syncFeatures: "زیادکردنی تایبەتمەندییە نوێیەکان",
     history: "مێژووی گۆڕانکاری",
     emptyHistory: "هێشتا هیچ گۆڕانکارییەک تۆمار نەکراوە.",
-    changeStatus: "گۆڕینی دۆخ",
+    changeStatus: uiChrome.ku.changeStatus,
     transitionReason: "هۆکاری گۆڕانکاری",
     reasonHint: "بۆ ڕاگرتن یان هەڵوەشاندنەوە هۆکار پێویستە.",
     source: "سەرچاوە",
@@ -237,7 +238,7 @@ export const serviceFeatureDictionaries: Record<
     syncFeatures: "إضافة المميزات الجديدة",
     history: "سجل التغييرات",
     emptyHistory: "لم يتم تسجيل أي تغييرات بعد.",
-    changeStatus: "تغيير الحالة",
+    changeStatus: uiChrome.ar.changeStatus,
     transitionReason: "سبب تغيير الحالة",
     reasonHint: "السبب مطلوب عند الإيقاف أو الإلغاء.",
     source: "المصدر",
@@ -335,7 +336,7 @@ export const serviceFeatureDictionaries: Record<
     syncFeatures: "Add missing catalog features",
     history: "Lifecycle history",
     emptyHistory: "No lifecycle events have been recorded yet.",
-    changeStatus: "Change status",
+    changeStatus: uiChrome.en.changeStatus,
     transitionReason: "Reason for status change",
     reasonHint: "A reason is required when suspending or cancelling.",
     source: "Source",

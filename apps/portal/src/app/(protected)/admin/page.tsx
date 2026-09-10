@@ -16,11 +16,12 @@ import { requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
 
 export default async function AdminOverviewPage() {
-  const [session, { locale, admin }, uiPreferences] = await Promise.all([
-    requireSession(),
-    getAdminDictionary(),
-    getUserUiPreferences(),
-  ]);
+  const [session, { locale, navigation, admin }, uiPreferences] =
+    await Promise.all([
+      requireSession(),
+      getAdminDictionary(),
+      getUserUiPreferences(),
+    ]);
 
   const sections: AdminDashboardSection[] = [];
 
@@ -44,8 +45,8 @@ export default async function AdminOverviewPage() {
       "companies",
       "/admin/companies",
       session.user.accountScope === "COMPANY"
-        ? admin.navigation.myCompany
-        : admin.navigation.companies,
+        ? navigation.myCompany
+        : navigation.companies,
       session.user.accountScope === "COMPANY"
         ? admin.overview.companyDescription
         : admin.overview.companiesDescription,
@@ -56,7 +57,7 @@ export default async function AdminOverviewPage() {
     addSection(
       "users",
       "/admin/users",
-      admin.navigation.users,
+      navigation.users,
       admin.overview.usersDescription,
     );
   }
@@ -65,7 +66,7 @@ export default async function AdminOverviewPage() {
     addSection(
       "roles",
       "/admin/roles",
-      admin.navigation.roles,
+      navigation.roles,
       admin.overview.rolesDescription,
     );
   }

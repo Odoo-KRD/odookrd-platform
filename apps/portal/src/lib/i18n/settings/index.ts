@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 import type { SettingsDictionary } from "../types";
 
 export type { SettingsDictionary } from "../types";
@@ -52,8 +54,8 @@ const en = {
     en: "English",
   },
   booleanOptions: {
-    enabled: "Enabled",
-    disabled: "Disabled",
+    enabled: uiChrome.en.enabled,
+    disabled: uiChrome.en.disabled,
   },
   fields: {
     "general.site_title": {
@@ -210,8 +212,8 @@ const ku = {
     en: "ئینگلیزی",
   },
   booleanOptions: {
-    enabled: "چالاک",
-    disabled: "ناچالاک",
+    enabled: uiChrome.ku.enabled,
+    disabled: uiChrome.ku.disabled,
   },
   fields: {
     "general.site_title": {
@@ -368,8 +370,8 @@ const ar = {
     en: "الإنجليزية",
   },
   booleanOptions: {
-    enabled: "مفعّل",
-    disabled: "معطّل",
+    enabled: uiChrome.ar.enabled,
+    disabled: uiChrome.ar.disabled,
   },
   fields: {
     "general.site_title": {

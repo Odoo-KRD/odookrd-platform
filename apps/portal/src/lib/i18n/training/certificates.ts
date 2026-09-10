@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface TrainingCertificateDictionary {
   certificatesNavigation: string;
   templatesNavigation: string;
@@ -92,7 +94,7 @@ export const trainingCertificateDictionaries: Record<
     internalName: "ناوی ناوخۆیی",
     certificateTitle: "ناونیشانی بڕوانامە",
     certificateBody: "دەقی بڕوانامە",
-    logo: "لۆگۆ",
+    logo: uiChrome.ku.logo,
     background: "پاشبنەما",
     signature: "واژۆ",
     uploadImage: "بارکردنی وێنە",
@@ -108,7 +110,7 @@ export const trainingCertificateDictionaries: Record<
     save: "پاشەکەوتکردن",
     saving: "پاشەکەوت دەکرێت...",
     cancel: "پاشگەزبوونەوە",
-    edit: "دەستکاری",
+    edit: uiChrome.ku.edit,
     status: "دۆخ",
     noTemplates: "هیچ قاڵبێکی بڕوانامە نییە.",
     certificateSettings: "بڕوانامە",
@@ -167,7 +169,7 @@ export const trainingCertificateDictionaries: Record<
     internalName: "الاسم الداخلي",
     certificateTitle: "عنوان الشهادة",
     certificateBody: "نص الشهادة",
-    logo: "الشعار",
+    logo: uiChrome.ar.logo,
     background: "الخلفية",
     signature: "التوقيع",
     uploadImage: "رفع صورة",
@@ -183,7 +185,7 @@ export const trainingCertificateDictionaries: Record<
     save: "حفظ",
     saving: "جارٍ الحفظ...",
     cancel: "إلغاء",
-    edit: "تعديل",
+    edit: uiChrome.ar.edit,
     status: "الحالة",
     noTemplates: "لا توجد قوالب شهادات.",
     certificateSettings: "الشهادة",
@@ -242,7 +244,7 @@ export const trainingCertificateDictionaries: Record<
     internalName: "Internal name",
     certificateTitle: "Certificate title",
     certificateBody: "Certificate body",
-    logo: "Logo",
+    logo: uiChrome.en.logo,
     background: "Background",
     signature: "Signature",
     uploadImage: "Upload image",
@@ -258,7 +260,7 @@ export const trainingCertificateDictionaries: Record<
     save: "Save",
     saving: "Saving...",
     cancel: "Cancel",
-    edit: "Edit",
+    edit: uiChrome.en.edit,
     status: "Status",
     noTemplates: "No certificate templates are available.",
     certificateSettings: "Certificate",

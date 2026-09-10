@@ -5,7 +5,7 @@ import { ActionButton } from "@odookrd/ui";
 import { useActionState, useMemo, useState } from "react";
 
 import type { FormState } from "@/lib/forms";
-import type { AdminDictionary } from "@/lib/i18n/admin";
+import type { RoleCatalogDictionary } from "@/lib/i18n/types";
 import type { RoleAdministrationDictionary } from "@/lib/i18n/users/roles";
 import type { UsersDictionary } from "@/lib/i18n/users";
 
@@ -14,13 +14,13 @@ interface UserRolesFormProps {
   roles: Role[];
   assignedRoles: string[];
   labels: UsersDictionary;
-  roleLabels: AdminDictionary["roles"];
+  roleLabels: RoleCatalogDictionary;
   administrationLabels: RoleAdministrationDictionary;
   lockedRoleKeys?: readonly string[];
   lockedReason?: string | null;
 }
 
-function roleName(role: Role, labels: AdminDictionary["roles"]): string {
+function roleName(role: Role, labels: RoleCatalogDictionary): string {
   if (role.key === "platform_admin") return labels.platformAdmin;
   if (role.key === "company_admin") return labels.companyAdmin;
   return role.key === "company_user" ? labels.companyUser : role.name;

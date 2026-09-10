@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface TrainingLessonEditorDictionary {
   title: string;
   subtitle: string;
@@ -206,7 +208,7 @@ export const trainingLessonEditorDictionaries: Record<
       advancedMetadata: "Advanced metadata",
       sourceSize: "Source size (bytes)",
       processedSize: "Processed size (bytes)",
-      duration: "Duration",
+      duration: uiChrome.en.duration,
       width: "Width",
       height: "Height",
       ready: "Ready",
@@ -385,7 +387,7 @@ export const trainingLessonEditorDictionaries: Record<
       advancedMetadata: "زانیاری پێشکەوتوو",
       sourceSize: "قەبارەی سەرچاوە (بایت)",
       processedSize: "قەبارەی پرۆسەکراو (بایت)",
-      duration: "ماوە",
+      duration: uiChrome.ku.duration,
       width: "پانی",
       height: "بەرزی",
       ready: "ئامادە",
@@ -559,7 +561,7 @@ export const trainingLessonEditorDictionaries: Record<
       advancedMetadata: "بيانات متقدمة",
       sourceSize: "حجم المصدر (بايت)",
       processedSize: "الحجم المعالج (بايت)",
-      duration: "المدة",
+      duration: uiChrome.ar.duration,
       width: "العرض",
       height: "الارتفاع",
       ready: "جاهز",

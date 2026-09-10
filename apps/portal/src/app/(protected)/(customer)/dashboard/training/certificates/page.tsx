@@ -115,9 +115,7 @@ export default async function MyTrainingCertificatesPage() {
                               : "bg-red-50 text-red-700"
                           }`}
                         >
-                          {active
-                            ? labels.active
-                            : labels.certificateRevoked}
+                          {active ? labels.active : labels.certificateRevoked}
                         </span>
                       </div>
 

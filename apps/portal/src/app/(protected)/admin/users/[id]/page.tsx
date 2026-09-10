@@ -32,7 +32,7 @@ interface UserDetailsPageProps {
 export default async function UserDetailsPage({
   params,
 }: UserDetailsPageProps) {
-  const [{ session, token }, { locale, admin, users }, { id }] =
+  const [{ session, token }, { locale, roleCatalog, users }, { id }] =
     await Promise.all([
       getAdminApiContext(PERMISSIONS.USERS_READ),
       getUsersDictionary(),
@@ -70,9 +70,9 @@ export default async function UserDetailsPage({
   const invitationLabels = userInvitationAdminDictionaries[locale];
   const roleAdministrationLabels = roleAdministrationDictionaries[locale];
   const roleLabels: Record<string, string> = {
-    platform_admin: admin.roles.platformAdmin,
-    company_admin: admin.roles.companyAdmin,
-    company_user: admin.roles.companyUser,
+    platform_admin: roleCatalog.platformAdmin,
+    company_admin: roleCatalog.companyAdmin,
+    company_user: roleCatalog.companyUser,
   };
 
   return (
@@ -162,7 +162,7 @@ export default async function UserDetailsPage({
             roles={allowedRoles}
             assignedRoles={user.roles}
             labels={users}
-            roleLabels={admin.roles}
+            roleLabels={roleCatalog}
             administrationLabels={roleAdministrationLabels}
             lockedRoleKeys={
               administration && !administration.canRemoveAdminRole

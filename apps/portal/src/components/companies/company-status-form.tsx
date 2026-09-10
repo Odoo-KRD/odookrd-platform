@@ -5,7 +5,7 @@ import { ActionButton } from "@odookrd/ui";
 import { useActionState } from "react";
 
 import type { FormState } from "@/lib/forms";
-import type { AdminDictionary } from "@/lib/i18n/admin";
+import type { CompaniesDictionary } from "@/lib/i18n/types";
 
 type CompanyStatusAction = (
   previousState: FormState,
@@ -14,7 +14,7 @@ type CompanyStatusAction = (
 
 interface CompanyStatusFormProps {
   action: CompanyStatusAction;
-  labels: AdminDictionary["companies"];
+  labels: CompaniesDictionary;
   currentStatus: CompanyStatus;
 }
 
@@ -45,7 +45,10 @@ export function CompanyStatusForm({
       onSubmit={confirmArchive}
       className="grid max-w-xl gap-4"
     >
-      <label htmlFor="company-status" className="text-sm font-medium text-slate-700">
+      <label
+        htmlFor="company-status"
+        className="text-sm font-medium text-slate-700"
+      >
         {labels.status}
       </label>
 
@@ -61,7 +64,10 @@ export function CompanyStatusForm({
       </select>
 
       {state.message ? (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+        >
           {state.message}
         </p>
       ) : null}

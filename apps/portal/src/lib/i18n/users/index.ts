@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 import type { UsersDictionary } from "../types";
 
 export type { UsersDictionary } from "../types";
@@ -21,8 +23,8 @@ const en = {
   updated: "Updated",
   emailVerified: "Email verified",
   emailNotVerified: "Email not verified",
-  actions: "Actions",
-  view: "View",
+  actions: uiChrome.en.actions,
+  view: uiChrome.en.view,
   platform: "Platform",
   companyAccount: "Company account",
   platformAccount: "Platform account",
@@ -42,8 +44,8 @@ const en = {
   sendInvitation: "Create invitation",
   creatingInvitation: "Creating invitation...",
   cancel: "Cancel",
-  previous: "Previous",
-  next: "Next",
+  previous: uiChrome.en.previous,
+  next: uiChrome.en.next,
   records: "records",
   emptyTitle: "No users found",
   emptyDescription: "No users match the selected filters.",
@@ -77,8 +79,8 @@ const ku = {
   updated: "نوێکراوەتەوە",
   emailVerified: "ئیمەیڵ پشتڕاستکراوەتەوە",
   emailNotVerified: "ئیمەیڵ پشتڕاست نەکراوەتەوە",
-  actions: "کردارەکان",
-  view: "بینین",
+  actions: uiChrome.ku.actions,
+  view: uiChrome.ku.view,
   platform: "پلاتفۆرم",
   companyAccount: "هەژماری کۆمپانیا",
   platformAccount: "هەژماری پلاتفۆرم",
@@ -98,8 +100,8 @@ const ku = {
   sendInvitation: "دروستکردنی بانگهێشت",
   creatingInvitation: "دروستکردنی بانگهێشت...",
   cancel: "پاشگەزبوونەوە",
-  previous: "پێشوو",
-  next: "دواتر",
+  previous: uiChrome.ku.previous,
+  next: uiChrome.ku.next,
   records: "تۆمار",
   emptyTitle: "هیچ بەکارهێنەرێک نەدۆزرایەوە",
   emptyDescription: "هیچ بەکارهێنەرێک بۆ ئەم هەڵبژاردنە بەردەست نییە.",
@@ -131,8 +133,8 @@ const ar = {
   updated: "آخر تحديث",
   emailVerified: "تم تأكيد البريد الإلكتروني",
   emailNotVerified: "لم يتم تأكيد البريد الإلكتروني",
-  actions: "الإجراءات",
-  view: "عرض",
+  actions: uiChrome.ar.actions,
+  view: uiChrome.ar.view,
   platform: "المنصة",
   companyAccount: "حساب شركة",
   platformAccount: "حساب المنصة",
@@ -152,8 +154,8 @@ const ar = {
   sendInvitation: "إنشاء الدعوة",
   creatingInvitation: "جارٍ إنشاء الدعوة...",
   cancel: "إلغاء",
-  previous: "السابق",
-  next: "التالي",
+  previous: uiChrome.ar.previous,
+  next: uiChrome.ar.next,
   records: "سجل",
   emptyTitle: "لا يوجد مستخدمون",
   emptyDescription: "لا يوجد مستخدمون مطابقون للاختيار الحالي.",

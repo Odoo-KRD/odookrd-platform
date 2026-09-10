@@ -11,7 +11,7 @@ import { ActionButton, Badge } from "@odookrd/ui";
 import { useActionState, useMemo, useState } from "react";
 
 import type { InvitationFormState } from "@/lib/forms";
-import type { AdminDictionary } from "@/lib/i18n/admin";
+import type { RoleCatalogDictionary } from "@/lib/i18n/types";
 import {
   userInvitationAdminDictionaries,
   type UserInvitationAdminDictionary,
@@ -24,7 +24,7 @@ interface InviteAndDeliverUserFormProps {
     formData: FormData,
   ) => Promise<InvitationFormState>;
   labels: UsersDictionary;
-  roleLabels: AdminDictionary["roles"];
+  roleLabels: RoleCatalogDictionary;
   roles: Role[];
   companies: Company[];
   isPlatform: boolean;
@@ -32,7 +32,7 @@ interface InviteAndDeliverUserFormProps {
   locale: Locale;
 }
 
-function roleName(role: Role, labels: AdminDictionary["roles"]): string {
+function roleName(role: Role, labels: RoleCatalogDictionary): string {
   if (role.key === "platform_admin") return labels.platformAdmin;
   if (role.key === "company_admin") return labels.companyAdmin;
   return role.key === "company_user" ? labels.companyUser : role.name;

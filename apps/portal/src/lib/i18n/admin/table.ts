@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface AdminTableDictionary {
   search: string;
   selectAll: string;
@@ -21,7 +23,7 @@ export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
     selected: "هەڵبژێردراو",
     clearSelection: "پاککردنەوەی هەڵبژاردن",
     batchAction: "کرداری کۆمەڵەیی",
-    apply: "جێبەجێکردن",
+    apply: uiChrome.ku.apply,
     confirmBatch: "دڵنیایت لە جێبەجێکردنی {action} بۆ {count} ڕیز؟",
     completed: "کردارەکە بە سەرکەوتوویی تەواو بوو.",
     failed: "کردارەکە تەواو نەبوو.",
@@ -33,7 +35,7 @@ export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
     selected: "محدد",
     clearSelection: "مسح التحديد",
     batchAction: "إجراء جماعي",
-    apply: "تطبيق",
+    apply: uiChrome.ar.apply,
     confirmBatch: "هل تريد تنفيذ {action} على {count} صفوف؟",
     completed: "اكتمل الإجراء بنجاح.",
     failed: "تعذر إكمال الإجراء.",
@@ -45,7 +47,7 @@ export const adminTableDictionaries: Record<Locale, AdminTableDictionary> = {
     selected: "selected",
     clearSelection: "Clear selection",
     batchAction: "Batch action",
-    apply: "Apply",
+    apply: uiChrome.en.apply,
     confirmBatch: "Apply {action} to {count} selected rows?",
     completed: "The action completed successfully.",
     failed: "The action could not be completed.",

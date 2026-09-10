@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 import type { FrontendTranslations } from "../types";
 
 const en = {
@@ -17,12 +19,12 @@ const en = {
     startsAt: "Start date",
     expiresAt: "Expiration date",
     notes: "Customer notes",
-    view: "View",
+    view: uiChrome.en.view,
     openService: "Open service",
     back: "Back",
     records: "records",
-    previous: "Previous",
-    next: "Next",
+    previous: uiChrome.en.previous,
+    next: uiChrome.en.next,
     customerEmptyTitle: "No services assigned yet",
     customerEmptyDescription:
       "Services will appear here when they are assigned to your company.",
@@ -160,8 +162,8 @@ const en = {
     emptyTitle: "No notifications",
     emptyDescription:
       "New notifications will appear here when they are available.",
-    previous: "Previous",
-    next: "Next",
+    previous: uiChrome.en.previous,
+    next: uiChrome.en.next,
     channels: {
       IN_APP: "In app",
       EMAIL: "Email",
@@ -193,12 +195,12 @@ const ku = {
     startsAt: "بەرواری دەستپێکردن",
     expiresAt: "بەرواری بەسەرچوون",
     notes: "تێبینییەکانی کڕیار",
-    view: "بینین",
+    view: uiChrome.ku.view,
     openService: "کردنەوەی خزمەتگوزاری",
     back: "گەڕانەوە",
     records: "تۆمار",
-    previous: "پێشوو",
-    next: "دواتر",
+    previous: uiChrome.ku.previous,
+    next: uiChrome.ku.next,
     customerEmptyTitle: "هێشتا خزمەتگوزارییەک تەرخان نەکراوە",
     customerEmptyDescription:
       "کاتێک خزمەتگوزاری بۆ کۆمپانیاکەت تەرخان بکرێت لێرە دەردەکەوێت.",
@@ -338,8 +340,8 @@ const ku = {
     markAllRead: "هەمووی وەک خوێندراوە نیشان بدە",
     emptyTitle: "هیچ ئاگادارکردنەوەیەک نییە",
     emptyDescription: "کاتێک ئاگادارکردنەوەیەکی نوێت هەبێت لێرە دەردەکەوێت.",
-    previous: "پێشوو",
-    next: "دواتر",
+    previous: uiChrome.ku.previous,
+    next: uiChrome.ku.next,
     channels: {
       IN_APP: "ناوخۆی پلاتفۆرم",
       EMAIL: "ئیمەیڵ",
@@ -370,12 +372,12 @@ const ar = {
     startsAt: "تاريخ البداية",
     expiresAt: "تاريخ الانتهاء",
     notes: "ملاحظات العميل",
-    view: "عرض",
+    view: uiChrome.ar.view,
     openService: "فتح الخدمة",
     back: "رجوع",
     records: "سجل",
-    previous: "السابق",
-    next: "التالي",
+    previous: uiChrome.ar.previous,
+    next: uiChrome.ar.next,
     customerEmptyTitle: "لم يتم تخصيص خدمات بعد",
     customerEmptyDescription: "ستظهر الخدمات هنا عند تخصيصها لشركتك.",
     categoryLabels: {
@@ -510,8 +512,8 @@ const ar = {
     markAllRead: "تحديد الكل كمقروء",
     emptyTitle: "لا توجد إشعارات",
     emptyDescription: "ستظهر الإشعارات الجديدة هنا عند توفرها.",
-    previous: "السابق",
-    next: "التالي",
+    previous: uiChrome.ar.previous,
+    next: uiChrome.ar.next,
     channels: {
       IN_APP: "داخل المنصة",
       EMAIL: "البريد الإلكتروني",

@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 import type { ServicesDictionary } from "../types";
 
 export type { ServicesDictionary } from "../types";
@@ -29,8 +31,8 @@ const en = {
   internalNotesHint: "Only platform administrators can see these notes.",
   assignmentCount: "Assignments",
   created: "Created",
-  actions: "Actions",
-  view: "View",
+  actions: uiChrome.en.actions,
+  view: uiChrome.en.view,
   openService: "Open service",
   back: "Back",
   save: "Save",
@@ -41,8 +43,8 @@ const en = {
   allStatuses: "All statuses",
   allCategories: "All categories",
   records: "records",
-  previous: "Previous",
-  next: "Next",
+  previous: uiChrome.en.previous,
+  next: uiChrome.en.next,
   emptyCatalogTitle: "No services yet",
   emptyCatalogDescription: "Create the first service in your platform catalog.",
   emptyAssignmentsTitle: "No services assigned",
@@ -94,8 +96,8 @@ const ku = {
   internalNotesHint: "تەنها بەڕێوەبەرانی پلاتفۆرم ئەم تێبینییانە دەبینن.",
   assignmentCount: "ژمارەی تەرخانکردن",
   created: "دروستکراوە",
-  actions: "کردارەکان",
-  view: "بینین",
+  actions: uiChrome.ku.actions,
+  view: uiChrome.ku.view,
   openService: "کردنەوەی خزمەتگوزاری",
   back: "گەڕانەوە",
   save: "پاشەکەوتکردن",
@@ -106,8 +108,8 @@ const ku = {
   allStatuses: "هەموو دۆخەکان",
   allCategories: "هەموو پۆلەکان",
   records: "تۆمار",
-  previous: "پێشوو",
-  next: "دواتر",
+  previous: uiChrome.ku.previous,
+  next: uiChrome.ku.next,
   emptyCatalogTitle: "هیچ خزمەتگوزارییەک نییە",
   emptyCatalogDescription: "یەکەم خزمەتگوزاریی پلاتفۆرم دروست بکە.",
   emptyAssignmentsTitle: "هیچ تەرخانکردنێک نییە",
@@ -159,8 +161,8 @@ const ar = {
   internalNotesHint: "هذه الملاحظات ظاهرة لمسؤولي المنصة فقط.",
   assignmentCount: "عدد التخصيصات",
   created: "تاريخ الإنشاء",
-  actions: "الإجراءات",
-  view: "عرض",
+  actions: uiChrome.ar.actions,
+  view: uiChrome.ar.view,
   openService: "فتح الخدمة",
   back: "رجوع",
   save: "حفظ",
@@ -171,8 +173,8 @@ const ar = {
   allStatuses: "كل الحالات",
   allCategories: "كل الفئات",
   records: "سجل",
-  previous: "السابق",
-  next: "التالي",
+  previous: uiChrome.ar.previous,
+  next: uiChrome.ar.next,
   emptyCatalogTitle: "لا توجد خدمات",
   emptyCatalogDescription: "أنشئ أول خدمة ضمن دليل المنصة.",
   emptyAssignmentsTitle: "لا توجد خدمات مخصصة",

@@ -37,40 +37,90 @@ export interface Dictionary {
   };
 }
 
+export interface AdminNavigationDictionary {
+  label: string;
+  overview: string;
+  companies: string;
+  myCompany: string;
+  users: string;
+  roles: string;
+  manageUsers: string;
+  manageRoles: string;
+  manageNotifications: string;
+  collapseSidebar: string;
+  expandSidebar: string;
+  platformAdministration: string;
+  companyAdministration: string;
+  dashboard: string;
+  services: string;
+  manageServices: string;
+  featureDefinitions: string;
+  renewalRequests: string;
+  renewalPipeline: string;
+  training: string;
+  trainingCourses: string;
+  trainingCategories: string;
+  trainingCertificateTemplates: string;
+  trainingCertificates: string;
+  trainingReports: string;
+  notifications: string;
+  deliveryLog: string;
+  providerStatus: string;
+  testEmail: string;
+  broadcasts: string;
+  settings: string;
+}
+
+export interface CompaniesDictionary {
+  title: string;
+  description: string;
+  ownDescription: string;
+  create: string;
+  createTitle: string;
+  createDescription: string;
+  detailsTitle: string;
+  editTitle: string;
+  name: string;
+  status: string;
+  created: string;
+  updated: string;
+  actions: string;
+  view: string;
+  save: string;
+  saving: string;
+  cancel: string;
+  changeStatus: string;
+  applyStatus: string;
+  statusActive: string;
+  statusSuspended: string;
+  statusArchived: string;
+  allStatuses: string;
+  emptyTitle: string;
+  emptyDescription: string;
+  archiveConfirmation: string;
+  previous: string;
+  next: string;
+  records: string;
+}
+
+export interface RoleCatalogDictionary {
+  title: string;
+  description: string;
+  readOnly: string;
+  name: string;
+  scope: string;
+  permissions: string;
+  noPermissions: string;
+  emptyTitle: string;
+  emptyDescription: string;
+  platform: string;
+  company: string;
+  platformAdmin: string;
+  companyAdmin: string;
+  companyUser: string;
+}
+
 export interface AdminDictionary {
-  navigation: {
-    label: string;
-    overview: string;
-    companies: string;
-    myCompany: string;
-    users: string;
-    roles: string;
-    manageUsers: string;
-    manageRoles: string;
-    manageNotifications: string;
-    collapseSidebar: string;
-    expandSidebar: string;
-    platformAdministration: string;
-    companyAdministration: string;
-    dashboard: string;
-    services: string;
-    manageServices: string;
-    featureDefinitions: string;
-    renewalRequests: string;
-    renewalPipeline: string;
-    training: string;
-    trainingCourses: string;
-    trainingCategories: string;
-    trainingCertificateTemplates: string;
-    trainingCertificates: string;
-    trainingReports: string;
-    notifications: string;
-    deliveryLog: string;
-    providerStatus: string;
-    testEmail: string;
-    broadcasts: string;
-    settings: string;
-  };
   overview: {
     title: string;
     description: string;
@@ -79,57 +129,6 @@ export interface AdminDictionary {
     usersDescription: string;
     rolesDescription: string;
     openSection: string;
-  };
-  companies: {
-    title: string;
-    description: string;
-    ownDescription: string;
-    create: string;
-    createTitle: string;
-    createDescription: string;
-    detailsTitle: string;
-    editTitle: string;
-    name: string;
-    status: string;
-    created: string;
-    updated: string;
-    actions: string;
-    view: string;
-    save: string;
-    saving: string;
-    cancel: string;
-    changeStatus: string;
-    applyStatus: string;
-    statusActive: string;
-    statusSuspended: string;
-    statusArchived: string;
-    allStatuses: string;
-    emptyTitle: string;
-    emptyDescription: string;
-    archiveConfirmation: string;
-    previous: string;
-    next: string;
-    records: string;
-  };
-  roles: {
-    title: string;
-    description: string;
-    readOnly: string;
-    name: string;
-    scope: string;
-    permissions: string;
-    noPermissions: string;
-    emptyTitle: string;
-    emptyDescription: string;
-    platform: string;
-    company: string;
-    platformAdmin: string;
-    companyAdmin: string;
-    companyUser: string;
-  };
-  users: {
-    title: string;
-    nextStep: string;
   };
 }
 

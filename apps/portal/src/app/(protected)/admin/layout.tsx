@@ -33,7 +33,7 @@ export default async function ProtectedAdminLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const [
     session,
-    { locale, dictionary, admin },
+    { locale, navigation: navLabels, dictionary },
     publicSettings,
     uiPreferences,
   ] = await Promise.all([
@@ -47,51 +47,51 @@ export default async function ProtectedAdminLayout({
     redirect("/dashboard");
   }
 
-  // Every sidebar label now lives in one place: admin.navigation.
+  // Every sidebar label now lives in one place: navLabels.
   const navigation = buildAdminNavigation(session, {
-    dashboard: admin.navigation.dashboard,
-    overview: admin.navigation.overview,
-    companies: admin.navigation.companies,
-    myCompany: admin.navigation.myCompany,
-    users: admin.navigation.users,
-    manageUsers: admin.navigation.manageUsers,
-    manageRoles: admin.navigation.manageRoles,
-    services: admin.navigation.services,
-    manageServices: admin.navigation.manageServices,
-    featureDefinitions: admin.navigation.featureDefinitions,
-    renewalRequests: admin.navigation.renewalRequests,
-    renewalPipeline: admin.navigation.renewalPipeline,
-    training: admin.navigation.training,
-    trainingCourses: admin.navigation.trainingCourses,
-    trainingCategories: admin.navigation.trainingCategories,
-    trainingCertificateTemplates: admin.navigation.trainingCertificateTemplates,
-    trainingCertificates: admin.navigation.trainingCertificates,
-    trainingReports: admin.navigation.trainingReports,
-    notifications: admin.navigation.notifications,
-    deliveryLog: admin.navigation.deliveryLog,
-    providerStatus: admin.navigation.providerStatus,
-    testEmail: admin.navigation.testEmail,
-    broadcasts: admin.navigation.broadcasts,
-    settings: admin.navigation.settings,
+    dashboard: navLabels.dashboard,
+    overview: navLabels.overview,
+    companies: navLabels.companies,
+    myCompany: navLabels.myCompany,
+    users: navLabels.users,
+    manageUsers: navLabels.manageUsers,
+    manageRoles: navLabels.manageRoles,
+    services: navLabels.services,
+    manageServices: navLabels.manageServices,
+    featureDefinitions: navLabels.featureDefinitions,
+    renewalRequests: navLabels.renewalRequests,
+    renewalPipeline: navLabels.renewalPipeline,
+    training: navLabels.training,
+    trainingCourses: navLabels.trainingCourses,
+    trainingCategories: navLabels.trainingCategories,
+    trainingCertificateTemplates: navLabels.trainingCertificateTemplates,
+    trainingCertificates: navLabels.trainingCertificates,
+    trainingReports: navLabels.trainingReports,
+    notifications: navLabels.notifications,
+    deliveryLog: navLabels.deliveryLog,
+    providerStatus: navLabels.providerStatus,
+    testEmail: navLabels.testEmail,
+    broadcasts: navLabels.broadcasts,
+    settings: navLabels.settings,
   });
 
   const administrationLabel =
     session.user.accountScope === "PLATFORM"
-      ? admin.navigation.platformAdministration
-      : admin.navigation.companyAdministration;
+      ? navLabels.platformAdministration
+      : navLabels.companyAdministration;
 
   return (
     <div className="min-h-screen bg-surface-page lg:flex lg:h-screen lg:overflow-hidden">
       <AdminSidebar
         siteTitle={publicSettings.siteTitle}
         administrationLabel={administrationLabel}
-        navigationLabel={admin.navigation.label}
+        navigationLabel={navLabels.label}
         entries={navigation}
         signedInAsLabel={dictionary.workspace.signedInAs}
         email={session.user.email}
         initialCollapsed={uiPreferences.sidebarCollapsed}
-        collapseLabel={admin.navigation.collapseSidebar}
-        expandLabel={admin.navigation.expandSidebar}
+        collapseLabel={navLabels.collapseSidebar}
+        expandLabel={navLabels.expandSidebar}
       />
 
       <div className="flex min-w-0 flex-1 flex-col lg:h-screen lg:overflow-hidden">
@@ -120,13 +120,10 @@ export default async function ProtectedAdminLayout({
 
           <details className="mt-4 border-t border-line pt-3 lg:hidden">
             <summary className="cursor-pointer text-sm font-medium text-content">
-              {admin.navigation.label}
+              {navLabels.label}
             </summary>
             <div className="mt-3">
-              <AdminNavigation
-                label={admin.navigation.label}
-                entries={navigation}
-              />
+              <AdminNavigation label={navLabels.label} entries={navigation} />
             </div>
           </details>
         </header>

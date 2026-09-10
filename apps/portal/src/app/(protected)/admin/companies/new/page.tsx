@@ -9,7 +9,7 @@ import { getAdminDictionary } from "@/lib/i18n/admin/server";
 import { createCompanyAction } from "../actions";
 
 export default async function NewCompanyPage() {
-  const [session, { admin, content }] = await Promise.all([
+  const [session, { companies, content }] = await Promise.all([
     requireAdminPermission(PERMISSIONS.COMPANIES_MANAGE),
     getAdminDictionary(),
   ]);
@@ -21,14 +21,14 @@ export default async function NewCompanyPage() {
   return (
     <div className="grid gap-7">
       <PageHeading
-        title={admin.companies.createTitle}
-        description={admin.companies.createDescription}
+        title={companies.createTitle}
+        description={companies.createDescription}
       />
 
       <Panel className="p-6 sm:p-8">
         <CompanyForm
           action={createCompanyAction}
-          labels={admin.companies}
+          labels={companies}
           content={content}
           cancelHref="/admin/companies"
         />

@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface TrainingCertificateDesignerDictionary {
   designerTitle: string;
   designerDescription: string;
@@ -158,7 +160,7 @@ export const trainingCertificateDesignerDictionaries: Record<
     removeImage: "لابردن",
     uploading: "بار دەکرێت...",
     uploadFailed: "بارکردنی فایل سەرکەوتوو نەبوو.",
-    logo: "لۆگۆ",
+    logo: uiChrome.ku.logo,
     signature: "واژۆ",
     vectorSupported: "SVG وێکتەر پشتگیری دەکرێت",
     selectedElement: "توخمی هەڵبژێردراو",
@@ -196,7 +198,7 @@ export const trainingCertificateDesignerDictionaries: Record<
     templateGalleryDescription:
       "قاڵبەکان بە پێشبینینی دیزاین، دۆخ و شێوازی پاشبنەما بەڕێوەببە.",
     preset: "شێواز",
-    custom: "تایبەت",
+    custom: uiChrome.ku.custom,
     defaultBadge: "بنەڕەتی",
     editDesigner: "کردنەوەی دیزاینەر",
     elementLogo: "لۆگۆ",
@@ -264,7 +266,7 @@ export const trainingCertificateDesignerDictionaries: Record<
     removeImage: "إزالة",
     uploading: "جارٍ الرفع...",
     uploadFailed: "تعذر رفع الملف.",
-    logo: "الشعار",
+    logo: uiChrome.ar.logo,
     signature: "التوقيع",
     vectorSupported: "يدعم SVG المتجه",
     selectedElement: "العنصر المحدد",
@@ -301,7 +303,7 @@ export const trainingCertificateDesignerDictionaries: Record<
     templateGalleryDescription:
       "إدارة القوالب مع معاينة التصميم والحالة ونمط الخلفية.",
     preset: "نمط",
-    custom: "مخصص",
+    custom: uiChrome.ar.custom,
     defaultBadge: "افتراضي",
     editDesigner: "فتح المصمم",
     elementLogo: "الشعار",
@@ -370,7 +372,7 @@ export const trainingCertificateDesignerDictionaries: Record<
     removeImage: "Remove",
     uploading: "Uploading...",
     uploadFailed: "The file could not be uploaded.",
-    logo: "Logo",
+    logo: uiChrome.en.logo,
     signature: "Signature",
     vectorSupported: "Vector SVG supported",
     selectedElement: "Selected element",
@@ -408,7 +410,7 @@ export const trainingCertificateDesignerDictionaries: Record<
     templateGalleryDescription:
       "Manage certificate templates with design previews, lifecycle status and background style.",
     preset: "Preset",
-    custom: "Custom",
+    custom: uiChrome.en.custom,
     defaultBadge: "Default",
     editDesigner: "Open Designer",
     elementLogo: "Logo",

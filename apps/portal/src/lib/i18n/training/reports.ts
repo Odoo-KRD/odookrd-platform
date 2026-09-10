@@ -5,6 +5,7 @@ import type {
   TrainingQuizPlacement,
   TrainingQuizStatus,
 } from "@odookrd/types";
+import { uiChrome } from "../ui-chrome";
 
 export interface TrainingReportsDictionary {
   navigation: string;
@@ -83,7 +84,7 @@ export const trainingReportsDictionaries: Record<
     allCategories: "هەموو پۆلەکان",
     dateFrom: "لە بەرواری",
     dateTo: "تا بەرواری",
-    filter: "پاڵاوتن",
+    filter: uiChrome.ku.filter,
     clearFilters: "پاککردنەوە",
     exportCsv: "هەناردەی CSV",
     activeLearners: "فێرخوازانی چالاک",
@@ -116,8 +117,8 @@ export const trainingReportsDictionaries: Record<
     issuedAt: "دەرکراوە لە",
     revokedAt: "هەڵوەشێنراوە لە",
     records: "تۆمار",
-    previous: "پێشوو",
-    next: "دواتر",
+    previous: uiChrome.ku.previous,
+    next: uiChrome.ku.next,
     noResults: "هیچ داتایەک نەدۆزرایەوە.",
     noResultsDescription:
       "پاڵاوتنەکان بگۆڕە یان دوای تۆماربوونی چالاکی فێرکاری دووبارە بگەڕێوە.",
@@ -157,7 +158,7 @@ export const trainingReportsDictionaries: Record<
     allCategories: "كل الفئات",
     dateFrom: "من تاريخ",
     dateTo: "إلى تاريخ",
-    filter: "تصفية",
+    filter: uiChrome.ar.filter,
     clearFilters: "مسح التصفية",
     exportCsv: "تصدير CSV",
     activeLearners: "المتعلمون النشطون",
@@ -190,8 +191,8 @@ export const trainingReportsDictionaries: Record<
     issuedAt: "تاريخ الإصدار",
     revokedAt: "تاريخ الإلغاء",
     records: "سجل",
-    previous: "السابق",
-    next: "التالي",
+    previous: uiChrome.ar.previous,
+    next: uiChrome.ar.next,
     noResults: "لا توجد بيانات مطابقة.",
     noResultsDescription: "غيّر عوامل التصفية أو عد بعد تسجيل نشاط تدريبي.",
     overviewHint:
@@ -230,7 +231,7 @@ export const trainingReportsDictionaries: Record<
     allCategories: "All categories",
     dateFrom: "Date from",
     dateTo: "Date to",
-    filter: "Filter",
+    filter: uiChrome.en.filter,
     clearFilters: "Clear filters",
     exportCsv: "Export CSV",
     activeLearners: "Active learners",
@@ -263,8 +264,8 @@ export const trainingReportsDictionaries: Record<
     issuedAt: "Issued at",
     revokedAt: "Revoked at",
     records: "records",
-    previous: "Previous",
-    next: "Next",
+    previous: uiChrome.en.previous,
+    next: uiChrome.en.next,
     noResults: "No matching reporting data.",
     noResultsDescription:
       "Adjust the filters or return after training activity has been recorded.",

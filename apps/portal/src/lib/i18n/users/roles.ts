@@ -1,5 +1,7 @@
 import type { Locale } from "@odookrd/types";
 
+import { uiChrome } from "../ui-chrome";
+
 export interface RoleAdministrationDictionary {
   create: string;
   createTitle: string;
@@ -46,7 +48,7 @@ export const roleAdministrationDictionaries: Record<
     create: "دروستکردنی ڕۆڵ",
     createTitle: "ڕۆڵی نوێ",
     createDescription: "ڕۆڵێکی تایبەت و ڕێگەپێدانەکانی دروست بکە.",
-    edit: "دەستکاری",
+    edit: uiChrome.ku.edit,
     editTitle: "دەستکاریی ڕۆڵ",
     editDescription: "ناو، وەسف و ڕێگەپێدانەکانی ڕۆڵەکە بگۆڕە.",
     details: "وردەکاری",
@@ -62,7 +64,7 @@ export const roleAdministrationDictionaries: Record<
     active: "چالاک",
     archived: "ئەرشیفکراو",
     system: "سیستەم",
-    custom: "تایبەت",
+    custom: uiChrome.ku.custom,
     permissions: "ڕێگەپێدانەکان",
     permissionSearch: "گەڕان لە ڕێگەپێدانەکان",
     noPermissionMatches: "هیچ ڕێگەپێدانێک نەدۆزرایەوە.",
@@ -76,7 +78,7 @@ export const roleAdministrationDictionaries: Record<
       "ڕۆڵەکانی سیستەم پارێزراون و ناتوانرێت دەستکاری یان بسڕدرێنەوە.",
     immutableFields: "کلیل و مەودای ڕۆڵ دوای دروستکردن ناگۆڕدرێن.",
     back: "گەڕانەوە",
-    view: "بینین",
+    view: uiChrome.ku.view,
     roleSearch: "گەڕان لە ڕۆڵەکان",
     noRoleMatches: "هیچ ڕۆڵێک لەگەڵ گەڕانەکە ناگونجێت.",
   },
@@ -84,7 +86,7 @@ export const roleAdministrationDictionaries: Record<
     create: "إنشاء دور",
     createTitle: "دور جديد",
     createDescription: "أنشئ دوراً مخصصاً وحدد صلاحياته.",
-    edit: "تعديل",
+    edit: uiChrome.ar.edit,
     editTitle: "تعديل الدور",
     editDescription: "غيّر اسم الدور ووصفه وصلاحياته.",
     details: "التفاصيل",
@@ -100,7 +102,7 @@ export const roleAdministrationDictionaries: Record<
     active: "نشط",
     archived: "مؤرشف",
     system: "نظام",
-    custom: "مخصص",
+    custom: uiChrome.ar.custom,
     permissions: "الصلاحيات",
     permissionSearch: "بحث في الصلاحيات",
     noPermissionMatches: "لا توجد صلاحيات مطابقة.",
@@ -113,7 +115,7 @@ export const roleAdministrationDictionaries: Record<
     systemProtected: "أدوار النظام محمية ولا يمكن تعديلها أو أرشفتها أو حذفها.",
     immutableFields: "مفتاح الدور ونطاقه لا يتغيران بعد الإنشاء.",
     back: "رجوع",
-    view: "عرض",
+    view: uiChrome.ar.view,
     roleSearch: "بحث في الأدوار",
     noRoleMatches: "لا توجد أدوار مطابقة للبحث.",
   },
@@ -121,7 +123,7 @@ export const roleAdministrationDictionaries: Record<
     create: "Create role",
     createTitle: "New role",
     createDescription: "Create a custom role and choose its permissions.",
-    edit: "Edit",
+    edit: uiChrome.en.edit,
     editTitle: "Edit role",
     editDescription: "Change the role name, description, and permissions.",
     details: "Details",
@@ -138,7 +140,7 @@ export const roleAdministrationDictionaries: Record<
     active: "Active",
     archived: "Archived",
     system: "System",
-    custom: "Custom",
+    custom: uiChrome.en.custom,
     permissions: "Permissions",
     permissionSearch: "Search permissions",
     noPermissionMatches: "No permissions match the search.",
@@ -152,7 +154,7 @@ export const roleAdministrationDictionaries: Record<
       "System roles are protected and cannot be edited, archived, or deleted.",
     immutableFields: "The role key and scope cannot change after creation.",
     back: "Back",
-    view: "View",
+    view: uiChrome.en.view,
     roleSearch: "Search roles",
     noRoleMatches: "No roles match the search.",
   },

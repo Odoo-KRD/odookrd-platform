@@ -15,10 +15,11 @@ import { userInvitationAdminDictionaries } from "@/lib/i18n/users/invitations";
 import { inviteAndDeliverUserAction } from "../invitation-actions";
 
 export default async function InviteUserPage() {
-  const [{ session, token }, { locale, admin, users }] = await Promise.all([
-    getAdminApiContext(PERMISSIONS.USERS_MANAGE),
-    getUsersDictionary(),
-  ]);
+  const [{ session, token }, { locale, roleCatalog, users }] =
+    await Promise.all([
+      getAdminApiContext(PERMISSIONS.USERS_MANAGE),
+      getUsersDictionary(),
+    ]);
 
   const isPlatform = session.user.accountScope === "PLATFORM";
 
@@ -45,7 +46,7 @@ export default async function InviteUserPage() {
         <InviteAndDeliverUserForm
           action={inviteAndDeliverUserAction}
           labels={users}
-          roleLabels={admin.roles}
+          roleLabels={roleCatalog}
           roles={roles}
           companies={companiesResult?.items ?? []}
           isPlatform={isPlatform}

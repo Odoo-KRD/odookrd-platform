@@ -16,7 +16,10 @@ import { getFrontendDictionary } from "@/lib/i18n/public/server";
 
 export default async function CustomerProfilePage() {
   const [{ session, token }, { locale, dictionary, workspace }] =
-    await Promise.all([getCustomerAccountApiContext(), getFrontendDictionary()]);
+    await Promise.all([
+      getCustomerAccountApiContext(),
+      getFrontendDictionary(),
+    ]);
   const profile = await apiRequest<CustomerAccountProfile>(
     "/workspace/profile",
     { token },

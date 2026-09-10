@@ -4,6 +4,7 @@ import type {
   NotificationChannel,
   NotificationDeliveryStatus,
 } from "@odookrd/types";
+import { uiChrome } from "../ui-chrome";
 
 export interface NotificationAdministrationDictionary {
   navigation: string;
@@ -76,8 +77,8 @@ export const notificationAdministrationDictionaries: Record<
     notConfigured: "ڕێکنەخراوە",
     ready: "ئامادەیە",
     notReady: "ئامادە نییە",
-    enabled: "چالاک",
-    disabled: "ناچالاک",
+    enabled: uiChrome.ku.enabled,
+    disabled: uiChrome.ku.disabled,
     emailProvider: "دابینکەری ئیمەیڵ",
     transport: "شێوازی گەیاندن",
     smtpHost: "سێرڤەری SES SMTP",
@@ -115,8 +116,8 @@ export const notificationAdministrationDictionaries: Record<
     lastAttempt: "دوایین هەوڵ",
     sent: "نێردرا",
     emptyLog: "هیچ تۆماری گەیاندنێک نییە.",
-    previous: "پێشوو",
-    next: "دواتر",
+    previous: uiChrome.ku.previous,
+    next: uiChrome.ku.next,
     secretNotice:
       "کلیلە نهێنییەکان تەنها لە سێرڤەر دەکرێنەوە و بۆ وێبگەڕ نانێردرێن.",
     kinds: {
@@ -149,8 +150,8 @@ export const notificationAdministrationDictionaries: Record<
     notConfigured: "غير مُعد",
     ready: "جاهز",
     notReady: "غير جاهز",
-    enabled: "مفعّل",
-    disabled: "معطّل",
+    enabled: uiChrome.ar.enabled,
+    disabled: uiChrome.ar.disabled,
     emailProvider: "مزود البريد",
     transport: "طريقة الإرسال",
     smtpHost: "خادم SES SMTP",
@@ -187,8 +188,8 @@ export const notificationAdministrationDictionaries: Record<
     lastAttempt: "آخر محاولة",
     sent: "تم الإرسال",
     emptyLog: "لا توجد سجلات تسليم.",
-    previous: "السابق",
-    next: "التالي",
+    previous: uiChrome.ar.previous,
+    next: uiChrome.ar.next,
     secretNotice:
       "يتم فك تشفير المفاتيح السرية على الخادم فقط ولا يتم إرسالها إلى المتصفح.",
     kinds: {
@@ -221,8 +222,8 @@ export const notificationAdministrationDictionaries: Record<
     notConfigured: "Not configured",
     ready: "Ready",
     notReady: "Not ready",
-    enabled: "Enabled",
-    disabled: "Disabled",
+    enabled: uiChrome.en.enabled,
+    disabled: uiChrome.en.disabled,
     emailProvider: "Email provider",
     transport: "SES transport",
     smtpHost: "SES SMTP server",
@@ -260,8 +261,8 @@ export const notificationAdministrationDictionaries: Record<
     lastAttempt: "Last attempt",
     sent: "Sent",
     emptyLog: "There are no delivery records.",
-    previous: "Previous",
-    next: "Next",
+    previous: uiChrome.en.previous,
+    next: uiChrome.en.next,
     secretNotice:
       "Secret keys are decrypted only on the server and are never sent to the browser.",
     kinds: {

@@ -73,13 +73,12 @@ function statusTone(status: CompanyStatus): AdminTableTone {
 export default async function CompaniesPage({
   searchParams,
 }: CompaniesPageProps) {
-  const [{ session, token }, { locale, admin }, parameters] = await Promise.all(
-    [
+  const [{ session, token }, { locale, companies, navigation }, parameters] =
+    await Promise.all([
       getAdminApiContext(PERMISSIONS.COMPANIES_READ),
       getAdminDictionary(),
       searchParams,
-    ],
-  );
+    ]);
 
   const status = selectedStatus(parameters.status);
   const offset = selectedOffset(parameters.offset);
@@ -106,7 +105,7 @@ export default async function CompaniesPage({
       href="/admin/companies/new"
       className="inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-hover"
     >
-      {admin.companies.create}
+      {companies.create}
     </Link>
   ) : undefined;
 
@@ -120,10 +119,10 @@ export default async function CompaniesPage({
           type: "badge",
           label:
             company.status === "ACTIVE"
-              ? admin.companies.statusActive
+              ? companies.statusActive
               : company.status === "SUSPENDED"
-                ? admin.companies.statusSuspended
-                : admin.companies.statusArchived,
+                ? companies.statusSuspended
+                : companies.statusArchived,
           tone: statusTone(company.status),
         },
         created: {
@@ -149,7 +148,7 @@ export default async function CompaniesPage({
             }
           : {
               type: "link",
-              label: admin.companies.view,
+              label: companies.view,
               href: `/admin/companies/${company.id}`,
             },
       },
@@ -168,7 +167,7 @@ export default async function CompaniesPage({
             : "border-line bg-white text-muted hover:bg-slate-50"
         }`}
       >
-        {admin.companies.allStatuses}
+        {companies.allStatuses}
       </Link>
 
       {statuses.map((filter) => (
@@ -182,10 +181,10 @@ export default async function CompaniesPage({
           }`}
         >
           {filter === "ACTIVE"
-            ? admin.companies.statusActive
+            ? companies.statusActive
             : filter === "SUSPENDED"
-              ? admin.companies.statusSuspended
-              : admin.companies.statusArchived}
+              ? companies.statusSuspended
+              : companies.statusArchived}
         </Link>
       ))}
     </div>
@@ -195,7 +194,7 @@ export default async function CompaniesPage({
     result.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted">
-          {result.pagination.total} {admin.companies.records}
+          {result.pagination.total} {companies.records}
         </p>
 
         <div className="flex items-center gap-2">
@@ -207,7 +206,7 @@ export default async function CompaniesPage({
               )}
               className="rounded-md border border-line px-3 py-1.5 text-xs font-medium text-content hover:bg-slate-50"
             >
-              {admin.companies.previous}
+              {companies.previous}
             </Link>
           ) : null}
 
@@ -220,7 +219,7 @@ export default async function CompaniesPage({
               )}
               className="rounded-md border border-line px-3 py-1.5 text-xs font-medium text-content hover:bg-slate-50"
             >
-              {admin.companies.next}
+              {companies.next}
             </Link>
           ) : null}
         </div>
@@ -230,21 +229,19 @@ export default async function CompaniesPage({
   return (
     <div className="grid gap-7">
       <PageHeading
-        title={isPlatform ? admin.companies.title : admin.navigation.myCompany}
+        title={isPlatform ? companies.title : navigation.myCompany}
         description={
-          isPlatform
-            ? admin.companies.description
-            : admin.companies.ownDescription
+          isPlatform ? companies.description : companies.ownDescription
         }
         actions={addCompany}
       />
 
       <AdminDataTable
         columns={[
-          { key: "name", label: admin.companies.name },
-          { key: "status", label: admin.companies.status },
-          { key: "created", label: admin.companies.created },
-          { key: "actions", label: admin.companies.actions },
+          { key: "name", label: companies.name },
+          { key: "status", label: companies.status },
+          { key: "created", label: companies.created },
+          { key: "actions", label: companies.actions },
         ]}
         rows={rows}
         labels={tableLabels}
@@ -253,15 +250,15 @@ export default async function CompaniesPage({
         batchActions={
           canCreate
             ? [
-                { value: "ACTIVE", label: admin.companies.statusActive },
+                { value: "ACTIVE", label: companies.statusActive },
                 {
                   value: "SUSPENDED",
-                  label: admin.companies.statusSuspended,
+                  label: companies.statusSuspended,
                   tone: "danger",
                 },
                 {
                   value: "ARCHIVED",
-                  label: admin.companies.statusArchived,
+                  label: companies.statusArchived,
                   tone: "danger",
                 },
                 {
@@ -276,8 +273,8 @@ export default async function CompaniesPage({
         footer={footer}
         empty={
           <EmptyState
-            title={admin.companies.emptyTitle}
-            description={admin.companies.emptyDescription}
+            title={companies.emptyTitle}
+            description={companies.emptyDescription}
             action={addCompany}
           />
         }
