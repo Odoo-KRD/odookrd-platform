@@ -1,21 +1,17 @@
 import {
   PERMISSIONS,
-  type CompanyServiceAssignment,
   type ManagedService,
   type ManagedServiceFeature,
   type PaginatedResult,
   type ServiceFeatureDefinition,
 } from "@odookrd/types";
-import { DataTable, EmptyState, PageHeading, Panel } from "@odookrd/ui";
+import { PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ServiceForm } from "@/components/services/service-form";
 import { ServiceFeaturesManager } from "@/components/services/service-features-manager";
-import {
-  AssignmentStatusBadge,
-  CatalogStatusBadge,
-} from "@/components/services/service-status-badge";
+import { CatalogStatusBadge } from "@/components/services/service-status-badge";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
@@ -51,16 +47,12 @@ export default async function ServiceDetailsPage({
     redirect("/dashboard");
   }
 
-  const [service, features, assignments, definitions] = await Promise.all([
+  const [service, features, definitions] = await Promise.all([
     apiRequest<ManagedService>(`/services/${encodeURIComponent(id)}`, {
       token,
     }),
     apiRequest<PaginatedResult<ManagedServiceFeature>>(
       `/services/${encodeURIComponent(id)}/features?limit=100&offset=0`,
-      { token },
-    ),
-    apiRequest<PaginatedResult<CompanyServiceAssignment>>(
-      `/service-assignments?serviceId=${encodeURIComponent(id)}&limit=50&offset=0`,
       { token },
     ),
     apiRequest<PaginatedResult<ServiceFeatureDefinition>>(
@@ -90,10 +82,10 @@ export default async function ServiceDetailsPage({
         description={services.editService}
         actions={
           <Link
-            href={`/admin/services/assign?serviceId=${encodeURIComponent(service.id)}`}
-            className="inline-flex h-10 items-center rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
+            href="/admin/services"
+            className="inline-flex h-10 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            {services.assignService}
+            {services.back}
           </Link>
         }
       />
@@ -165,56 +157,6 @@ export default async function ServiceDetailsPage({
         moveAction={moveServiceFeatureAction.bind(null, service.id)}
         reorderAction={reorderServiceFeaturesAction.bind(null, service.id)}
       />
-
-      <section className="grid gap-4">
-        <h2 className="text-base font-semibold text-slate-900">
-          {serviceFeatures.companyServices}
-        </h2>
-        <Panel>
-          {assignments.items.length === 0 ? (
-            <EmptyState
-              title={services.emptyAssignmentsTitle}
-              description={services.emptyAssignmentsDescription}
-            />
-          ) : (
-            <DataTable
-              headings={[
-                services.company,
-                services.status,
-                services.expiresAt,
-                services.actions,
-              ]}
-            >
-              {assignments.items.map((assignment) => (
-                <tr key={assignment.id} className="hover:bg-slate-50/70">
-                  <td className="border-b border-slate-100 px-5 py-4 font-medium text-slate-900">
-                    {assignment.company.name}
-                  </td>
-                  <td className="border-b border-slate-100 px-5 py-4">
-                    <AssignmentStatusBadge
-                      status={assignment.status}
-                      labels={services}
-                    />
-                  </td>
-                  <td className="border-b border-slate-100 px-5 py-4 text-slate-700">
-                    {assignment.expiresAt
-                      ? formatDate(assignment.expiresAt, locale)
-                      : "—"}
-                  </td>
-                  <td className="border-b border-slate-100 px-5 py-4">
-                    <Link
-                      href={`/admin/services/assignments/${assignment.id}`}
-                      className="text-sm font-medium text-[#714b67] hover:text-[#62405a]"
-                    >
-                      {services.view}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </DataTable>
-          )}
-        </Panel>
-      </section>
     </div>
   );
 }

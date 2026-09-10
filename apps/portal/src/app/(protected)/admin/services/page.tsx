@@ -1,7 +1,5 @@
 import {
   PERMISSIONS,
-  type Company,
-  type CompanyServiceAssignment,
   type CompanyServiceStatus,
   type ManagedService,
   type PaginatedResult,
@@ -14,19 +12,16 @@ import { redirect } from "next/navigation";
 import {
   AdminDataTable,
   type AdminDataTableRow,
-  type AdminTableTone,
 } from "@/components/admin/admin-data-table";
 import { AdminLifecycleRowActions } from "@/components/admin/admin-lifecycle-row-actions";
 import { apiRequest } from "@/lib/api";
-import { getAdminApiContext, hasPermission } from "@/lib/authorization";
-import { formatDate } from "@/lib/format";
+import { getAdminApiContext } from "@/lib/authorization";
 import { adminLifecycleDictionaries } from "@/lib/i18n/companies/lifecycle";
 import { adminTableDictionaries } from "@/lib/i18n/admin/table";
 import { getServicesDictionary } from "@/lib/i18n/services/server";
 
 import {
   archiveServiceRowAction,
-  batchAssignmentTransitionAction,
   batchServiceStatusAction,
   deleteServiceRowAction,
   restoreServiceRowAction,
@@ -100,13 +95,6 @@ function pageHref(
 
   const serialized = query.toString();
   return serialized ? `/admin/services?${serialized}` : "/admin/services";
-}
-
-function assignmentTone(status: CompanyServiceStatus): AdminTableTone {
-  if (status === "ACTIVE") return "success";
-  if (status === "PROVISIONING") return "warning";
-  if (status === "CANCELLED") return "neutral";
-  return "danger";
 }
 
 export default async function ServicesPage({
@@ -195,26 +183,10 @@ export default async function ServicesPage({
 
   const lifecycle = adminLifecycleDictionaries[locale];
 
-  const canReadCompanies = hasPermission(session, PERMISSIONS.COMPANIES_READ);
-
-  const [catalog, assignments, companies, filterServices] = await Promise.all([
-    apiRequest<PaginatedResult<ManagedService>>(`/services?${catalogQuery}`, {
-      token,
-    }),
-    apiRequest<PaginatedResult<CompanyServiceAssignment>>(
-      `/service-assignments?${assignmentQuery.toString()}`,
-      { token },
-    ),
-    canReadCompanies
-      ? apiRequest<PaginatedResult<Company>>("/companies?limit=100&offset=0", {
-          token,
-        })
-      : Promise.resolve(null),
-    apiRequest<PaginatedResult<ManagedService>>(
-      "/services?limit=100&offset=0",
-      { token },
-    ),
-  ]);
+  const catalog = await apiRequest<PaginatedResult<ManagedService>>(
+    `/services?${catalogQuery}`,
+    { token },
+  );
 
   const createLink = (
     <Link
@@ -222,15 +194,6 @@ export default async function ServicesPage({
       className="inline-flex h-10 items-center rounded-md bg-[#714b67] px-4 text-sm font-medium text-white hover:bg-[#62405a]"
     >
       {services.addService}
-    </Link>
-  );
-
-  const assignLink = (
-    <Link
-      href="/admin/services/assign"
-      className="inline-flex h-10 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
-    >
-      {services.assignService}
     </Link>
   );
 
@@ -277,62 +240,6 @@ export default async function ServicesPage({
     }),
   );
 
-  const assignmentRows: AdminDataTableRow[] = assignments.items.map(
-    (assignment): AdminDataTableRow => ({
-      id: assignment.id,
-      searchText: `${assignment.company.name} ${
-        assignment.displayName ?? assignment.service.name
-      }`,
-      cells: {
-        company: {
-          type: "text",
-          value: assignment.company.name,
-          emphasis: true,
-        },
-        service: {
-          type: "text",
-          value: assignment.displayName ?? assignment.service.name,
-        },
-        status: {
-          type: "badge",
-          label: services.assignmentStatusLabels[assignment.status],
-          tone: assignmentTone(assignment.status),
-        },
-        startsAt: {
-          type: "text",
-          value: assignment.startsAt
-            ? formatDate(assignment.startsAt, locale)
-            : "—",
-          muted: true,
-        },
-        expiresAt: {
-          type: "text",
-          value: assignment.expiresAt
-            ? formatDate(assignment.expiresAt, locale)
-            : "—",
-          muted: true,
-        },
-        serviceUrl: {
-          type: "text",
-          value: assignment.serviceUrl ?? "—",
-          dir: "ltr",
-          muted: true,
-          className: "break-all",
-        },
-        actions: {
-          type: "actions",
-          items: [
-            {
-              key: "view",
-              label: services.view,
-              href: `/admin/services/assignments/${assignment.id}`,
-            },
-          ],
-        },
-      },
-    }),
-  );
-
   const catalogFooter =
     catalog.pagination.total > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -368,53 +275,12 @@ export default async function ServicesPage({
       </div>
     ) : undefined;
 
-  const assignmentFooter =
-    assignments.pagination.total > 0 ? (
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-slate-500">
-          {plural(recordsPhrase, locale, assignments.pagination.total)}
-        </p>
-        <div className="flex gap-2">
-          {assignments.pagination.offset > 0 ? (
-            <Link
-              href={pageHref(parameters, {
-                assignmentOffset: Math.max(
-                  0,
-                  assignments.pagination.offset - assignments.pagination.limit,
-                ),
-              })}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700"
-            >
-              {services.previous}
-            </Link>
-          ) : null}
-          {assignments.pagination.offset + assignments.items.length <
-          assignments.pagination.total ? (
-            <Link
-              href={pageHref(parameters, {
-                assignmentOffset:
-                  assignments.pagination.offset + assignments.pagination.limit,
-              })}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700"
-            >
-              {services.next}
-            </Link>
-          ) : null}
-        </div>
-      </div>
-    ) : undefined;
-
   return (
     <div className="grid gap-8">
       <PageHeading
         title={services.title}
         description={services.description}
-        actions={
-          <>
-            {assignLink}
-            {createLink}
-          </>
-        }
+        actions={createLink}
       />
 
       <section className="grid gap-4">
@@ -503,140 +369,6 @@ export default async function ServicesPage({
             />
           }
           minWidthClassName="min-w-[1080px]"
-        />
-      </section>
-
-      <section className="grid gap-4">
-        <h2 className="text-base font-semibold text-slate-900">
-          {serviceFeatures.companyServices}
-        </h2>
-        <AdminDataTable
-          locale={locale}
-          columns={[
-            { key: "company", label: services.company },
-            { key: "service", label: services.service },
-            { key: "status", label: services.status },
-            { key: "startsAt", label: services.startsAt },
-            { key: "expiresAt", label: services.expiresAt },
-            { key: "serviceUrl", label: services.serviceUrl },
-            { key: "actions", label: services.actions },
-          ]}
-          rows={assignmentRows}
-          labels={adminTableDictionaries[locale]}
-          selectable
-          searchEnabled={false}
-          batchAction={batchAssignmentTransitionAction}
-          batchActions={[
-            {
-              value: "ACTIVE",
-              label: services.assignmentStatusLabels.ACTIVE,
-            },
-            {
-              value: "SUSPENDED",
-              label: services.assignmentStatusLabels.SUSPENDED,
-              tone: "danger",
-            },
-            {
-              value: "EXPIRED",
-              label: services.assignmentStatusLabels.EXPIRED,
-              tone: "danger",
-            },
-            {
-              value: "CANCELLED",
-              label: services.assignmentStatusLabels.CANCELLED,
-              tone: "danger",
-            },
-          ]}
-          batchFields={
-            <input
-              name="reason"
-              type="text"
-              maxLength={1000}
-              placeholder={serviceFeatures.transitionReason}
-              className="h-9 min-w-52 rounded-md border border-slate-300 bg-white px-3 text-xs"
-            />
-          }
-          toolbar={
-            <form method="get" className="flex flex-wrap items-center gap-2">
-              <input
-                name="assignmentSearch"
-                type="search"
-                maxLength={200}
-                defaultValue={assignmentSearch}
-                placeholder={serviceFeatures.searchAssignments}
-                className="h-9 min-w-52 rounded-md border border-slate-300 bg-white px-3 text-sm"
-              />
-              <select
-                name="assignmentStatus"
-                defaultValue={assignmentStatus ?? ""}
-                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs"
-              >
-                <option value="">{services.allStatuses}</option>
-                {assignmentStatuses.map((selectedStatus) => (
-                  <option key={selectedStatus} value={selectedStatus}>
-                    {services.assignmentStatusLabels[selectedStatus]}
-                  </option>
-                ))}
-              </select>
-              {companies ? (
-                <select
-                  name="companyId"
-                  defaultValue={assignmentCompanyId ?? ""}
-                  className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs"
-                >
-                  <option value="">{serviceFeatures.allCompanies}</option>
-                  {companies.items.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
-              <select
-                name="serviceId"
-                defaultValue={assignmentServiceId ?? ""}
-                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs"
-              >
-                <option value="">{serviceFeatures.allServices}</option>
-                {filterServices.items.map((service) => (
-                  <option key={service.id} value={service.id}>
-                    {service.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                name="expiresFrom"
-                type="date"
-                dir="ltr"
-                aria-label={serviceFeatures.expiresFrom}
-                defaultValue={queryText(parameters.expiresFrom, 10)}
-                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs"
-              />
-              <input
-                name="expiresTo"
-                type="date"
-                dir="ltr"
-                aria-label={serviceFeatures.expiresTo}
-                defaultValue={queryText(parameters.expiresTo, 10)}
-                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs"
-              />
-              <button
-                type="submit"
-                className="h-9 rounded-md bg-brand px-3 text-xs font-medium text-white hover:bg-brand-hover"
-              >
-                {serviceFeatures.search}
-              </button>
-            </form>
-          }
-          footer={assignmentFooter}
-          empty={
-            <EmptyState
-              title={services.emptyAssignmentsTitle}
-              description={services.emptyAssignmentsDescription}
-              action={assignLink}
-            />
-          }
-          minWidthClassName="min-w-[1280px]"
         />
       </section>
     </div>
