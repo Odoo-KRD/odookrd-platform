@@ -9,8 +9,8 @@ has to notice that silence.
 
 | Target | URL | Meaning |
 | --- | --- | --- |
-| API readiness | `https://api.odoo.krd/v1/health/ready` | API is up **and** the database answers |
-| API liveness | `https://api.odoo.krd/v1/health/live` | API process is up, ignoring dependencies |
+| API readiness | `https://api.odoo.krd/health/ready` | API is up **and** the database answers |
+| API liveness | `https://api.odoo.krd/health/live` | API process is up, ignoring dependencies |
 | Portal | `https://my.odoo.krd/api/health` | Portal is up **and** can reach the API |
 
 Poll **API readiness** and **Portal**. Between them they cover the database,
@@ -66,3 +66,39 @@ sudo systemctl start odookrd-api
 
 Do this deliberately, once, rather than discovering during a real outage that
 the alert address was wrong.
+
+## Log retention
+
+Structured logging writes a JSON line per request, so journald volume is much
+higher than it was. The defaults allow up to 10% of the filesystem, and disk
+exhaustion takes down Postgres and both services together.
+
+Install the bundled limits once:
+
+```bash
+sudo mkdir -p /etc/systemd/journald.conf.d
+sudo cp deploy/journald/odookrd.conf /etc/systemd/journald.conf.d/
+sudo systemctl restart systemd-journald
+```
+
+Check what the journal is actually using:
+
+```bash
+journalctl --disk-usage
+```
+
+If it approaches the 500M ceiling faster than a month, either raise
+`SystemMaxUse` or reduce what is logged. Sentry holds the errors worth keeping
+long term; journald holds the detail behind them.
+
+## Releases
+
+`deploy/deploy.sh` sets `SENTRY_RELEASE` from the deployed commit in both
+environment files, builds, restarts and then verifies both health endpoints
+answer before reporting success. Deploying by hand works, but the release tag
+is what lets Sentry tell you which deploy introduced an issue, and it is easy
+to forget.
+
+```bash
+./deploy/deploy.sh
+```
