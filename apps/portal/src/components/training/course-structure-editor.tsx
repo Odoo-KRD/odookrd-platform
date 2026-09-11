@@ -21,6 +21,7 @@ import {
   type FormEvent,
 } from "react";
 
+import { richTextToolbarDictionaries } from "@/lib/i18n/rich-text";
 import { AdminActionButton } from "@/components/admin/admin-action-controls";
 import { AdminActionMenu } from "@/components/admin/admin-action-menu";
 import { LessonTypeIcon } from "@/components/training/lesson-type-icon";
@@ -29,7 +30,7 @@ import {
   initializeLocalizedRichText,
   LocalizedRichTextEditor,
   richTextToPlainText,
-} from "@/components/training/localized-rich-text-editor";
+} from "@/components/i18n/localized-rich-text-editor";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 import type { TrainingDictionary } from "@/lib/i18n/training";
 import { trainingLessonEditorDictionaries } from "@/lib/i18n/training/lesson-editor";
@@ -674,7 +675,7 @@ function EditorDialogForm({
               value={richDescription}
               onChange={setRichDescription}
               content={content}
-              training={training}
+              toolbar={richTextToolbarDictionaries[content.locale]}
               disabled={submitting}
             />
           </div>

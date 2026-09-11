@@ -15,7 +15,7 @@ import {
   SUPPORTED_LOCALES,
 } from "@/lib/i18n/config";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
-import type { TrainingDictionary } from "@/lib/i18n/training";
+import type { RichTextToolbarDictionary } from "@/lib/i18n/rich-text";
 
 function plainDocument(text: string | null | undefined): RichTextDocument {
   const normalized = text?.trim();
@@ -133,7 +133,7 @@ export function LocalizedRichTextEditor({
   value,
   onChange,
   content,
-  training,
+  toolbar,
   disabled = false,
   activeLocale: controlledLocale,
   onActiveLocaleChange,
@@ -141,7 +141,7 @@ export function LocalizedRichTextEditor({
   value: LocalizedRichText;
   onChange: (value: LocalizedRichText) => void;
   content: ContentEditorDictionary;
-  training: TrainingDictionary;
+  toolbar: RichTextToolbarDictionary;
   disabled?: boolean;
   /**
    * Optional. Lift the active tab into the parent when something outside the
@@ -195,7 +195,7 @@ export function LocalizedRichTextEditor({
             [activeLocale]: next as RichTextDocument,
           })
         }
-        labels={training.editor.toolbar}
+        labels={toolbar}
         dir={getTextDirection(activeLocale)}
         disabled={disabled}
         onUploadImage={async (file) => (await uploadAsset(file, "IMAGE")).href}

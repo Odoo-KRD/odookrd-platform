@@ -23,7 +23,8 @@ import {
   initializeLocalizedRichText,
   LocalizedRichTextEditor,
   richTextToPlainText,
-} from "@/components/training/localized-rich-text-editor";
+} from "@/components/i18n/localized-rich-text-editor";
+import { richTextToolbarDictionaries } from "@/lib/i18n/rich-text";
 import type { ContentEditorDictionary } from "@/lib/i18n/types";
 import type { TrainingDictionary } from "@/lib/i18n/training";
 import type { TrainingLessonEditorDictionary } from "@/lib/i18n/training/lesson-editor";
@@ -1457,7 +1458,7 @@ export function TrainingLessonEditor({
               value={richDescription}
               onChange={setRichDescription}
               content={contentDictionary}
-              training={training}
+              toolbar={richTextToolbarDictionaries[contentDictionary.locale]}
               disabled={busy !== null}
               activeLocale={descriptionLocale}
               onActiveLocaleChange={setDescriptionLocale}
@@ -2097,7 +2098,7 @@ export function TrainingLessonEditor({
                 value={articleContent}
                 onChange={setArticleContent}
                 content={contentDictionary}
-                training={training}
+                toolbar={richTextToolbarDictionaries[contentDictionary.locale]}
                 disabled={busy !== null}
               />
               <div>
