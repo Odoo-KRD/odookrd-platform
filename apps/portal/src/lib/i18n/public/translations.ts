@@ -141,6 +141,12 @@ const en = {
   },
   content: {
     locale: "en",
+    copyToLanguages: "Copy to other languages",
+    copyToLanguagesHint:
+      "Copies this language's content into the other language tabs so you can translate in place.",
+    copyToLanguagesConfirm:
+      "The other languages already have content. Replace it?",
+    copyToLanguagesDone: "Copied. Switch tabs to translate.",
     translations: sharedText.en.labels.translations,
     saveTranslations: sharedText.en.labels.saveTranslations,
     discardTranslations: sharedText.en.labels.discardTranslations,
@@ -320,6 +326,11 @@ const ku = {
   },
   content: {
     locale: "ku",
+    copyToLanguages: "لەبەرگرتنەوە بۆ زمانەکانی تر",
+    copyToLanguagesHint:
+      "ناوەڕۆکی ئەم زمانە دەگوێزێتەوە بۆ تابەکانی تر تا لەوێ وەریبگێڕیت.",
+    copyToLanguagesConfirm: "زمانەکانی تر ناوەڕۆکیان هەیە. بیانگۆڕیت؟",
+    copyToLanguagesDone: "لەبەرگیرایەوە. تاب بگۆڕە بۆ وەرگێڕان.",
     translations: sharedText.ku.labels.translations,
     saveTranslations: sharedText.ku.labels.saveTranslations,
     discardTranslations: sharedText.ku.labels.discardTranslations,
@@ -492,6 +503,11 @@ const ar = {
   },
   content: {
     locale: "ar",
+    copyToLanguages: "نسخ إلى اللغات الأخرى",
+    copyToLanguagesHint:
+      "ينسخ محتوى هذه اللغة إلى تبويبات اللغات الأخرى لترجمته هناك.",
+    copyToLanguagesConfirm: "اللغات الأخرى تحتوي على محتوى. هل تريد استبداله؟",
+    copyToLanguagesDone: "تم النسخ. بدّل التبويب للترجمة.",
     translations: sharedText.ar.labels.translations,
     saveTranslations: sharedText.ar.labels.saveTranslations,
     discardTranslations: "تجاهل",

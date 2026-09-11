@@ -135,14 +135,32 @@ export function LocalizedRichTextEditor({
   content,
   training,
   disabled = false,
+  activeLocale: controlledLocale,
+  onActiveLocaleChange,
 }: {
   value: LocalizedRichText;
   onChange: (value: LocalizedRichText) => void;
   content: ContentEditorDictionary;
   training: TrainingDictionary;
   disabled?: boolean;
+  /**
+   * Optional. Lift the active tab into the parent when something outside the
+   * editor needs to know which language is being edited — the copy-to-other-
+   * languages action, for instance. Left alone, the editor manages its own.
+   */
+  activeLocale?: Locale;
+  onActiveLocaleChange?: (locale: Locale) => void;
 }) {
-  const [activeLocale, setActiveLocale] = useState<Locale>(content.locale);
+  const [uncontrolledLocale, setUncontrolledLocale] = useState<Locale>(
+    content.locale,
+  );
+
+  const activeLocale = controlledLocale ?? uncontrolledLocale;
+
+  const setActiveLocale = (locale: Locale): void => {
+    setUncontrolledLocale(locale);
+    onActiveLocaleChange?.(locale);
+  };
 
   const activeValue = useMemo(
     () => value[activeLocale] ?? plainDocument(null),

@@ -2,6 +2,7 @@
 
 import type {
   FileAsset,
+  Locale,
   LocalizedRichText,
   LocalizedText,
   TrainingAutomatedUploadInit,
@@ -10,6 +11,8 @@ import type {
   TrainingLessonResource,
 } from "@odookrd/types";
 import { FilePicker } from "@odookrd/ui";
+
+import { CopyToLanguagesButton } from "@/components/i18n/copy-to-languages-button";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { AdminActionMenu } from "@/components/admin/admin-action-menu";
@@ -719,6 +722,9 @@ export function TrainingLessonEditor({
         initialState.lesson.descriptionTranslations,
         initialState.lesson.description,
       ),
+  );
+  const [descriptionLocale, setDescriptionLocale] = useState<Locale>(
+    contentDictionary.locale,
   );
   const [articleContent, setArticleContent] = useState<LocalizedRichText>(() =>
     initializeLocalizedRichText(
@@ -1452,6 +1458,15 @@ export function TrainingLessonEditor({
               onChange={setRichDescription}
               content={contentDictionary}
               training={training}
+              disabled={busy !== null}
+              activeLocale={descriptionLocale}
+              onActiveLocaleChange={setDescriptionLocale}
+            />
+            <CopyToLanguagesButton
+              value={richDescription}
+              activeLocale={descriptionLocale}
+              onChange={setRichDescription}
+              content={contentDictionary}
               disabled={busy !== null}
             />
           </div>

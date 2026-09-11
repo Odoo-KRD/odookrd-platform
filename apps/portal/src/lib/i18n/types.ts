@@ -338,6 +338,10 @@ export interface AdminErrorDictionary {
 }
 
 export interface ContentEditorDictionary {
+  copyToLanguages: string;
+  copyToLanguagesHint: string;
+  copyToLanguagesConfirm: string;
+  copyToLanguagesDone: string;
   locale: Locale;
   translations: string;
   saveTranslations: string;
