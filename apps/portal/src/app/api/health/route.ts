@@ -28,7 +28,7 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    const upstream = await fetch(new URL("/v1/health/ready", apiBaseUrl), {
+    const upstream = await fetch(new URL("/health/ready", apiBaseUrl), {
       cache: "no-store",
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
