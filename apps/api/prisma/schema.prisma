@@ -163,6 +163,21 @@ enum SubscriptionRenewalRequestStatus {
   @@map("subscription_renewal_request_status")
 }
 
+enum KnowledgeCategoryStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("knowledge_category_status")
+}
+
+enum KnowledgeArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("knowledge_article_status")
+}
+
 enum SettingScope {
   PLATFORM
   COMPANY
@@ -453,6 +468,7 @@ model User {
   trainingQuizAttempts             TrainingQuizAttempt[]
   trainingCourseCompletions        TrainingCourseCompletion[]
   trainingCertificates             TrainingCertificate[]
+  knowledgeArticles                KnowledgeArticle[]             @relation("KnowledgeArticleAuthor")
   subscriptionPeriods              SubscriptionPeriod[]           @relation("SubscriptionPeriodActor")
   subscriptionRenewalsRequested    SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalRequestedBy")
   subscriptionRenewalsReviewed     SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalReviewedBy")
@@ -814,7 +830,7 @@ model Subscription {
   createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  companyService  CompanyService                @relation(fields: [companyServiceId], references: [id], onDelete: Cascade)
+  companyService  CompanyService               @relation(fields: [companyServiceId], references: [id], onDelete: Cascade)
   periods         SubscriptionPeriod[]
   renewalRequests SubscriptionRenewalRequest[]
   reminders       SubscriptionReminder[]
@@ -884,6 +900,69 @@ model SubscriptionRenewalRequest {
   @@index([reviewedByUserId], map: "subscription_renewal_requests_reviewed_by_idx")
   @@index([createdAt], map: "subscription_renewal_requests_created_at_idx")
   @@map("subscription_renewal_requests")
+}
+
+/// A knowledgebase category. Nesting is limited to two levels
+/// (Accounting -> Payments); the depth rule is enforced in the service rather
+/// than the schema, because Postgres cannot express it on a self-reference
+/// without a trigger.
+model KnowledgeCategory {
+  id                      String                  @id @default(uuid()) @db.Uuid
+  slug                    String                  @unique @db.VarChar(160)
+  parentId                String?                 @map("parent_id") @db.Uuid
+  name                    String                  @db.VarChar(200)
+  nameTranslations        Json                    @default("{}") @map("name_translations")
+  description             String?                 @db.VarChar(1000)
+  descriptionTranslations Json                    @default("{}") @map("description_translations")
+  status                  KnowledgeCategoryStatus @default(ACTIVE)
+  sortOrder               Int                     @default(0) @map("sort_order")
+  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  parent   KnowledgeCategory?  @relation("KnowledgeCategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children KnowledgeCategory[] @relation("KnowledgeCategoryTree")
+  articles KnowledgeArticle[]
+
+  @@index([parentId, sortOrder], map: "knowledge_categories_parent_sort_idx")
+  @@index([status], map: "knowledge_categories_status_idx")
+  @@map("knowledge_categories")
+}
+
+/// A knowledgebase article.
+///
+/// Body holds one rich text document per locale, matching how training stores
+/// lesson content. The search_text_* columns hold the plain text extracted
+/// from that document at write time: traversing rich text JSON in SQL would be
+/// slow and fragile, and the extraction is trivial in the service.
+model KnowledgeArticle {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  slug                String                 @unique @db.VarChar(200)
+  categoryId          String                 @map("category_id") @db.Uuid
+  title               String                 @db.VarChar(250)
+  titleTranslations   Json                   @default("{}") @map("title_translations")
+  excerpt             String?                @db.VarChar(500)
+  excerptTranslations Json                   @default("{}") @map("excerpt_translations")
+  body                Json                   @default("{}")
+  status              KnowledgeArticleStatus @default(DRAFT)
+  publishedAt         DateTime?              @map("published_at") @db.Timestamptz(6)
+  sortOrder           Int                    @default(0) @map("sort_order")
+  searchTextKu        String                 @default("") @map("search_text_ku")
+  searchTextAr        String                 @default("") @map("search_text_ar")
+  searchTextEn        String                 @default("") @map("search_text_en")
+  authorUserId        String?                @map("author_user_id") @db.Uuid
+  createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  category KnowledgeCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author   User?             @relation("KnowledgeArticleAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  @@index([categoryId, sortOrder], map: "knowledge_articles_category_sort_idx")
+  @@index([status, publishedAt(sort: Desc)], map: "knowledge_articles_status_published_idx")
+  @@index([authorUserId], map: "knowledge_articles_author_idx")
+  @@index([searchTextKu(ops: raw("gin_trgm_ops"))], map: "knowledge_articles_trgm_ku_idx", type: Gin)
+  @@index([searchTextAr(ops: raw("gin_trgm_ops"))], map: "knowledge_articles_trgm_ar_idx", type: Gin)
+  @@index([searchTextEn(ops: raw("gin_trgm_ops"))], map: "knowledge_articles_trgm_en_idx", type: Gin)
+  @@map("knowledge_articles")
 }
 
 model Notification {

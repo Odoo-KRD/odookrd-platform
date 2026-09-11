@@ -56,6 +56,12 @@ export interface RichTextEditorLabels {
   directionRtl: string;
   separator: string;
   separatorPrompt: string;
+  youtube: string;
+  youtubePrompt: string;
+  youtubeInvalid: string;
+  calloutNote: string;
+  calloutWarning: string;
+  calloutTip: string;
   imageAlignLeft: string;
   imageAlignCenter: string;
   imageAlignRight: string;
@@ -89,8 +95,19 @@ export interface RichTextEditorProps {
 
 type ImageAlignment = "left" | "center" | "right";
 type ResizeCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+/** Shared by the image and video node views. */
+const cornerCursor: Record<ResizeCorner, string> = {
+  "top-left": "nwse-resize",
+  "top-right": "nesw-resize",
+  "bottom-left": "nesw-resize",
+  "bottom-right": "nwse-resize",
+};
 type CommandDialog =
-  { kind: "link"; value: string } | { kind: "separator"; value: string } | null;
+  | { kind: "link"; value: string }
+  | { kind: "separator"; value: string }
+  | { kind: "youtube"; value: string }
+  | null;
 
 const emptyDocument: RichTextValue = {
   type: "doc",
@@ -314,12 +331,6 @@ function ResizableImageNodeView({
     "bottom-left": "-start-1.5 -bottom-1.5",
     "bottom-right": "-end-1.5 -bottom-1.5",
   };
-  const cornerCursor: Record<ResizeCorner, string> = {
-    "top-left": "nwse-resize",
-    "top-right": "nesw-resize",
-    "bottom-left": "nesw-resize",
-    "bottom-right": "nwse-resize",
-  };
 
   return (
     <NodeViewWrapper
@@ -486,6 +497,148 @@ const ResizableImage = Image.extend({
   },
 });
 
+function YoutubeNodeView({
+  node,
+  selected,
+  editor,
+  updateAttributes,
+  deleteNode,
+}: NodeViewProps) {
+  const attrs = node.attrs as {
+    videoId?: string | null;
+    width?: number | null;
+  };
+  const videoId = typeof attrs.videoId === "string" ? attrs.videoId : "";
+  const storedWidth = typeof attrs.width === "number" ? attrs.width : null;
+  const [previewWidth, setPreviewWidth] = useState<number | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const widthRef = useRef<number | null>(storedWidth);
+
+  const displayWidth = previewWidth ?? storedWidth;
+
+  function beginResize(
+    event: ReactPointerEvent<HTMLButtonElement>,
+    corner: ResizeCorner,
+  ): void {
+    if (!editor.isEditable) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const rect = frame.getBoundingClientRect();
+    const startWidth = rect.width;
+    const startX = event.clientX;
+    const horizontalSign = corner.endsWith("right") ? 1 : -1;
+    const maximumWidth =
+      frame.parentElement?.parentElement?.clientWidth ??
+      Math.max(160, startWidth);
+    widthRef.current = Math.round(startWidth);
+
+    const onMove = (moveEvent: PointerEvent): void => {
+      const next = Math.min(
+        Math.max(
+          160,
+          Math.round(
+            startWidth + (moveEvent.clientX - startX) * horizontalSign,
+          ),
+        ),
+        Math.max(160, maximumWidth),
+      );
+      widthRef.current = next;
+      setPreviewWidth(next);
+    };
+
+    const onUp = (): void => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (widthRef.current) updateAttributes({ width: widthRef.current });
+      setPreviewWidth(null);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp, { once: true });
+  }
+
+  return (
+    <NodeViewWrapper className="group relative my-5 flex justify-center">
+      <div
+        ref={frameRef}
+        data-drag-handle={editor.isEditable ? "" : undefined}
+        className="relative"
+        style={{ width: displayWidth ? `${displayWidth}px` : "100%" }}
+      >
+        {videoId ? (
+          <div
+            className={`relative w-full overflow-hidden rounded-sm border-2 bg-slate-900 pt-[56.25%] transition ${
+              selected
+                ? "border-[#2563eb] shadow-sm"
+                : "border-transparent group-hover:border-amber-400"
+            }`}
+          >
+            {/*
+              A still, not a player. An iframe in the editor loads YouTube on
+              every keystroke-triggered re-render, steals clicks meant for
+              selecting the node, and lets a video start playing while someone
+              is writing. The reader gets the real embed; the author gets a
+              picture.
+            */}
+            <img
+              src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+              alt=""
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="absolute inset-0 size-full object-cover"
+            />
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex size-14 items-center justify-center rounded-full bg-black/70 text-white">
+                <span className="ms-1 border-y-8 border-s-[14px] border-y-transparent border-s-white" />
+              </span>
+            </span>
+          </div>
+        ) : (
+          <div className="rounded-sm border-2 border-dashed border-slate-300 p-4 text-xs text-slate-500">
+            YouTube
+          </div>
+        )}
+
+        {editor.isEditable && selected ? (
+          <button
+            type="button"
+            contentEditable={false}
+            aria-label="Delete video"
+            title="Delete video"
+            onClick={deleteNode}
+            className="absolute -top-3 end-0 z-10 inline-flex size-7 items-center justify-center rounded bg-white text-sm font-bold text-red-700 shadow"
+          >
+            ×
+          </button>
+        ) : null}
+
+        {editor.isEditable
+          ? (["bottom-left", "bottom-right"] as const).map((corner) => (
+              <button
+                key={corner}
+                type="button"
+                contentEditable={false}
+                aria-label={`Resize video: ${corner}`}
+                title={`Resize video: ${corner}`}
+                onPointerDown={(event) => beginResize(event, corner)}
+                style={{ cursor: cornerCursor[corner], touchAction: "none" }}
+                className={`absolute z-10 size-3 border border-white bg-[#2563eb] shadow-sm transition-opacity ${
+                  corner === "bottom-left"
+                    ? "-bottom-1.5 -left-1.5"
+                    : "-bottom-1.5 -right-1.5"
+                } ${selected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              />
+            ))
+          : null}
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
 function SeparatorNodeView({ node, selected, editor }: NodeViewProps) {
   const attrs = node.attrs as { label?: string | null };
   const label = typeof attrs.label === "string" ? attrs.label.trim() : "";
@@ -542,6 +695,123 @@ const Separator = Node.create({
   },
 });
 
+/**
+ * Extracts a YouTube video id from whatever the author pasted.
+ *
+ * The id is stored, never the URL. A stored URL would be rendered into an
+ * iframe src, which makes the document a place someone could put an arbitrary
+ * embed; an 11-character id can only ever address YouTube.
+ */
+export function youtubeVideoId(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.replace(/^www\./, "");
+
+    if (host === "youtu.be") {
+      const id = parsed.pathname.slice(1);
+      return /^[\w-]{11}$/.test(id) ? id : null;
+    }
+
+    if (
+      host === "youtube.com" ||
+      host === "m.youtube.com" ||
+      host === "youtube-nocookie.com"
+    ) {
+      const param = parsed.searchParams.get("v");
+      if (param && /^[\w-]{11}$/.test(param)) return param;
+
+      const embedded = parsed.pathname.match(
+        /^\/(?:embed|shorts|v)\/([\w-]{11})$/,
+      );
+      if (embedded) return embedded[1];
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+const YoutubeEmbed = Node.create({
+  name: "youtubeEmbed",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      videoId: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-video-id") ?? "",
+        renderHTML: (attributes) => ({
+          "data-video-id": String(attributes.videoId ?? ""),
+        }),
+      },
+      width: {
+        default: null,
+        parseHTML: (element) => {
+          const raw = element.getAttribute("data-width");
+          const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+          return Number.isFinite(parsed) ? parsed : null;
+        },
+        renderHTML: (attributes) =>
+          attributes.width ? { "data-width": String(attributes.width) } : {},
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'div[data-odookrd-youtube="true"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-odookrd-youtube": "true" }),
+    ];
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(YoutubeNodeView);
+  },
+});
+
+const CALLOUT_VARIANTS = ["note", "warning", "tip"] as const;
+
+type CalloutVariant = (typeof CALLOUT_VARIANTS)[number];
+
+const Callout = Node.create({
+  name: "callout",
+  group: "block",
+  // Not an atom: the body is editable content, which is what makes a callout
+  // useful rather than a styled one-liner.
+  content: "block+",
+  defining: true,
+  addAttributes() {
+    return {
+      variant: {
+        default: "note",
+        parseHTML: (element) => element.getAttribute("data-variant") ?? "note",
+        renderHTML: (attributes) => ({
+          "data-variant": String(attributes.variant ?? "note"),
+        }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'div[data-odookrd-callout="true"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, { "data-odookrd-callout": "true" }),
+      0,
+    ];
+  },
+});
+
 function normalizeLink(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -592,6 +862,8 @@ export function RichTextEditor({
       BlockPresentation,
       Separator,
       ResizableImage.configure({ allowBase64: false, inline: false }),
+      YoutubeEmbed,
+      Callout,
     ],
     content: normalizeValue(value),
     editable: !disabled,
@@ -726,6 +998,23 @@ export function RichTextEditor({
     setCommandDialog({ kind: "separator", value: "" });
   }
 
+  function openYoutubeDialog(): void {
+    if (!editor || disabled) return;
+    setEditorError(null);
+    setCommandDialog({ kind: "youtube", value: "" });
+  }
+
+  function toggleCallout(variant: "note" | "warning" | "tip"): void {
+    if (!editor || disabled) return;
+
+    if (editor.isActive("callout", { variant })) {
+      editor.chain().focus().lift("callout").run();
+      return;
+    }
+
+    editor.chain().focus().wrapIn("callout", { variant }).run();
+  }
+
   function openLinkDialog(): void {
     if (!editor || disabled) return;
     setEditorError(null);
@@ -749,6 +1038,23 @@ export function RichTextEditor({
           type: "separator",
           attrs: { label: commandDialog.value.trim() },
         })
+        .run();
+      setCommandDialog(null);
+      return;
+    }
+
+    if (commandDialog.kind === "youtube") {
+      const videoId = youtubeVideoId(commandDialog.value);
+
+      if (!videoId) {
+        setEditorError(labels.youtubeInvalid);
+        return;
+      }
+
+      editor
+        .chain()
+        .focus()
+        .insertContent({ type: "youtubeEmbed", attrs: { videoId } })
         .run();
       setCommandDialog(null);
       return;
@@ -794,7 +1100,11 @@ export function RichTextEditor({
   const editorShell = (
     <div
       dir={dir}
-      className={`flex min-h-0 flex-col overflow-hidden bg-white focus-within:border-[#714b67] focus-within:ring-2 focus-within:ring-[#714b67]/10 ${
+      // overflow-hidden only in fullscreen: outside it, the wrapper clipped the
+      // growth from the scroll area's resize handle, so dragging did nothing.
+      className={`flex min-h-0 flex-col bg-white focus-within:border-[#714b67] focus-within:ring-2 focus-within:ring-[#714b67]/10 ${
+        fullscreen ? "overflow-hidden" : ""
+      } ${
         fullscreen
           ? "h-[100dvh] w-screen rounded-none border-0"
           : "rounded-lg border border-slate-300"
@@ -922,6 +1232,39 @@ export function RichTextEditor({
             onClick={openSeparatorDialog}
             icon="separator"
           />
+          <ToolButton
+            label={labels.youtube}
+            disabled={!editor || disabled}
+            onClick={openYoutubeDialog}
+          >
+            <span className="text-[11px] font-semibold">YT</span>
+          </ToolButton>
+          <ToolButton
+            label={labels.calloutNote}
+            active={editor?.isActive("callout", { variant: "note" }) ?? false}
+            disabled={!editor || disabled}
+            onClick={() => toggleCallout("note")}
+          >
+            <span className="text-[11px] font-semibold">i</span>
+          </ToolButton>
+          <ToolButton
+            label={labels.calloutWarning}
+            active={
+              editor?.isActive("callout", { variant: "warning" }) ?? false
+            }
+            disabled={!editor || disabled}
+            onClick={() => toggleCallout("warning")}
+          >
+            <span className="text-[11px] font-semibold">!</span>
+          </ToolButton>
+          <ToolButton
+            label={labels.calloutTip}
+            active={editor?.isActive("callout", { variant: "tip" }) ?? false}
+            disabled={!editor || disabled}
+            onClick={() => toggleCallout("tip")}
+          >
+            <span className="text-[11px] font-semibold">*</span>
+          </ToolButton>
 
           <span className="mx-0.5 h-5 w-px bg-slate-200" aria-hidden="true" />
 
@@ -1099,7 +1442,11 @@ export function RichTextEditor({
             id={`${commandInputId}-title`}
             className="text-base font-semibold text-slate-900"
           >
-            {commandDialog.kind === "link" ? labels.link : labels.separator}
+            {commandDialog.kind === "link"
+              ? labels.link
+              : commandDialog.kind === "youtube"
+                ? labels.youtube
+                : labels.separator}
           </h3>
         </header>
 
@@ -1110,7 +1457,9 @@ export function RichTextEditor({
           >
             {commandDialog.kind === "link"
               ? labels.linkPrompt
-              : labels.separatorPrompt}
+              : commandDialog.kind === "youtube"
+                ? labels.youtubePrompt
+                : labels.separatorPrompt}
           </label>
           <input
             id={commandInputId}

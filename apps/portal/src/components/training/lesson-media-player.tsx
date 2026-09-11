@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { TrainingMediaDictionary } from "@/lib/i18n/training/media";
 import { BrandedVideoPlayer } from "./branded-video-player";
-import { LessonArticleViewer } from "./lesson-article-viewer";
+import { RichTextViewer } from "@/components/i18n/rich-text-viewer";
 import { PdfSlideViewer } from "./pdf-slide-viewer";
 import { TrainingQuizPlayer } from "./training-quiz-player";
 
@@ -245,7 +245,7 @@ export function LessonMediaPlayer({
     return (
       <div className="flex h-full min-h-0 flex-col gap-3 bg-slate-950 p-3 sm:p-4">
         <div className="min-h-0 flex-1">
-          <LessonArticleViewer
+          <RichTextViewer
             document={articleDocument(content, locale)}
             dir={locale === "en" ? "ltr" : "rtl"}
             articleAssetBasePath={`/api/training/catalog/${encodeURIComponent(courseSlug)}/lessons/${encodeURIComponent(lesson.id)}/article-assets`}

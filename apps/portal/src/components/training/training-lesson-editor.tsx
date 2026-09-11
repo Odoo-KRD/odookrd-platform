@@ -1462,13 +1462,15 @@ export function TrainingLessonEditor({
               disabled={busy !== null}
               activeLocale={descriptionLocale}
               onActiveLocaleChange={setDescriptionLocale}
-            />
-            <CopyToLanguagesButton
-              value={richDescription}
-              activeLocale={descriptionLocale}
-              onChange={setRichDescription}
-              content={contentDictionary}
-              disabled={busy !== null}
+              actions={
+                <CopyToLanguagesButton
+                  value={richDescription}
+                  activeLocale={descriptionLocale}
+                  onChange={setRichDescription}
+                  content={contentDictionary}
+                  disabled={busy !== null}
+                />
+              }
             />
           </div>
           <label className="grid gap-2 text-sm font-medium text-content">

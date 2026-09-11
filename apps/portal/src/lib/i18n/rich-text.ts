@@ -33,6 +33,12 @@ export interface RichTextToolbarDictionary {
   directionRtl: string;
   separator: string;
   separatorPrompt: string;
+  youtube: string;
+  youtubePrompt: string;
+  youtubeInvalid: string;
+  calloutNote: string;
+  calloutWarning: string;
+  calloutTip: string;
   imageAlignLeft: string;
   imageAlignCenter: string;
   imageAlignRight: string;
@@ -74,6 +80,12 @@ const ku: RichTextToolbarDictionary = {
   directionRtl: "ئاڕاستەی RTL",
   separator: "زیادکردنی هێڵی جیاکەرەوە",
   separatorPrompt: "ناونیشانی هێڵی جیاکەرەوە (ئارەزوومەندانە)",
+  youtube: "ڤیدیۆی یوتیوب",
+  youtubePrompt: "بەستەری ڤیدیۆی یوتیوب دابنێ",
+  youtubeInvalid: "بەستەری یوتیۆب دروست نییە.",
+  calloutNote: "تێبینی",
+  calloutWarning: "ئاگاداری",
+  calloutTip: "ئامۆژگاری",
   imageAlignLeft: "وێنە بۆ چەپ",
   imageAlignCenter: "وێنە بۆ ناوەڕاست",
   imageAlignRight: "وێنە بۆ ڕاست",
@@ -115,6 +127,12 @@ const ar: RichTextToolbarDictionary = {
   directionRtl: "اتجاه RTL",
   separator: "إدراج فاصل",
   separatorPrompt: "عنوان الفاصل (اختياري)",
+  youtube: "فيديو يوتيوب",
+  youtubePrompt: "الصق رابط فيديو يوتيوب",
+  youtubeInvalid: "رابط يوتيوب غير صالح.",
+  calloutNote: "ملاحظة",
+  calloutWarning: "تحذير",
+  calloutTip: "نصيحة",
   imageAlignLeft: "محاذاة الصورة لليسار",
   imageAlignCenter: "توسيط الصورة",
   imageAlignRight: "محاذاة الصورة لليمين",
@@ -156,6 +174,12 @@ const en: RichTextToolbarDictionary = {
   directionRtl: "Right-to-left",
   separator: "Insert separator",
   separatorPrompt: "Separator label (optional)",
+  youtube: "YouTube video",
+  youtubePrompt: "Paste a YouTube video link",
+  youtubeInvalid: "That is not a valid YouTube link.",
+  calloutNote: "Note",
+  calloutWarning: "Warning",
+  calloutTip: "Tip",
   imageAlignLeft: "Align image left",
   imageAlignCenter: "Center image",
   imageAlignRight: "Align image right",

@@ -7,7 +7,7 @@ import type {
   RichTextDocument,
 } from "@odookrd/types";
 import { RichTextEditor } from "@odookrd/ui";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import {
   DEFAULT_LOCALE,
@@ -137,6 +137,7 @@ export function LocalizedRichTextEditor({
   disabled = false,
   activeLocale: controlledLocale,
   onActiveLocaleChange,
+  actions,
 }: {
   value: LocalizedRichText;
   onChange: (value: LocalizedRichText) => void;
@@ -150,6 +151,11 @@ export function LocalizedRichTextEditor({
    */
   activeLocale?: Locale;
   onActiveLocaleChange?: (locale: Locale) => void;
+  /**
+   * Rendered at the end of the language tab row. The copy-to-languages button
+   * belongs to the form, not the editor, but it reads as part of the tabs.
+   */
+  actions?: ReactNode;
 }) {
   const [uncontrolledLocale, setUncontrolledLocale] = useState<Locale>(
     content.locale,
@@ -184,6 +190,7 @@ export function LocalizedRichTextEditor({
             {content.languages[locale]} · {locale.toUpperCase()}
           </button>
         ))}
+        {actions ? <div className="ms-auto">{actions}</div> : null}
       </div>
 
       <RichTextEditor

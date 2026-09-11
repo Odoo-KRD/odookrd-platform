@@ -277,6 +277,52 @@ function renderNode(
   }
 
   if (type === "hardBreak") return <br key={key} />;
+  if (type === "youtubeEmbed") {
+    const videoId = attrsOf(node).videoId;
+
+    // Only ever an id, never a URL taken from the document: an 11-character id
+    // can address nothing but YouTube, so a crafted document cannot turn this
+    // into an arbitrary embed.
+    if (typeof videoId !== "string" || !/^[\w-]{11}$/.test(videoId)) {
+      return null;
+    }
+
+    return (
+      <div
+        key={key}
+        className="relative my-5 w-full overflow-hidden rounded-md pt-[56.25%]"
+      >
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+          title="YouTube video"
+          loading="lazy"
+          sandbox="allow-scripts allow-same-origin allow-presentation"
+          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="absolute inset-0 size-full border-0"
+        />
+      </div>
+    );
+  }
+
+  if (type === "callout") {
+    const variant = attrsOf(node).variant;
+    const tone =
+      variant === "warning"
+        ? "border-amber-300 bg-amber-50"
+        : variant === "tip"
+          ? "border-emerald-300 bg-emerald-50"
+          : "border-sky-300 bg-sky-50";
+
+    // border-s-4 rather than border-l-4: the accent belongs on the reading
+    // edge, which flips in Kurdish and Arabic.
+    return (
+      <div key={key} className={`my-5 rounded-md border-s-4 px-4 py-3 ${tone}`}>
+        {children}
+      </div>
+    );
+  }
+
   if (type === "horizontalRule") {
     return <hr key={key} className="my-5 border-line" />;
   }
@@ -284,20 +330,33 @@ function renderNode(
   return <div key={key}>{children}</div>;
 }
 
-export function LessonArticleViewer({
+/**
+ * Renders a rich text document for reading.
+ *
+ * The counterpart to LocalizedRichTextEditor: whatever node types the editor
+ * can produce, this has to render, or the content is stored and shown as
+ * nothing. Keep the two together when adding to either.
+ *
+ * Nothing here trusts the document. Links and image sources go through
+ * safeHref, because a document is data and data can be crafted.
+ */
+const LESSON_PLAYER_CLASS_NAME =
+  "h-full min-h-0 overflow-y-auto overscroll-contain rounded-md bg-white p-5 text-sm text-content shadow-xl sm:p-7 lg:p-8";
+
+export function RichTextViewer({
   document,
   dir = "ltr",
   articleAssetBasePath,
+  className = LESSON_PLAYER_CLASS_NAME,
 }: {
   document: unknown;
   dir?: "ltr" | "rtl";
   articleAssetBasePath?: string;
+  /** Defaults to the lesson player's scrolling container. */
+  className?: string;
 }) {
   return (
-    <article
-      dir={dir}
-      className="h-full min-h-0 overflow-y-auto overscroll-contain rounded-md bg-white p-5 text-sm text-content shadow-xl sm:p-7 lg:p-8"
-    >
+    <article dir={dir} className={className}>
       {renderNode(document, "article", articleAssetBasePath)}
     </article>
   );

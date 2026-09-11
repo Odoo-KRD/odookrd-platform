@@ -76,19 +76,18 @@ export function CopyToLanguagesButton({
     window.setTimeout(() => setCopied(false), 4000);
   };
 
+  // Sized to match the language tabs it sits beside. The hint lives in the
+  // title attribute rather than a paragraph: beside the tabs there is no room
+  // for a line of explanation, and it is only needed on first encounter.
   return (
-    <div className="grid gap-1">
-      <button
-        type="button"
-        onClick={copy}
-        disabled={disabled || sourceIsEmpty}
-        className="inline-flex h-9 w-fit items-center rounded-md border border-line bg-white px-3 text-xs font-semibold text-content transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {content.copyToLanguages}
-      </button>
-      <p className="text-xs text-muted">
-        {copied ? content.copyToLanguagesDone : content.copyToLanguagesHint}
-      </p>
-    </div>
+    <button
+      type="button"
+      onClick={copy}
+      disabled={disabled || sourceIsEmpty}
+      title={content.copyToLanguagesHint}
+      className="inline-flex h-8 w-fit items-center rounded-md border border-line bg-white px-2.5 text-xs font-medium text-muted transition-colors hover:bg-surface-subtle hover:text-content disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {copied ? content.copyToLanguagesDone : content.copyToLanguages}
+    </button>
   );
 }
