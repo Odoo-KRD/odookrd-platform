@@ -269,7 +269,7 @@ export class TrainingProgressService {
     const resolved = await this.resolveLesson(principal, slug, lessonId);
     const now = new Date();
 
-    return this.prisma.$transaction(async (tx) => {
+    const state = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.trainingLessonProgress.findUnique({
         where: {
           userId_lessonId: {
@@ -392,6 +392,13 @@ export class TrainingProgressService {
         progress,
       );
     });
+
+    await this.completions.notifyAdminsIfCompleted(
+      resolved.context,
+      resolved.courseId,
+    );
+
+    return state;
   }
 
   async completeLesson(
@@ -409,7 +416,7 @@ export class TrainingProgressService {
 
     const now = new Date();
 
-    return this.prisma.$transaction(async (tx) => {
+    const state = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.trainingLessonProgress.findUnique({
         where: {
           userId_lessonId: {
@@ -459,6 +466,13 @@ export class TrainingProgressService {
         progress,
       );
     });
+
+    await this.completions.notifyAdminsIfCompleted(
+      resolved.context,
+      resolved.courseId,
+    );
+
+    return state;
   }
 
   async completeQuizLesson(
@@ -476,7 +490,7 @@ export class TrainingProgressService {
 
     const now = new Date();
 
-    return this.prisma.$transaction(async (tx) => {
+    const state = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.trainingLessonProgress.findUnique({
         where: {
           userId_lessonId: {
@@ -526,6 +540,13 @@ export class TrainingProgressService {
         progress,
       );
     });
+
+    await this.completions.notifyAdminsIfCompleted(
+      resolved.context,
+      resolved.courseId,
+    );
+
+    return state;
   }
 
   private async resolveLesson(

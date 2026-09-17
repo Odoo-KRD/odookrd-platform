@@ -4,6 +4,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { AuthModule } from '../auth/auth.module';
 import { AuthorizationModule } from '../authorization/authorization.module';
 import { SettingsModule } from '../settings/settings.module';
+import { AdminEventNotificationService } from './admin-event-notification.service';
 import { NotificationAdministrationService } from './notification-administration.service';
 import { NotificationBroadcastService } from './notification-broadcast.service';
 import { NotificationDispatcherService } from './notification-dispatcher.service';
@@ -25,6 +26,7 @@ import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
     NotificationBroadcastController,
   ],
   providers: [
+    AdminEventNotificationService,
     NotificationAdministrationTemplateService,
     NotificationAdministrationService,
     NotificationsService,
@@ -36,6 +38,7 @@ import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
     NotificationBroadcastService,
   ],
   exports: [
+    AdminEventNotificationService,
     NotificationsService,
     EmailProviderService,
     WhatsAppProviderService,

@@ -84,6 +84,36 @@ export async function getCustomerAccountApiContext(): Promise<{
   return { session, token };
 }
 
+/**
+ * Inbox pages and actions are shared: a company user reads their company inbox,
+ * a platform admin reads the platform inbox. Both need a token and the
+ * permission; only the company case needs a company.
+ */
+export async function getNotificationApiContext(
+  permission: PermissionKey,
+): Promise<{
+  session: CurrentSession;
+  token: string;
+}> {
+  const session = await requireSession();
+  const isPlatform = session.user.accountScope === "PLATFORM";
+
+  if (
+    !hasPermission(session, permission) ||
+    (!isPlatform && !session.user.companyId)
+  ) {
+    redirect(isPlatform ? "/admin" : "/dashboard");
+  }
+
+  const token = await getSessionToken();
+
+  if (!token) {
+    redirect("/login");
+  }
+
+  return { session, token };
+}
+
 export async function getCustomerApiContext(
   permission: PermissionKey,
 ): Promise<{

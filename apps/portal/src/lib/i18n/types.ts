@@ -65,6 +65,7 @@ export interface AdminNavigationDictionary {
   trainingReports: string;
   notifications: string;
   deliveryLog: string;
+  notificationsInbox: string;
   providerStatus: string;
   testEmail: string;
   broadcasts: string;

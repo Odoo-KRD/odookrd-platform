@@ -60,6 +60,8 @@ export interface PublishNotificationInput<K extends NotificationTemplateKey> {
   variables: NotificationTemplateVariablesByKey[K];
   recipients: readonly PublishRecipient[];
   channels?: readonly NotificationChannel[];
+  /** Platform accounts (which have no company) may receive this notification. */
+  allowPlatformRecipients?: boolean;
   actionUrl?: string | null;
   actorUserId?: string;
   dispatchImmediately?: boolean;
@@ -80,10 +82,9 @@ export class NotificationsService {
   ) {}
 
   async list(principal: AuthenticatedPrincipal, query: ListNotificationsDto) {
-    const companyId = this.requireCompany(principal);
+    const scope = this.inboxScope(principal);
     const where: Prisma.NotificationRecipientWhereInput = {
-      companyId,
-      userId: principal.userId,
+      ...scope,
       deliveries: {
         some: {
           channel: NotificationChannel.IN_APP,
@@ -120,11 +121,10 @@ export class NotificationsService {
   async unreadCount(
     principal: AuthenticatedPrincipal,
   ): Promise<{ unread: number }> {
-    const companyId = this.requireCompany(principal);
+    const scope = this.inboxScope(principal);
     const unread = await this.prisma.notificationRecipient.count({
       where: {
-        companyId,
-        userId: principal.userId,
+        ...scope,
         readAt: null,
         deliveries: {
           some: {
@@ -142,14 +142,13 @@ export class NotificationsService {
     principal: AuthenticatedPrincipal,
     recipientId: string,
   ): Promise<{ readAt: Date }> {
-    const companyId = this.requireCompany(principal);
+    const scope = this.inboxScope(principal);
 
     return this.prisma.$transaction(async (transaction) => {
       const recipient = await transaction.notificationRecipient.findFirst({
         where: {
           id: recipientId,
-          companyId,
-          userId: principal.userId,
+          ...scope,
           deliveries: {
             some: {
               channel: NotificationChannel.IN_APP,
@@ -157,7 +156,7 @@ export class NotificationsService {
             },
           },
         },
-        select: { id: true, readAt: true },
+        select: { id: true, readAt: true, companyId: true },
       });
 
       if (!recipient) {
@@ -169,8 +168,7 @@ export class NotificationsService {
         await transaction.notificationRecipient.updateMany({
           where: {
             id: recipient.id,
-            companyId,
-            userId: principal.userId,
+            ...scope,
             readAt: null,
           },
           data: { readAt },
@@ -178,7 +176,7 @@ export class NotificationsService {
         await transaction.auditLog.create({
           data: {
             actorUserId: principal.userId,
-            companyId,
+            companyId: recipient.companyId,
             action: 'notification.read',
             targetType: 'notification_recipient',
             targetId: recipient.id,
@@ -193,14 +191,13 @@ export class NotificationsService {
   async markAllRead(
     principal: AuthenticatedPrincipal,
   ): Promise<{ updated: number }> {
-    const companyId = this.requireCompany(principal);
+    const scope = this.inboxScope(principal);
     const now = new Date();
 
     return this.prisma.$transaction(async (transaction) => {
       const updated = await transaction.notificationRecipient.updateMany({
         where: {
-          companyId,
-          userId: principal.userId,
+          ...scope,
           readAt: null,
           deliveries: {
             some: {
@@ -216,7 +213,7 @@ export class NotificationsService {
         await transaction.auditLog.create({
           data: {
             actorUserId: principal.userId,
-            companyId,
+            companyId: principal.companyId ?? null,
             action: 'notification.read_all',
             targetType: 'notification_recipient',
             metadata: { updated: updated.count },
@@ -265,9 +262,21 @@ export class NotificationsService {
     const users = await this.prisma.user.findMany({
       where: {
         id: { in: recipientIds },
-        companyId: input.companyId,
-        accountScope: AccountScope.COMPANY,
         status: UserStatus.ACTIVE,
+        OR: input.allowPlatformRecipients
+          ? [
+              {
+                companyId: input.companyId,
+                accountScope: AccountScope.COMPANY,
+              },
+              { accountScope: AccountScope.PLATFORM },
+            ]
+          : [
+              {
+                companyId: input.companyId,
+                accountScope: AccountScope.COMPANY,
+              },
+            ],
       },
       select: { id: true, email: true },
     });
@@ -384,6 +393,24 @@ export class NotificationsService {
       await this.dispatcher.dispatchNotification(createdId);
     }
     return { id: createdId, created: true };
+  }
+
+  /**
+   * Platform accounts have no company, so their inbox is scoped by user alone.
+   * Company accounts stay scoped to their company as before.
+   */
+  private inboxScope(principal: AuthenticatedPrincipal): {
+    companyId?: string;
+    userId: string;
+  } {
+    if (principal.accountScope === AccountScope.PLATFORM) {
+      return { userId: principal.userId };
+    }
+
+    return {
+      companyId: this.requireCompany(principal),
+      userId: principal.userId,
+    };
   }
 
   private requireCompany(principal: AuthenticatedPrincipal): string {

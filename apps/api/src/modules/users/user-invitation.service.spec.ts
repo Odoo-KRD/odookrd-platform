@@ -11,6 +11,7 @@ import {
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { PasswordService } from '../auth/password.service';
 import { AuditService } from '../audit/audit.service';
+import type { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
 import { UserInvitationService } from './user-invitation.service';
 
 describe('UserInvitationService security', () => {
@@ -40,6 +41,10 @@ describe('UserInvitationService security', () => {
     AUTH_PASSWORD_MIN_LENGTH: 12,
     AUTH_PASSWORD_MAX_LENGTH: 128,
   };
+
+  const adminEvents = {
+    invitationAccepted: jest.fn().mockResolvedValue(undefined),
+  } as unknown as AdminEventNotificationService;
 
   const configService = {
     getOrThrow(key: string): number {
@@ -117,6 +122,7 @@ describe('UserInvitationService security', () => {
         companyId: 'company-a',
         company: {
           status: CompanyStatus.ACTIVE,
+          name: 'Company A',
         },
         userRoles: [
           {
@@ -140,6 +146,7 @@ describe('UserInvitationService security', () => {
       prisma,
       passwordService,
       auditService,
+      adminEvents,
       configService,
     );
   });

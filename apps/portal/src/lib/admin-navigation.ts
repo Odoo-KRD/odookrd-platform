@@ -24,6 +24,7 @@ export interface AdminNavigationLabels {
   trainingReports: string;
   notifications: string;
   deliveryLog: string;
+  notificationsInbox: string;
   providerStatus: string;
   testEmail: string;
   broadcasts: string;
@@ -176,6 +177,11 @@ export function buildAdminNavigation(
 
   if (hasPermission(session, PERMISSIONS.NOTIFICATIONS_MANAGE)) {
     const notificationChildren: AdminNavigationEntry[] = [
+      {
+        kind: "item",
+        href: "/admin/notifications/inbox",
+        label: labels.notificationsInbox,
+      },
       {
         kind: "item",
         href: "/admin/notifications/deliveries",

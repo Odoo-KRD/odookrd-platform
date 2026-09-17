@@ -4,6 +4,7 @@ import { AccountScope } from '../../generated/prisma/enums';
 import type { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import type { AuthorizationService } from '../authorization/authorization.service';
+import type { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
 import type { SubscriptionAdministrationService } from './subscription-administration.service';
 import { SubscriptionRenewalRequestService } from './subscription-renewal-request.service';
 
@@ -81,11 +82,16 @@ function serviceFor(overrides: { assignment?: unknown } = {}) {
     renew: jest.fn().mockResolvedValue({}),
   } as unknown as SubscriptionAdministrationService;
 
+  const adminEvents = {
+    renewalRequested: jest.fn().mockResolvedValue(undefined),
+  } as unknown as AdminEventNotificationService;
+
   return {
     service: new SubscriptionRenewalRequestService(
       prisma,
       authorization,
       administration,
+      adminEvents,
     ),
     where: (): unknown => capturedWhere,
     calls: (): number => findManyCalls,

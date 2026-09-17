@@ -35,6 +35,18 @@ export const apiEn = {
 
     subscriptionExpiresOnLabel: 'Expires on',
     serviceAssignedBody: 'A new service is available on your dashboard.',
+    adminInvitationAcceptedSubject: 'A user accepted their invitation',
+    adminInvitationAcceptedBody: 'A customer user has activated their account and can now sign in.',
+    adminCourseCompletedSubject: 'A learner completed a course',
+    adminCourseCompletedBody: 'A customer learner has finished all required course learning.',
+    adminRenewalRequestedSubject: 'A renewal was requested',
+    adminRenewalRequestedBody: 'A customer has requested a service renewal and it is waiting for review.',
+    adminCertificateIssuedSubject: 'A certificate was issued',
+    adminCertificateIssuedBody: 'A customer learner has issued a course certificate.',
+    adminCompanyLabel: 'Company',
+    adminUserLabel: 'User',
+    adminCourseLabel: 'Course',
+    adminServiceLabel: 'Service',
     securityNoticeSubject: 'Account security notice',
   },
 } satisfies ApiTranslations;

@@ -20,6 +20,24 @@ export interface NotificationTemplateVariablesByKey {
     title: string;
     body: string;
   };
+  'admin.invitation.accepted': {
+    companyName?: string;
+    userName?: string;
+  };
+  'admin.course.completed': {
+    companyName?: string;
+    learnerName?: string;
+    courseTitle?: string;
+  };
+  'admin.renewal.requested': {
+    companyName?: string;
+    serviceName?: string;
+  };
+  'admin.certificate.issued': {
+    companyName?: string;
+    learnerName?: string;
+    courseTitle?: string;
+  };
 }
 
 export type NotificationTemplateKey = keyof NotificationTemplateVariablesByKey;
@@ -31,6 +49,19 @@ export interface RenderedNotification {
 
 @Injectable()
 export class NotificationTemplateService {
+  /** Admin events read as a lead line plus the "Label: value" facts we have. */
+  private withDetails(
+    lead: string,
+    details: readonly (readonly [string, string | undefined])[],
+  ): string {
+    const lines = details
+      .map(([label, value]) => [label, value?.trim()] as const)
+      .filter((entry): entry is readonly [string, string] => Boolean(entry[1]))
+      .map(([label, value]) => `${label}: ${value.slice(0, 200)}`);
+
+    return lines.length === 0 ? lead : `${lead}\n\n${lines.join('\n')}`;
+  }
+
   render<K extends NotificationTemplateKey>(
     key: K,
     locale: ApiLocale,
@@ -94,6 +125,60 @@ export class NotificationTemplateService {
         return {
           title: copy.securityNoticeSubject,
           body: message,
+        };
+      }
+
+      case 'admin.invitation.accepted': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.invitation.accepted'];
+
+        return {
+          title: copy.adminInvitationAcceptedSubject,
+          body: this.withDetails(copy.adminInvitationAcceptedBody, [
+            [copy.adminCompanyLabel, input.companyName],
+            [copy.adminUserLabel, input.userName],
+          ]),
+        };
+      }
+
+      case 'admin.course.completed': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.course.completed'];
+
+        return {
+          title: copy.adminCourseCompletedSubject,
+          body: this.withDetails(copy.adminCourseCompletedBody, [
+            [copy.adminCompanyLabel, input.companyName],
+            [copy.adminUserLabel, input.learnerName],
+            [copy.adminCourseLabel, input.courseTitle],
+          ]),
+        };
+      }
+
+      case 'admin.renewal.requested': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.renewal.requested'];
+
+        return {
+          title: copy.adminRenewalRequestedSubject,
+          body: this.withDetails(copy.adminRenewalRequestedBody, [
+            [copy.adminCompanyLabel, input.companyName],
+            [copy.adminServiceLabel, input.serviceName],
+          ]),
+        };
+      }
+
+      case 'admin.certificate.issued': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.certificate.issued'];
+
+        return {
+          title: copy.adminCertificateIssuedSubject,
+          body: this.withDetails(copy.adminCertificateIssuedBody, [
+            [copy.adminCompanyLabel, input.companyName],
+            [copy.adminUserLabel, input.learnerName],
+            [copy.adminCourseLabel, input.courseTitle],
+          ]),
         };
       }
 

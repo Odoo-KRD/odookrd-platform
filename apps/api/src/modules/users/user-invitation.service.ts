@@ -13,6 +13,7 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { PasswordService } from '../auth/password.service';
 import { AUDIT_ACTIONS } from '../audit/audit.actions';
 import { AuditService } from '../audit/audit.service';
+import { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
 import type { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { normalizeInvitationName } from './invitation-name';
 
@@ -32,6 +33,7 @@ export class UserInvitationService {
     private readonly prisma: PrismaService,
     private readonly passwordService: PasswordService,
     private readonly auditService: AuditService,
+    private readonly adminEvents: AdminEventNotificationService,
     configService: ConfigService,
   ) {
     this.invitationTtlSeconds = configService.getOrThrow<number>(
@@ -90,6 +92,7 @@ export class UserInvitationService {
             company: {
               select: {
                 status: true,
+                name: true,
               },
             },
             userRoles: {
@@ -112,7 +115,7 @@ export class UserInvitationService {
 
     const passwordHash = await this.passwordService.hashPassword(dto.password);
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const consumeResult = await tx.authToken.updateMany({
         where: {
           id: invitation.id,
@@ -190,6 +193,19 @@ export class UserInvitationService {
         user,
       };
     });
+
+    // Platform admins are told once the account is really active. The company
+    // name comes from the invitation lookup above, so no extra query is needed.
+    if (invitation.user.companyId) {
+      await this.adminEvents.invitationAccepted({
+        companyId: invitation.user.companyId,
+        userId: invitation.user.id,
+        companyName: invitation.user.company?.name,
+        userName: displayName ?? result.user.email,
+      });
+    }
+
+    return result;
   }
 
   private isValidInvitation(
@@ -206,6 +222,7 @@ export class UserInvitationService {
         companyId: string | null;
         company: {
           status: CompanyStatus;
+          name: string;
         } | null;
         userRoles: Array<{
           role: {

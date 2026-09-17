@@ -61,7 +61,7 @@ export function AdminShellHeader({
   }
   if (canNotifications) {
     accountLinks.push({
-      href: "/dashboard/notifications",
+      href: "/admin/notifications/inbox",
       label: labels.notifications,
     });
   }
@@ -83,7 +83,7 @@ export function AdminShellHeader({
       displayName={displayName}
       unreadCount={unreadCount}
       notifications={notifications}
-      notificationsHref="/dashboard/notifications"
+      notificationsHref="/admin/notifications/inbox"
       accountLinks={accountLinks}
       canNotifications={canNotifications}
     />

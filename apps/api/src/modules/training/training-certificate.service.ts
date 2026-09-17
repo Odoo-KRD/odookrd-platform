@@ -25,6 +25,7 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { AUDIT_ACTIONS } from '../audit/audit.actions';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { FileStorageService } from '../files/storage/file-storage.service';
+import { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
 import type {
   CreateTrainingCertificateTemplateDto,
   IssueTrainingCertificateDto,
@@ -131,6 +132,7 @@ export class TrainingCertificateService {
     private readonly entitlements: TrainingEntitlementService,
     private readonly completions: TrainingCourseCompletionService,
     private readonly storage: FileStorageService,
+    private readonly adminEvents: AdminEventNotificationService,
   ) {}
 
   async listTemplates(
@@ -797,6 +799,14 @@ export class TrainingCertificateService {
         });
 
         return certificate;
+      });
+
+      await this.adminEvents.certificateIssued({
+        companyId: context.companyId,
+        certificateId: issued.id,
+        companyName: company.name,
+        learnerName: certificateName,
+        courseTitle: completionRecord.courseTitleSnapshot,
       });
 
       return this.presentCertificate(issued);

@@ -54,9 +54,10 @@ export default async function ProtectedAdminLayout({
 
   // The bell only loads an inbox for accounts that own one. Platform accounts
   // without a company scope simply get a header without notifications.
-  const canNotifications =
-    Boolean(session.user.companyId) &&
-    hasPermission(session, PERMISSIONS.NOTIFICATIONS_READ);
+  const canNotifications = hasPermission(
+    session,
+    PERMISSIONS.NOTIFICATIONS_READ,
+  );
   const token = canNotifications ? await getSessionToken() : null;
 
   const [notificationPage, unread] = await Promise.all([
@@ -94,6 +95,7 @@ export default async function ProtectedAdminLayout({
     trainingReports: navLabels.trainingReports,
     notifications: navLabels.notifications,
     deliveryLog: navLabels.deliveryLog,
+    notificationsInbox: navLabels.notificationsInbox,
     providerStatus: navLabels.providerStatus,
     testEmail: navLabels.testEmail,
     broadcasts: navLabels.broadcasts,

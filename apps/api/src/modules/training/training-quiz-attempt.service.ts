@@ -368,6 +368,7 @@ export class TrainingQuizAttemptService {
           courseId,
           context.now,
         );
+        await this.completions.notifyAdminsIfCompleted(context, courseId);
       }
       return this.presentAttempt(attempt);
     }
@@ -473,6 +474,7 @@ export class TrainingQuizAttemptService {
         courseId,
         context.now,
       );
+      await this.completions.notifyAdminsIfCompleted(context, courseId);
     }
 
     return this.presentAttempt(attempt);

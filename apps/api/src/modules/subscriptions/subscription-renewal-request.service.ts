@@ -15,6 +15,7 @@ import {
   SubscriptionPeriodSource,
   SubscriptionRenewalRequestStatus,
 } from '../../generated/prisma/enums';
+import { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
 import type {
   CreateRenewalRequestDto,
   ListRenewalRequestsQueryDto,
@@ -63,6 +64,7 @@ export class SubscriptionRenewalRequestService {
     private readonly prisma: PrismaService,
     private readonly authorization: AuthorizationService,
     private readonly administration: SubscriptionAdministrationService,
+    private readonly adminEvents: AdminEventNotificationService,
   ) {}
 
   /**
@@ -82,7 +84,8 @@ export class SubscriptionRenewalRequestService {
       select: {
         id: true,
         companyId: true,
-        service: { select: { billingModel: true } },
+        service: { select: { billingModel: true, name: true } },
+        company: { select: { name: true } },
         subscription: { select: { id: true, status: true } },
       },
     });
@@ -114,8 +117,8 @@ export class SubscriptionRenewalRequestService {
     const subscriptionId = assignment.subscription.id;
 
     try {
-      return await this.prisma.$transaction(async (transaction) => {
-        const request = await transaction.subscriptionRenewalRequest.create({
+      const request = await this.prisma.$transaction(async (transaction) => {
+        const created = await transaction.subscriptionRenewalRequest.create({
           data: {
             subscriptionId,
             requestedByUserId: principal.userId,
@@ -131,13 +134,22 @@ export class SubscriptionRenewalRequestService {
             companyId: assignment.companyId,
             action: AUDIT_ACTIONS.SUBSCRIPTION_RENEWAL_REQUESTED,
             targetType: 'subscription_renewal_request',
-            targetId: request.id,
+            targetId: created.id,
             metadata: { requestedTerm: dto.requestedTerm },
           },
         });
 
-        return request;
+        return created;
       });
+
+      await this.adminEvents.renewalRequested({
+        companyId: assignment.companyId,
+        requestId: request.id,
+        companyName: assignment.company.name,
+        serviceName: assignment.service.name,
+      });
+
+      return request;
     } catch (error: unknown) {
       // P2002 is the one-pending-per-subscription index.
       if (

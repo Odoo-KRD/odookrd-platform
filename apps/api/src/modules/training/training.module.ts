@@ -4,6 +4,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { AuthModule } from '../auth/auth.module';
 import { AuthorizationModule } from '../authorization/authorization.module';
 import { FilesModule } from '../files/files.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { SettingsModule } from '../settings/settings.module';
 import { TrainingAccessController } from './training-access.controller';
 import { TrainingAccessService } from './training-access.service';
@@ -49,6 +50,7 @@ import { TrainingVideoEnrichmentService } from './training-video-enrichment.serv
     AuthorizationModule,
     SettingsModule,
     FilesModule,
+    NotificationsModule,
   ],
   controllers: [
     TrainingController,

@@ -11,6 +11,7 @@ import {
 } from '../../generated/prisma/enums';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
+import { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
 import { canCompleteTrainingCourse } from './training-course-completion.rules';
 import {
   type CustomerTrainingContext,
@@ -41,7 +42,49 @@ export class TrainingCourseCompletionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly entitlements: TrainingEntitlementService,
+    private readonly adminEvents: AdminEventNotificationService,
   ) {}
+
+  /**
+   * Tells platform admins that a learner finished a course. Safe to call after
+   * any progress write: publishing is keyed on the completion id, so repeated
+   * calls never produce a second notification.
+   */
+  async notifyAdminsIfCompleted(
+    context: CustomerTrainingContext,
+    courseId: string,
+  ): Promise<void> {
+    const completion = await this.prisma.trainingCourseCompletion.findUnique({
+      where: {
+        userId_courseId: { userId: context.userId, courseId },
+      },
+      select: {
+        id: true,
+        courseTitleSnapshot: true,
+        user: {
+          select: {
+            displayName: true,
+            certificateName: true,
+            email: true,
+            company: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (!completion) return;
+
+    await this.adminEvents.courseCompleted({
+      companyId: context.companyId,
+      completionId: completion.id,
+      companyName: completion.user.company?.name,
+      learnerName:
+        completion.user.displayName ??
+        completion.user.certificateName ??
+        completion.user.email,
+      courseTitle: completion.courseTitleSnapshot,
+    });
+  }
 
   async getCourseStatus(principal: AuthenticatedPrincipal, slug: string) {
     const { context, courseId } =

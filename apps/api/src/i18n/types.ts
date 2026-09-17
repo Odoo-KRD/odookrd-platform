@@ -32,6 +32,18 @@ export interface ApiTranslations {
     subscriptionGraceEndedSubject: string;
     subscriptionGraceEndedBody: string;
     subscriptionExpiresOnLabel: string;
+    adminInvitationAcceptedSubject: string;
+    adminInvitationAcceptedBody: string;
+    adminCourseCompletedSubject: string;
+    adminCourseCompletedBody: string;
+    adminRenewalRequestedSubject: string;
+    adminRenewalRequestedBody: string;
+    adminCertificateIssuedSubject: string;
+    adminCertificateIssuedBody: string;
+    adminCompanyLabel: string;
+    adminUserLabel: string;
+    adminCourseLabel: string;
+    adminServiceLabel: string;
     securityNoticeSubject: string;
   };
 }

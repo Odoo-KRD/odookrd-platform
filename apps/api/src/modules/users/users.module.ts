@@ -4,6 +4,7 @@ import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { AuthorizationModule } from '../authorization/authorization.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { UserInvitationService } from './user-invitation.service';
 import { UserInvitationsController } from './user-invitations.controller';
 import { UserUiPreferencesController } from './user-ui-preferences.controller';
@@ -12,7 +13,13 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, AuthorizationModule, AuditModule],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    AuthorizationModule,
+    AuditModule,
+    NotificationsModule,
+  ],
   controllers: [
     UsersController,
     UserInvitationsController,
