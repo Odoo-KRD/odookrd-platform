@@ -5,6 +5,23 @@ import type { PrismaService } from '../../infrastructure/database/prisma.service
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { UserUiPreferencesService } from './user-ui-preferences.service';
 
+/** Mirrors UserUiPreferencesService's own list, in the same order. */
+const DASHBOARD_SECTION_KEYS = [
+  'companies',
+  'users',
+  'roles',
+  'services',
+  'features',
+  'renewals',
+  'pipeline',
+  'training',
+  'certificates',
+  'reports',
+  'notifications',
+  'broadcasts',
+  'settings',
+];
+
 describe('UserUiPreferencesService', () => {
   const prisma = {
     userUiPreference: {
@@ -35,14 +52,7 @@ describe('UserUiPreferencesService', () => {
     await expect(service.get(principal)).resolves.toEqual({
       sidebarCollapsed: false,
       dashboardPreferences: {
-        order: [
-          'companies',
-          'users',
-          'roles',
-          'services',
-          'notifications',
-          'settings',
-        ],
+        order: [...DASHBOARD_SECTION_KEYS],
         hidden: [],
         collapsed: [],
       },
@@ -103,11 +113,23 @@ describe('UserUiPreferencesService', () => {
       updatedAt,
     });
 
+    // Cards the request left out are appended, so the dashboard always knows
+    // about every section it can render.
+    const normalized = {
+      ...dashboardPreferences,
+      order: [
+        ...dashboardPreferences.order,
+        ...DASHBOARD_SECTION_KEYS.filter(
+          (key) => !dashboardPreferences.order.includes(key),
+        ),
+      ],
+    };
+
     await expect(
       service.update(principal, { dashboardPreferences }),
     ).resolves.toEqual({
       sidebarCollapsed: false,
-      dashboardPreferences,
+      dashboardPreferences: normalized,
       updatedAt: updatedAt.toISOString(),
     });
 
@@ -117,7 +139,7 @@ describe('UserUiPreferencesService', () => {
           userId: principal.userId,
         },
         update: {
-          dashboardPreferences,
+          dashboardPreferences: normalized,
         },
       }),
     );
