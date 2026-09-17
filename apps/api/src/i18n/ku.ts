@@ -37,11 +37,14 @@ export const apiKu = {
     subscriptionExpiresOnLabel: 'بەسەردەچێت لە',
     serviceAssignedBody: 'خزمەتگوزارییەکی نوێ لە داشبۆردەکەتدا بەردەستە.',
     adminInvitationAcceptedSubject: 'بەکارهێنەرێک بانگهێشتەکەی وەرگرت',
-    adminInvitationAcceptedBody: 'بەکارهێنەرێکی کڕیار هەژمارەکەی چالاک کرد و ئێستا دەتوانێت بچێتە ژوورەوە.',
+    adminInvitationAcceptedBody:
+      'بەکارهێنەرێکی کڕیار هەژمارەکەی چالاک کرد و ئێستا دەتوانێت بچێتە ژوورەوە.',
     adminCourseCompletedSubject: 'فێرخوازێک کۆرسێکی تەواو کرد',
-    adminCourseCompletedBody: 'فێرخوازێکی کڕیار هەموو پێداویستییەکانی کۆرسەکەی تەواو کرد.',
+    adminCourseCompletedBody:
+      'فێرخوازێکی کڕیار هەموو پێداویستییەکانی کۆرسەکەی تەواو کرد.',
     adminRenewalRequestedSubject: 'داواکاری نوێکردنەوە گەیشت',
-    adminRenewalRequestedBody: 'کڕیارێک داوای نوێکردنەوەی خزمەتگوزارییەکی کردووە و چاوەڕوانی پشکنینە.',
+    adminRenewalRequestedBody:
+      'کڕیارێک داوای نوێکردنەوەی خزمەتگوزارییەکی کردووە و چاوەڕوانی پشکنینە.',
     adminCertificateIssuedSubject: 'بڕوانامەیەک دەرکرا',
     adminCertificateIssuedBody: 'فێرخوازێکی کڕیار بڕوانامەی کۆرسێکی دەرکرد.',
     adminCompanyLabel: 'کۆمپانیا',

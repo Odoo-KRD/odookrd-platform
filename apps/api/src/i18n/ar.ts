@@ -36,11 +36,13 @@ export const apiAr = {
     subscriptionExpiresOnLabel: 'تنتهي في',
     serviceAssignedBody: 'تتوفر خدمة جديدة في لوحة المعلومات.',
     adminInvitationAcceptedSubject: 'قبل مستخدم دعوته',
-    adminInvitationAcceptedBody: 'قام أحد مستخدمي العملاء بتفعيل حسابه ويمكنه تسجيل الدخول الآن.',
+    adminInvitationAcceptedBody:
+      'قام أحد مستخدمي العملاء بتفعيل حسابه ويمكنه تسجيل الدخول الآن.',
     adminCourseCompletedSubject: 'أكمل متعلم دورة',
     adminCourseCompletedBody: 'أنهى أحد متعلمي العملاء جميع متطلبات الدورة.',
     adminRenewalRequestedSubject: 'تم طلب تجديد',
-    adminRenewalRequestedBody: 'طلب أحد العملاء تجديد خدمة وهو بانتظار المراجعة.',
+    adminRenewalRequestedBody:
+      'طلب أحد العملاء تجديد خدمة وهو بانتظار المراجعة.',
     adminCertificateIssuedSubject: 'تم إصدار شهادة',
     adminCertificateIssuedBody: 'أصدر أحد متعلمي العملاء شهادة دورة.',
     adminCompanyLabel: 'الشركة',
