@@ -6,6 +6,7 @@ import {
 import { Badge, EmptyState, PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
+import { NotificationMessageButton } from "@/components/notifications/notification-message-dialog";
 import { apiRequest } from "@/lib/api";
 import { getCustomerApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
@@ -101,13 +102,23 @@ export default async function NotificationsPage({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-base font-semibold text-slate-900">
-                      {item.title}
+                      <NotificationMessageButton
+                        notification={item}
+                        locale={locale}
+                        labels={notifications}
+                        className="text-start hover:text-[#714b67]"
+                      >
+                        {item.title}
+                      </NotificationMessageButton>
                     </h2>
                     {!item.readAt ? (
                       <Badge tone="accent">{notifications.unread}</Badge>
                     ) : null}
                   </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-600">
+                  <p
+                    dir="auto"
+                    className="mt-3 line-clamp-3 whitespace-pre-wrap break-words text-start text-sm leading-7 text-slate-600"
+                  >
                     {item.body}
                   </p>
                   <p className="mt-4 text-xs text-slate-500">
@@ -115,17 +126,27 @@ export default async function NotificationsPage({
                   </p>
                 </div>
 
-                {!item.readAt ? (
-                  <form action={markNotificationReadAction}>
-                    <input type="hidden" name="recipientId" value={item.id} />
-                    <button
-                      type="submit"
-                      className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                    >
-                      {notifications.markRead}
-                    </button>
-                  </form>
-                ) : null}
+                <div className="flex flex-wrap items-center gap-2">
+                  <NotificationMessageButton
+                    notification={item}
+                    locale={locale}
+                    labels={notifications}
+                    className="inline-flex h-9 items-center rounded-md bg-[#714b67] px-3 text-xs font-semibold text-white hover:bg-[#62405a]"
+                  >
+                    {notifications.viewMessage}
+                  </NotificationMessageButton>
+                  {!item.readAt ? (
+                    <form action={markNotificationReadAction}>
+                      <input type="hidden" name="recipientId" value={item.id} />
+                      <button
+                        type="submit"
+                        className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      >
+                        {notifications.markRead}
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
               </div>
 
               <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
@@ -143,7 +164,7 @@ export default async function NotificationsPage({
                     href={item.actionUrl}
                     className="text-sm font-medium text-[#714b67] hover:text-[#62405a]"
                   >
-                    {item.title}
+                    {notifications.openRelatedPage}
                   </Link>
                 </div>
               ) : null}

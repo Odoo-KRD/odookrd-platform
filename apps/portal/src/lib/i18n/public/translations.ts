@@ -160,6 +160,9 @@ const en = {
   },
   notifications: {
     navigation: "Notifications",
+    viewMessage: "View message",
+    closeMessage: "Close",
+    openRelatedPage: "Open related page",
     title: "Notifications",
     description: "Review the latest account and company service notifications.",
     unread: sharedText.en.labels.unread,
@@ -344,6 +347,9 @@ const ku = {
   },
   notifications: {
     navigation: "ئاگادارکردنەوەکان",
+    viewMessage: "بینینی نامە",
+    closeMessage: "داخستن",
+    openRelatedPage: "کردنەوەی پەڕەی پەیوەندیدار",
     title: "ئاگادارکردنەوەکان",
     description: "نوێترین ئاگادارکردنەوەکانی هەژمار و خزمەتگوزارییەکانت ببینە.",
     unread: sharedText.ku.labels.unread,
@@ -521,6 +527,9 @@ const ar = {
   },
   notifications: {
     navigation: "الإشعارات",
+    viewMessage: "عرض الرسالة",
+    closeMessage: "إغلاق",
+    openRelatedPage: "فتح الصفحة المرتبطة",
     title: "الإشعارات",
     description: "راجع أحدث إشعارات حسابك وخدمات شركتك.",
     unread: sharedText.ar.labels.unread,

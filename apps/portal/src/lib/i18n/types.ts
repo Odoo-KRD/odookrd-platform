@@ -435,6 +435,9 @@ export interface CustomerWorkspaceDictionary {
 
 export interface NotificationCenterDictionary {
   navigation: string;
+  viewMessage: string;
+  closeMessage: string;
+  openRelatedPage: string;
   title: string;
   description: string;
   unread: string;

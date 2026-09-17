@@ -107,7 +107,7 @@ export function LoginForm({ messages, labels, redirectTo }: LoginFormProps) {
           dir="ltr"
           maxLength={320}
           required
-          className="h-11 w-full rounded-md border border-line bg-white px-3.5 text-sm text-content outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+          className="h-11 w-full rounded-md border border-line bg-white px-3.5 text-left text-sm text-content outline-none rtl:text-right transition focus:border-brand focus:ring-2 focus:ring-brand/10"
         />
       </div>
 
@@ -124,7 +124,7 @@ export function LoginForm({ messages, labels, redirectTo }: LoginFormProps) {
             dir="ltr"
             maxLength={128}
             required
-            className="h-11 w-full rounded-md border border-line bg-white py-0 ps-3.5 pe-11 text-sm text-content outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+            className="h-11 w-full rounded-md border border-line bg-white py-0 pl-3.5 pr-11 text-left text-sm text-content outline-none rtl:pl-11 rtl:pr-3.5 rtl:text-right transition focus:border-brand focus:ring-2 focus:ring-brand/10"
           />
           <button
             type="button"

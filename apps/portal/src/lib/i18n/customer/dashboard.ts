@@ -21,6 +21,9 @@ export interface CustomerDashboardV2Dictionary {
     markRead: string;
     markAllRead: string;
     viewAll: string;
+    viewMessage: string;
+    closeMessage: string;
+    openRelatedPage: string;
     accountMenu: string;
     myAccount: string;
     editProfile: string;
@@ -118,6 +121,9 @@ export const customerDashboardV2Dictionaries: Record<
       markRead: sharedText.ku.labels.markRead,
       markAllRead: sharedText.ku.labels.markAllRead,
       viewAll: "بینینی هەموو",
+      viewMessage: "بینینی نامە",
+      closeMessage: "داخستن",
+      openRelatedPage: "کردنەوەی پەڕەی پەیوەندیدار",
       accountMenu: "مێنیوی هەژمار",
       myAccount: "هەژماری من",
       editProfile: "دەستکاری پڕۆفایل",
@@ -214,6 +220,9 @@ export const customerDashboardV2Dictionaries: Record<
       markRead: sharedText.ar.labels.markRead,
       markAllRead: sharedText.ar.labels.markAllRead,
       viewAll: "عرض الكل",
+      viewMessage: "عرض الرسالة",
+      closeMessage: "إغلاق",
+      openRelatedPage: "فتح الصفحة المرتبطة",
       accountMenu: "قائمة الحساب",
       myAccount: "حسابي",
       editProfile: "تعديل الملف الشخصي",
@@ -309,6 +318,9 @@ export const customerDashboardV2Dictionaries: Record<
       markRead: sharedText.en.labels.markRead,
       markAllRead: sharedText.en.labels.markAllRead,
       viewAll: "View all",
+      viewMessage: "View message",
+      closeMessage: "Close",
+      openRelatedPage: "Open related page",
       accountMenu: "Account menu",
       myAccount: "My Account",
       editProfile: "Edit Profile",

@@ -22,6 +22,7 @@ import {
   AdminNavigation,
   type AdminNavigationEntry,
 } from "@/components/admin/navigation";
+import { NotificationMessageDialog } from "@/components/notifications/notification-message-dialog";
 import { LanguageSelect } from "@/components/preferences/language-select";
 import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/customer/dashboard";
 import { plural } from "@/lib/i18n/plural";
@@ -188,6 +189,8 @@ export function CustomerShellHeader({
   const menus = useDismissibleHeaderMenus(pathname);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [openedNotification, setOpenedNotification] =
+    useState<CustomerNotification | null>(null);
   const badge = unreadCount > 99 ? "99+" : String(unreadCount);
   const identityName = identityLabel(displayName, email);
   const userInitials = useMemo(
@@ -344,26 +347,32 @@ export function CustomerShellHeader({
                               }`}
                             />
                             <div className="min-w-0 flex-1">
-                              {item.actionUrl ? (
-                                <Link
-                                  href={item.actionUrl}
-                                  className="line-clamp-1 text-sm font-semibold text-content hover:text-brand"
-                                >
-                                  {item.title}
-                                </Link>
-                              ) : (
-                                <p className="line-clamp-1 text-sm font-semibold text-content">
-                                  {item.title}
-                                </p>
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  menus.closeAll();
+                                  setOpenedNotification(item);
+                                }}
+                                className="line-clamp-1 w-full text-start text-sm font-semibold text-content hover:text-brand"
+                              >
+                                {item.title}
+                              </button>
                               <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
                                 {item.body}
                               </p>
-                              {!item.readAt ? (
-                                <form
-                                  action={markNotificationReadAction}
-                                  className="mt-2"
+                              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    menus.closeAll();
+                                    setOpenedNotification(item);
+                                  }}
+                                  className="text-xs font-semibold text-brand hover:text-brand-hover"
                                 >
+                                  {labels.viewMessage}
+                                </button>
+                              {!item.readAt ? (
+                                <form action={markNotificationReadAction}>
                                   <input
                                     type="hidden"
                                     name="recipientId"
@@ -377,6 +386,7 @@ export function CustomerShellHeader({
                                   </button>
                                 </form>
                               ) : null}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -392,6 +402,15 @@ export function CustomerShellHeader({
                   </Link>
                 </div>
               </details>
+            ) : null}
+
+            {canNotifications ? (
+              <NotificationMessageDialog
+                notification={openedNotification}
+                locale={locale}
+                labels={labels}
+                onClose={() => setOpenedNotification(null)}
+              />
             ) : null}
 
             <details
