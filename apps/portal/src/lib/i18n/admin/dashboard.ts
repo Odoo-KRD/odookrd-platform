@@ -1,16 +1,36 @@
 import type { Locale } from "@odookrd/types";
-import { sharedText } from "../shared";
 
 export interface AdminDashboardDictionary {
   customize: string;
-  done: string;
   hiddenSections: string;
-  restore: string;
-  hide: string;
+  metrics: {
+    total: string;
+    active: string;
+    pending: string;
+    invited: string;
+    published: string;
+    issuedCertificates: string;
+    completions: string;
+    learners: string;
+    failedDeliveries: string;
+    needsAttention: string;
+    autoRenewing: string;
+  };
+  descriptions: {
+    features: string;
+    renewals: string;
+    pipeline: string;
+    training: string;
+    certificates: string;
+    reports: string;
+    broadcasts: string;
+  };
+  remove: string;
+  customizeHint: string;
+  dragHint: string;
+  noHiddenSections: string;
   collapse: string;
   expand: string;
-  moveUp: string;
-  moveDown: string;
   drag: string;
   reset: string;
   saved: string;
@@ -23,14 +43,35 @@ export const adminDashboardDictionaries: Record<
 > = {
   ku: {
     customize: "ڕێکخستنی داشبۆرد",
-    done: "تەواو",
     hiddenSections: "بەشە شاردراوەکان",
-    restore: sharedText.ku.labels.restore,
-    hide: "شاردنەوە",
+    metrics: {
+      total: "کۆی گشتی",
+      active: "چالاک",
+      pending: "چاوەڕوان",
+      invited: "بانگهێشتکراو",
+      published: "بڵاوکراوە",
+      issuedCertificates: "بڕوانامەی دەرکراو",
+      completions: "تەواوکردن",
+      learners: "فێرخواز",
+      failedDeliveries: "گەیاندنی سەرکەوتوونەبوو",
+      needsAttention: "پێویستی بە سەرنجە",
+      autoRenewing: "نوێکردنەوەی خۆکار",
+    },
+    descriptions: {
+      features: "پێناسەی تایبەتمەندییەکانی خزمەتگوزاری بەڕێوەببە.",
+      renewals: "داواکارییەکانی نوێکردنەوەی کڕیاران پشکنین و پەسەند بکە.",
+      pipeline: "قۆناغەکانی نوێکردنەوە و بەسەرچوونەکان بەدواداچوون بکە.",
+      training: "کۆرس و ناوەڕۆکی فێربوون بەڕێوەببە.",
+      certificates: "بڕوانامە دەرکراوەکان ببینە و بەڕێوەیان ببە.",
+      reports: "ڕاپۆرتی پێشکەوتن و تەواوکردنی فێربوون ببینە.",
+      broadcasts: "ئاگادارکردنەوەی گشتی بۆ کڕیاران بنێرە.",
+    },
+    remove: "لابردن",
+    customizeHint: "کارتە لابراوەکان لێرەوە بگەڕێنەوە.",
+    dragHint: "کارتەکان بە دەستەکە ڕابکێشە بۆ گۆڕینی شوێنیان.",
+    noHiddenSections: "هیچ کارتێکی شاراوە نییە.",
     collapse: "کورتکردنەوە",
     expand: "فراوانکردن",
-    moveUp: sharedText.ku.actions.moveUp,
-    moveDown: sharedText.ku.actions.moveDown,
     drag: "ڕاکێشان بۆ گۆڕینی شوێن",
     reset: "گەڕاندنەوە بۆ بنەڕەت",
     saved: "ڕێکخستنەکان پاشەکەوت کران.",
@@ -38,14 +79,35 @@ export const adminDashboardDictionaries: Record<
   },
   ar: {
     customize: "تخصيص لوحة التحكم",
-    done: "تم",
     hiddenSections: "الأقسام المخفية",
-    restore: sharedText.ar.labels.restore,
-    hide: "إخفاء",
+    metrics: {
+      total: "الإجمالي",
+      active: "نشط",
+      pending: "قيد الانتظار",
+      invited: "مدعو",
+      published: "منشور",
+      issuedCertificates: "شهادات صادرة",
+      completions: "إكمالات",
+      learners: "متعلمون",
+      failedDeliveries: "إرسال فاشل",
+      needsAttention: "يحتاج متابعة",
+      autoRenewing: "تجديد تلقائي",
+    },
+    descriptions: {
+      features: "إدارة تعريفات ميزات الخدمات.",
+      renewals: "مراجعة طلبات التجديد الواردة من العملاء واعتمادها.",
+      pipeline: "متابعة مراحل التجديد وحالات انتهاء الاشتراك.",
+      training: "إدارة الدورات ومحتوى التعلم.",
+      certificates: "استعراض الشهادات الصادرة وإدارتها.",
+      reports: "استعراض تقارير التقدم وإكمال الدورات.",
+      broadcasts: "إرسال إشعارات عامة إلى العملاء.",
+    },
+    remove: "إزالة",
+    customizeHint: "أعد البطاقات التي أزلتها من هنا.",
+    dragHint: "اسحب البطاقات من المقبض لتغيير ترتيبها.",
+    noHiddenSections: "لا توجد بطاقات مخفية.",
     collapse: "طي",
     expand: "توسيع",
-    moveUp: sharedText.ar.actions.moveUp,
-    moveDown: sharedText.ar.actions.moveDown,
     drag: "اسحب لتغيير الترتيب",
     reset: "إعادة الافتراضي",
     saved: "تم حفظ تفضيلات لوحة التحكم.",
@@ -53,14 +115,35 @@ export const adminDashboardDictionaries: Record<
   },
   en: {
     customize: "Customize dashboard",
-    done: "Done",
     hiddenSections: "Hidden sections",
-    restore: sharedText.en.labels.restore,
-    hide: "Hide",
+    metrics: {
+      total: "Total",
+      active: "Active",
+      pending: "Pending",
+      invited: "Invited",
+      published: "Published",
+      issuedCertificates: "Certificates",
+      completions: "Completions",
+      learners: "Learners",
+      failedDeliveries: "Failed",
+      needsAttention: "Needs attention",
+      autoRenewing: "Auto-renewing",
+    },
+    descriptions: {
+      features: "Manage the service feature definitions.",
+      renewals: "Review and approve customer renewal requests.",
+      pipeline: "Track renewal stages and upcoming expiries.",
+      training: "Manage courses and learning content.",
+      certificates: "Review and manage issued certificates.",
+      reports: "Review learning progress and completion reports.",
+      broadcasts: "Send announcements to customers.",
+    },
+    remove: "Remove",
+    customizeHint: "Bring back cards you removed from the dashboard.",
+    dragHint: "Drag a card by its handle to move it.",
+    noHiddenSections: "No hidden cards.",
     collapse: "Collapse",
     expand: "Expand",
-    moveUp: sharedText.en.actions.moveUp,
-    moveDown: sharedText.en.actions.moveDown,
     drag: "Drag to reorder",
     reset: "Reset layout",
     saved: "Dashboard preferences saved.",

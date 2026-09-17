@@ -14,7 +14,14 @@ const DASHBOARD_SECTION_KEYS = [
   'users',
   'roles',
   'services',
+  'features',
+  'renewals',
+  'pipeline',
+  'training',
+  'certificates',
+  'reports',
   'notifications',
+  'broadcasts',
   'settings',
 ] as const;
 

@@ -47,8 +47,28 @@ export interface CurrentSession {
   authorization: AuthorizationContext;
 }
 
-export type DashboardSectionKey =
-  "companies" | "users" | "roles" | "services" | "notifications" | "settings";
+/**
+ * Every dashboard card key. This list is the single source of truth for the
+ * portal UI and the portal API route; the NestJS API keeps its own copy
+ * because it does not depend on this package.
+ */
+export const DASHBOARD_SECTION_KEYS = [
+  "companies",
+  "users",
+  "roles",
+  "services",
+  "features",
+  "renewals",
+  "pipeline",
+  "training",
+  "certificates",
+  "reports",
+  "notifications",
+  "broadcasts",
+  "settings",
+] as const;
+
+export type DashboardSectionKey = (typeof DASHBOARD_SECTION_KEYS)[number];
 
 export interface DashboardUiPreferences {
   order: DashboardSectionKey[];

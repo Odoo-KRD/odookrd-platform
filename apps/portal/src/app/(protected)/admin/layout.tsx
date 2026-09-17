@@ -15,17 +15,22 @@ import "@fontsource/noto-naskh-arabic/500.css";
 import "@fontsource/noto-naskh-arabic/600.css";
 import "@fontsource/noto-naskh-arabic/700.css";
 
+import {
+  PERMISSIONS,
+  type CustomerNotificationPage,
+  type NotificationUnreadCount,
+} from "@odookrd/types";
 import { redirect } from "next/navigation";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminNavigation } from "@/components/admin/navigation";
-import { LogoutButton } from "@/components/auth/logout-button";
-import { LanguageSwitcher } from "@/components/preferences/language-switcher";
+import { AdminShellHeader } from "@/components/admin/admin-shell-header";
 import { buildAdminNavigation } from "@/lib/admin-navigation";
-import { hasAdminAccess } from "@/lib/authorization";
+import { apiRequest } from "@/lib/api";
+import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin/server";
+import { adminHeaderDictionaries } from "@/lib/i18n/shell/header";
 import { getPublicSettings } from "@/lib/public-settings";
-import { requireSession } from "@/lib/session";
+import { getSessionToken, requireSession } from "@/lib/session";
 import { getUserUiPreferences } from "@/lib/user-ui-preferences";
 
 export default async function ProtectedAdminLayout({
@@ -46,6 +51,26 @@ export default async function ProtectedAdminLayout({
   if (!hasAdminAccess(session)) {
     redirect("/dashboard");
   }
+
+  // The bell only loads an inbox for accounts that own one. Platform accounts
+  // without a company scope simply get a header without notifications.
+  const canNotifications =
+    Boolean(session.user.companyId) &&
+    hasPermission(session, PERMISSIONS.NOTIFICATIONS_READ);
+  const token = canNotifications ? await getSessionToken() : null;
+
+  const [notificationPage, unread] = await Promise.all([
+    token
+      ? apiRequest<CustomerNotificationPage>("/notifications?limit=5&offset=0", {
+          token,
+        }).catch(() => null)
+      : Promise.resolve(null),
+    token
+      ? apiRequest<NotificationUnreadCount>("/notifications/unread-count", {
+          token,
+        }).catch(() => null)
+      : Promise.resolve(null),
+  ]);
 
   // Every sidebar label now lives in one place: navLabels.
   const navigation = buildAdminNavigation(session, {
@@ -95,38 +120,25 @@ export default async function ProtectedAdminLayout({
       />
 
       <div className="flex min-w-0 flex-1 flex-col lg:h-screen lg:overflow-hidden">
-        <header className="shrink-0 border-b border-line bg-surface-panel px-5 py-4 sm:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-content lg:hidden">
-                {publicSettings.siteTitle}
-              </p>
-              <p className="mt-1 text-xs text-muted lg:mt-0">
-                {administrationLabel}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <LanguageSwitcher
-                locale={locale}
-                label={dictionary.common.language}
-              />
-              <LogoutButton
-                label={dictionary.workspace.signOut}
-                pendingLabel={dictionary.workspace.signingOut}
-              />
-            </div>
-          </div>
-
-          <details className="mt-4 border-t border-line pt-3 lg:hidden">
-            <summary className="cursor-pointer text-sm font-medium text-content">
-              {navLabels.label}
-            </summary>
-            <div className="mt-3">
-              <AdminNavigation label={navLabels.label} entries={navigation} />
-            </div>
-          </details>
-        </header>
+        <AdminShellHeader
+          siteTitle={publicSettings.siteTitle}
+          workspaceLabel={administrationLabel}
+          workspaceName={publicSettings.siteTitle}
+          navigationLabel={navLabels.label}
+          navigation={navigation}
+          locale={locale}
+          languageLabel={dictionary.common.language}
+          labels={adminHeaderDictionaries[locale]}
+          email={session.user.email}
+          displayName={null}
+          unreadCount={unread?.unread ?? 0}
+          notifications={notificationPage?.items ?? []}
+          canNotifications={canNotifications}
+          canSettings={hasPermission(session, PERMISSIONS.SETTINGS_READ)}
+          canCustomerPortal={session.user.accountScope === "COMPANY"}
+          settingsLabel={navLabels.settings}
+          customerPortalLabel={navLabels.dashboard}
+        />
 
         <main className="w-full min-w-0 flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
           {children}

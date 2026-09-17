@@ -1,8 +1,9 @@
-import type {
-  DashboardSectionKey,
-  DashboardUiPreferences,
-  UpdateUserUiPreferencesRequest,
-  UserUiPreferences,
+import {
+  DASHBOARD_SECTION_KEYS,
+  type DashboardSectionKey,
+  type DashboardUiPreferences,
+  type UpdateUserUiPreferencesRequest,
+  type UserUiPreferences,
 } from "@odookrd/types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,53 +11,44 @@ import { apiRequest } from "@/lib/api";
 import { SESSION_COOKIE_NAME } from "@/lib/constants";
 import { apiErrorResponse, errorResponse, isSameOrigin } from "@/lib/security";
 
-const dashboardSectionKeys = new Set<DashboardSectionKey>([
-  "companies",
-  "users",
-  "roles",
-  "services",
-  "notifications",
-  "settings",
-]);
+const dashboardSectionKeys = new Set<DashboardSectionKey>(
+  DASHBOARD_SECTION_KEYS,
+);
 
-function validSectionList(value: unknown): value is DashboardSectionKey[] {
-  return (
-    Array.isArray(value) &&
-    value.length <= dashboardSectionKeys.size &&
-    value.every(
-      (item) =>
-        typeof item === "string" &&
-        dashboardSectionKeys.has(item as DashboardSectionKey),
-    ) &&
-    new Set(value).size === value.length
-  );
+/**
+ * Unknown or duplicate keys are dropped rather than rejected: a browser tab
+ * left open across a deploy must not lock the user out of saving a layout.
+ */
+function sanitizeSectionList(value: unknown): DashboardSectionKey[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const result: DashboardSectionKey[] = [];
+
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const key = item as DashboardSectionKey;
+    if (!dashboardSectionKeys.has(key) || result.includes(key)) continue;
+    result.push(key);
+  }
+
+  return result;
 }
 
 function parseDashboardPreferences(
   value: unknown,
 ): DashboardUiPreferences | null {
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    Array.isArray(value) ||
-    Object.keys(value).some(
-      (key) => !["order", "hidden", "collapsed"].includes(key),
-    ) ||
-    !("order" in value) ||
-    !("hidden" in value) ||
-    !("collapsed" in value) ||
-    !validSectionList(value.order) ||
-    !validSectionList(value.hidden) ||
-    !validSectionList(value.collapsed)
-  ) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
   }
 
-  return {
-    order: value.order,
-    hidden: value.hidden,
-    collapsed: value.collapsed,
-  };
+  const record = value as Record<string, unknown>;
+  const order = sanitizeSectionList(record.order);
+  const hidden = sanitizeSectionList(record.hidden);
+  const collapsed = sanitizeSectionList(record.collapsed);
+
+  if (!order || !hidden || !collapsed) return null;
+
+  return { order, hidden, collapsed };
 }
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
