@@ -202,7 +202,7 @@ export default async function ProtectedCustomerLayout({
           canAdministration={canAdministration}
         />
 
-        <main className="customer-shell-main w-full min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-7 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:px-8 lg:py-8">
+        <main className="customer-shell-main relative w-full min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-7 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:px-8 lg:py-8">
           {children}
         </main>
       </div>

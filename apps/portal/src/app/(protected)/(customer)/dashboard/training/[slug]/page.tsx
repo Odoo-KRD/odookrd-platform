@@ -345,7 +345,7 @@ export default async function CustomerTrainingCoursePage({
                 <details
                   key={section.id}
                   open
-                  className="group overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm"
+                  className="group relative overflow-hidden rounded-xl border border-line bg-surface-panel shadow-sm"
                 >
                   <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 marker:hidden sm:px-6">
                     <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-sm font-bold text-brand">
