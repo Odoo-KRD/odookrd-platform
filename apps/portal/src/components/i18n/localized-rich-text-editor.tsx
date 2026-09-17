@@ -174,7 +174,10 @@ export function LocalizedRichTextEditor({
   );
 
   return (
-    <div className="grid gap-3">
+    // min-w-0 on the grid and its editor row: without it the editor cannot be
+    // made narrower than its toolbar, and the page grows a horizontal
+    // scrollbar instead.
+    <div className="grid min-w-0 gap-3">
       <div className="flex flex-wrap items-center gap-2">
         {SUPPORTED_LOCALES.map((locale) => (
           <button

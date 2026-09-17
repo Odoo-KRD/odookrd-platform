@@ -7,6 +7,15 @@ export {
   Panel,
 } from "./primitives";
 
+export { EditorIcon, editorIconNames, type EditorIconName } from "./editor-icons";
+
+export {
+  type EditorToolbarGroupId,
+  type RichTextToolbarConfig,
+  type ToolbarGroup,
+  type ToolbarItem,
+} from "./rich-text-toolbar";
+
 export {
   RichTextEditor,
   type RichTextEditorLabels,

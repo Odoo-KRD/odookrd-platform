@@ -10,11 +10,40 @@ import { sharedText } from "./shared";
  */
 export interface RichTextToolbarDictionary {
   paragraph: string;
+  heading1: string;
   heading2: string;
   heading3: string;
   bold: string;
   italic: string;
+  underline: string;
   strike: string;
+  clearFormatting: string;
+  indent: string;
+  outdent: string;
+  resizeEditor: string;
+  words: string;
+  characters: string;
+  table: string;
+  tableInsert: string;
+  tableAddRowBefore: string;
+  tableAddRowAfter: string;
+  tableDeleteRow: string;
+  tableAddColumnBefore: string;
+  tableAddColumnAfter: string;
+  tableDeleteColumn: string;
+  tableToggleHeaderRow: string;
+  tableToggleHeaderColumn: string;
+  tableMergeOrSplit: string;
+  tableDelete: string;
+  videoAlignLeft: string;
+  videoAlignCenter: string;
+  videoAlignRight: string;
+  videoFullWidth: string;
+  videoMove: string;
+  videoDelete: string;
+  videoEditUrl: string;
+  wrapLeft: string;
+  wrapRight: string;
   bulletList: string;
   orderedList: string;
   blockquote: string;
@@ -53,9 +82,58 @@ export interface RichTextToolbarDictionary {
   linkInvalid: string;
   dialogApply: string;
   dialogCancel: string;
+  more: string;
+  groupHistory: string;
+  groupBlocks: string;
+  groupMarks: string;
+  groupAlignment: string;
+  groupLists: string;
+  groupInsert: string;
+  groupCallouts: string;
+  groupLinks: string;
+  groupMedia: string;
 }
 
 const ku: RichTextToolbarDictionary = {
+  videoEditUrl: "گۆڕینی بەستەری ڤیدیۆ",
+  wrapLeft: "دەق بپێچێتەوە بە ڕاستیدا (وێنە لە چەپ)",
+  wrapRight: "دەق بپێچێتەوە بە چەپیدا (وێنە لە ڕاست)",
+  more: "زیاتر",
+  groupHistory: "مێژوو",
+  groupBlocks: "بلۆک",
+  groupMarks: "ڕازاندنەوەی دەق",
+  groupAlignment: "ڕیزکردن",
+  groupLists: "لیستەکان",
+  groupInsert: "زیادکردن",
+  groupCallouts: "تێبینییەکان",
+  groupLinks: "بەستەرەکان",
+  groupMedia: "میدیا",
+  heading1: "سەردێڕ ١",
+  underline: "هێڵ بەژێر",
+  clearFormatting: "سڕینەوەی ڕازاندنەوە",
+  indent: "زیادکردنی بۆشایی",
+  outdent: "کەمکردنی بۆشایی",
+  resizeEditor: "گۆڕینی بەرزی دەستکاریکەر",
+  words: "وشە",
+  characters: "پیت",
+  table: "خشتە",
+  tableInsert: "خشتەیەکی نوێ",
+  tableAddRowBefore: "ڕیز زیادبکە لە سەرەوە",
+  tableAddRowAfter: "ڕیز زیادبکە لە خوارەوە",
+  tableDeleteRow: "سڕینەوەی ڕیز",
+  tableAddColumnBefore: "ستوون زیادبکە لە پێش",
+  tableAddColumnAfter: "ستوون زیادبکە لە دوا",
+  tableDeleteColumn: "سڕینەوەی ستوون",
+  tableToggleHeaderRow: "ڕیزی سەردێڕ",
+  tableToggleHeaderColumn: "ستوونی سەردێڕ",
+  tableMergeOrSplit: "تێکەڵکردن یان جیاکردنەوەی خانە",
+  tableDelete: "سڕینەوەی خشتە",
+  videoAlignLeft: "ڤیدیۆ بۆ چەپ",
+  videoAlignCenter: "ڤیدیۆ بۆ ناوەڕاست",
+  videoAlignRight: "ڤیدیۆ بۆ ڕاست",
+  videoFullWidth: "پانی تەواو (100%)",
+  videoMove: "گواستنەوەی ڤیدیۆ",
+  videoDelete: "سڕینەوەی ڤیدیۆ",
   paragraph: "پەرەگراف",
   heading2: "سەردێڕ ٢",
   heading3: "سەردێڕ ٣",
@@ -103,6 +181,45 @@ const ku: RichTextToolbarDictionary = {
 };
 
 const ar: RichTextToolbarDictionary = {
+  videoEditUrl: "تغيير رابط الفيديو",
+  wrapLeft: "التفاف النص (الصورة لليسار)",
+  wrapRight: "التفاف النص (الصورة لليمين)",
+  more: "المزيد",
+  groupHistory: "السجل",
+  groupBlocks: "الكتل",
+  groupMarks: "تنسيق النص",
+  groupAlignment: "المحاذاة",
+  groupLists: "القوائم",
+  groupInsert: "إدراج",
+  groupCallouts: "التنبيهات",
+  groupLinks: "الروابط",
+  groupMedia: "الوسائط",
+  heading1: "عنوان 1",
+  underline: "تسطير",
+  clearFormatting: "مسح التنسيق",
+  indent: "زيادة المسافة البادئة",
+  outdent: "تقليل المسافة البادئة",
+  resizeEditor: "تغيير ارتفاع المحرر",
+  words: "كلمة",
+  characters: "حرف",
+  table: "جدول",
+  tableInsert: "إدراج جدول",
+  tableAddRowBefore: "إضافة صف قبل",
+  tableAddRowAfter: "إضافة صف بعد",
+  tableDeleteRow: "حذف الصف",
+  tableAddColumnBefore: "إضافة عمود قبل",
+  tableAddColumnAfter: "إضافة عمود بعد",
+  tableDeleteColumn: "حذف العمود",
+  tableToggleHeaderRow: "صف الرأس",
+  tableToggleHeaderColumn: "عمود الرأس",
+  tableMergeOrSplit: "دمج أو تقسيم الخلايا",
+  tableDelete: "حذف الجدول",
+  videoAlignLeft: "محاذاة الفيديو لليسار",
+  videoAlignCenter: "توسيط الفيديو",
+  videoAlignRight: "محاذاة الفيديو لليمين",
+  videoFullWidth: "عرض كامل (100%)",
+  videoMove: "نقل الفيديو",
+  videoDelete: "حذف الفيديو",
   paragraph: "فقرة",
   heading2: "عنوان 2",
   heading3: "عنوان 3",
@@ -150,6 +267,45 @@ const ar: RichTextToolbarDictionary = {
 };
 
 const en: RichTextToolbarDictionary = {
+  videoEditUrl: "Change video URL",
+  wrapLeft: "Wrap text, image left",
+  wrapRight: "Wrap text, image right",
+  more: "More",
+  groupHistory: "History",
+  groupBlocks: "Blocks",
+  groupMarks: "Text style",
+  groupAlignment: "Alignment",
+  groupLists: "Lists",
+  groupInsert: "Insert",
+  groupCallouts: "Callouts",
+  groupLinks: "Links",
+  groupMedia: "Media",
+  heading1: "Heading 1",
+  underline: "Underline",
+  clearFormatting: "Clear formatting",
+  indent: "Indent",
+  outdent: "Outdent",
+  resizeEditor: "Drag to resize the editor",
+  words: "words",
+  characters: "characters",
+  table: "Table",
+  tableInsert: "Insert table",
+  tableAddRowBefore: "Add row above",
+  tableAddRowAfter: "Add row below",
+  tableDeleteRow: "Delete row",
+  tableAddColumnBefore: "Add column before",
+  tableAddColumnAfter: "Add column after",
+  tableDeleteColumn: "Delete column",
+  tableToggleHeaderRow: "Toggle header row",
+  tableToggleHeaderColumn: "Toggle header column",
+  tableMergeOrSplit: "Merge or split cells",
+  tableDelete: "Delete table",
+  videoAlignLeft: "Align video left",
+  videoAlignCenter: "Center video",
+  videoAlignRight: "Align video right",
+  videoFullWidth: "Full width (100%)",
+  videoMove: "Move video",
+  videoDelete: "Delete video",
   paragraph: "Paragraph",
   heading2: "Heading 2",
   heading3: "Heading 3",

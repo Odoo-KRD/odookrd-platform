@@ -28,6 +28,50 @@ function safeHref(
   return null;
 }
 
+/**
+ * Layout for media in the reader view, matching the editor's rules exactly.
+ *
+ * A wrapped image floats and text runs beside it; an unwrapped one keeps its
+ * own line and is placed by auto margins. If these two ever disagree, the
+ * author lays out one article and readers get a different one.
+ */
+function mediaLayout(
+  attrs: Record<string, unknown>,
+  fallbackWidth: string,
+): { style: React.CSSProperties; floated: boolean } {
+  const requested = Number(attrs.width);
+  const width =
+    Number.isFinite(requested) && requested > 0 ? requested : undefined;
+  const wrap = attrs.wrap === "left" || attrs.wrap === "right" ? attrs.wrap : "none";
+  const align =
+    attrs.align === "left" || attrs.align === "right" ? attrs.align : "center";
+
+  if (wrap !== "none") {
+    return {
+      floated: true,
+      style: {
+        float: wrap,
+        width: `${width ?? 320}px`,
+        maxWidth: "100%",
+        marginTop: "0.25rem",
+        marginBottom: "0.5rem",
+        marginLeft: wrap === "left" ? 0 : "1rem",
+        marginRight: wrap === "left" ? "1rem" : 0,
+      },
+    };
+  }
+
+  return {
+    floated: false,
+    style: {
+      marginLeft: align === "left" ? 0 : "auto",
+      marginRight: align === "right" ? 0 : "auto",
+      width: width ? `${width}px` : fallbackWidth,
+      maxWidth: "100%",
+    },
+  };
+}
+
 function attrsOf(node: Record<string, unknown>): Record<string, unknown> {
   return node.attrs && typeof node.attrs === "object"
     ? (node.attrs as Record<string, unknown>)
@@ -129,33 +173,15 @@ function renderNode(
     const src = safeHref(attrs.src, articleAssetBasePath);
     if (!src) return null;
 
-    const requestedWidth = Number(attrs.width);
-    const width =
-      Number.isFinite(requestedWidth) && requestedWidth > 0
-        ? requestedWidth
-        : undefined;
-    const align =
-      attrs.align === "left" || attrs.align === "right"
-        ? attrs.align
-        : "center";
-    const justifyClass =
-      align === "left"
-        ? "justify-start"
-        : align === "right"
-          ? "justify-end"
-          : "justify-center";
+    const layout = mediaLayout(attrs, "auto");
 
     return (
-      <div key={key} className={`my-5 flex w-full ${justifyClass}`}>
+      <div key={key} className="my-5" style={layout.style}>
         <img
           src={src}
           alt={typeof attrs.alt === "string" ? attrs.alt : ""}
           title={typeof attrs.title === "string" ? attrs.title : undefined}
-          className="block h-auto max-h-[42rem] max-w-full rounded-sm object-contain"
-          style={{
-            width: width ? `${width}px` : "auto",
-            maxWidth: "100%",
-          }}
+          className="block h-auto w-full max-w-full rounded-sm"
         />
       </div>
     );
@@ -278,7 +304,8 @@ function renderNode(
 
   if (type === "hardBreak") return <br key={key} />;
   if (type === "youtubeEmbed") {
-    const videoId = attrsOf(node).videoId;
+    const attrs = attrsOf(node);
+    const videoId = attrs.videoId;
 
     // Only ever an id, never a URL taken from the document: an 11-character id
     // can address nothing but YouTube, so a crafted document cannot turn this
@@ -287,21 +314,69 @@ function renderNode(
       return null;
     }
 
+    const layout = mediaLayout(attrs, "100%");
+
     return (
-      <div
-        key={key}
-        className="relative my-5 w-full overflow-hidden rounded-md pt-[56.25%]"
-      >
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${videoId}`}
-          title="YouTube video"
-          loading="lazy"
-          sandbox="allow-scripts allow-same-origin allow-presentation"
-          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-          referrerPolicy="strict-origin-when-cross-origin"
-          className="absolute inset-0 size-full border-0"
-        />
+      <div key={key} className="my-5" style={layout.style}>
+        <div className="relative w-full overflow-hidden rounded-md pt-[56.25%]">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+            title="YouTube video"
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+            className="absolute inset-0 size-full border-0"
+          />
+        </div>
       </div>
+    );
+  }
+
+  if (type === "table") {
+    return (
+      <div key={key} className="my-5 overflow-x-auto">
+        <table className="w-full table-fixed border-collapse text-sm">
+          <tbody>{children}</tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (type === "tableRow") return <tr key={key}>{children}</tr>;
+
+  if (type === "tableCell" || type === "tableHeader") {
+    const attrs = attrsOf(node);
+    const span = (value: unknown): number | undefined => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed > 1 ? parsed : undefined;
+    };
+
+    // colwidth is an array because a merged cell spans several columns.
+    const colwidth = Array.isArray(attrs.colwidth)
+      ? attrs.colwidth.reduce<number>(
+          (total, entry) =>
+            total + (Number.isFinite(Number(entry)) ? Number(entry) : 0),
+          0,
+        )
+      : 0;
+
+    const Cell = type === "tableHeader" ? "th" : "td";
+
+    return (
+      <Cell
+        key={key}
+        colSpan={span(attrs.colspan)}
+        rowSpan={span(attrs.rowspan)}
+        style={colwidth > 0 ? { width: `${colwidth}px` } : undefined}
+        className={`border border-line px-2.5 py-2 align-top ${
+          type === "tableHeader"
+            ? "bg-surface-subtle text-start font-semibold"
+            : ""
+        }`}
+      >
+        {children}
+      </Cell>
     );
   }
 
@@ -356,7 +431,10 @@ export function RichTextViewer({
   className?: string;
 }) {
   return (
-    <article dir={dir} className={className}>
+    // after:clear-both contains floated media: without it a wrapped image near
+    // the end of an article overhangs the last paragraph and collides with
+    // whatever follows the article.
+    <article dir={dir} className={`${className} after:block after:clear-both`}>
       {renderNode(document, "article", articleAssetBasePath)}
     </article>
   );

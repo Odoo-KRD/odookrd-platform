@@ -60,6 +60,70 @@ describe('training lesson readiness', () => {
     ).toEqual({ ready: true, blockers: [] });
   });
 
+  it('treats an article of only empty blocks as empty', () => {
+    const article = {
+      ku: { type: 'doc', content: [{ type: 'paragraph' }] },
+      ar: { type: 'doc', content: [] },
+    };
+    expect(hasLocalizedRichTextContent(article)).toBe(false);
+    expect(
+      evaluateTrainingLessonReadiness({
+        contentType: TrainingLessonContentType.ARTICLE,
+        articleContentTranslations: article,
+      }),
+    ).toEqual({ ready: false, blockers: ['ARTICLE_EMPTY'] });
+  });
+
+  it('does not mistake node names or attributes for article content', () => {
+    const article = {
+      ku: {
+        type: 'doc',
+        content: [
+          { type: 'paragraph', attrs: { textAlign: 'center', dir: 'rtl' } },
+        ],
+      },
+    };
+    expect(hasLocalizedRichTextContent(article)).toBe(false);
+  });
+
+  it('counts an article that is only an embedded video as content', () => {
+    const article = {
+      ku: {
+        type: 'doc',
+        content: [{ type: 'youtubeEmbed', attrs: { videoId: 'dQw4w9WgXcQ' } }],
+      },
+    };
+    expect(hasLocalizedRichTextContent(article)).toBe(true);
+    expect(
+      evaluateTrainingLessonReadiness({
+        contentType: TrainingLessonContentType.ARTICLE,
+        articleContentTranslations: article,
+      }),
+    ).toEqual({ ready: true, blockers: [] });
+  });
+
+  it('counts an article that is only a table as content', () => {
+    const article = {
+      en: {
+        type: 'doc',
+        content: [
+          {
+            type: 'table',
+            content: [
+              {
+                type: 'tableRow',
+                content: [
+                  { type: 'tableCell', content: [{ type: 'paragraph' }] },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+    expect(hasLocalizedRichTextContent(article)).toBe(true);
+  });
+
   it('keeps quiz lessons unpublishable until the later quiz integration exists', () => {
     expect(
       evaluateTrainingLessonReadiness({

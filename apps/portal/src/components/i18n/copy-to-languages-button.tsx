@@ -27,15 +27,49 @@ interface CopyToLanguagesButtonProps {
  * references rather than duplicating uploads. All languages then point at the
  * same asset, which also means deleting an image affects every translation.
  */
+/**
+ * Node types that are content on their own, with no text anywhere in them.
+ *
+ * A lesson that is one video is a real lesson, and an author who inserts one
+ * and finds the copy button greyed out concludes the feature is broken. Keep
+ * this list in step with the editor's node set — and with hasText in the API's
+ * training-lesson-readiness, which answers the same question for publishing.
+ */
+const SELF_SUFFICIENT_NODES = new Set([
+  "youtubeEmbed",
+  "image",
+  "separator",
+  "horizontalRule",
+  "table",
+]);
+
+function nodeHasContent(value: unknown, depth = 0): boolean {
+  if (depth > 30 || !value || typeof value !== "object") return false;
+
+  if (Array.isArray(value)) {
+    return value.some((child) => nodeHasContent(child, depth + 1));
+  }
+
+  const node = value as Record<string, unknown>;
+
+  if (typeof node.type === "string" && SELF_SUFFICIENT_NODES.has(node.type)) {
+    return true;
+  }
+
+  if (typeof node.text === "string" && node.text.trim().length > 0) {
+    return true;
+  }
+
+  return nodeHasContent(node.content, depth + 1);
+}
+
 function hasContent(document: LocalizedRichText[Locale]): boolean {
   if (!document || !Array.isArray(document.content)) {
     return false;
   }
 
-  const text = JSON.stringify(document.content);
-
   // An empty editor still holds one empty paragraph node.
-  return text.includes('"text"');
+  return nodeHasContent(document.content);
 }
 
 export function CopyToLanguagesButton({

@@ -20,16 +20,43 @@ export interface TrainingLessonReadinessInput {
   quizConfigured?: boolean;
 }
 
+/**
+ * Rich text node types that count as content on their own.
+ *
+ * An article lesson made of a single embedded video has no text node anywhere
+ * in it, and judging emptiness by text alone blocked publishing it. Mirrors
+ * SELF_SUFFICIENT_NODES in the portal's copy-to-languages-button; the two
+ * answer the same question on either side of the wire.
+ */
+const SELF_SUFFICIENT_NODES = new Set([
+  'youtubeEmbed',
+  'image',
+  'separator',
+  'horizontalRule',
+  'table',
+]);
+
+/**
+ * Walks `content` and `text` specifically rather than every value on the node.
+ *
+ * The previous version recursed over Object.values, which meant a node's own
+ * `type` — the string 'paragraph' — was read as text, so every document looked
+ * full and ARTICLE_EMPTY never fired. Attribute values (alignment, direction,
+ * a separator's label) are not article content either.
+ */
 function hasText(value: unknown, depth = 0): boolean {
   if (depth > 30 || value === null || value === undefined) return false;
-  if (typeof value === 'string') return value.trim().length > 0;
   if (Array.isArray(value))
     return value.some((item) => hasText(item, depth + 1));
   if (typeof value !== 'object') return false;
 
   const record = value as Record<string, unknown>;
+
+  if (typeof record.type === 'string' && SELF_SUFFICIENT_NODES.has(record.type))
+    return true;
   if (typeof record.text === 'string' && record.text.trim()) return true;
-  return Object.values(record).some((item) => hasText(item, depth + 1));
+
+  return hasText(record.content, depth + 1);
 }
 
 export function hasLocalizedRichTextContent(value: unknown): boolean {
