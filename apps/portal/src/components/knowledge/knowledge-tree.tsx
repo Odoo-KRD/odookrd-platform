@@ -3,7 +3,7 @@
 import type { KnowledgeCategoryNode } from "@odookrd/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
 export interface KnowledgeTreeArticle {
   id: string;
@@ -32,6 +32,11 @@ export function KnowledgeTree({
   ariaLabel: string;
 }) {
   const pathname = usePathname();
+
+  // Held here, not per branch: a branch the reader opened stays open when they
+  // navigate, and opening one never collapses its siblings. This is a
+  // documentation tree, not an accordion.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
 
   const { activeCategorySlug, activeArticleSlug } = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
@@ -70,6 +75,8 @@ export function KnowledgeTree({
             activeCategorySlug={activeCategorySlug}
             activeArticleSlug={activeArticleSlug}
             depth={0}
+            overrides={overrides}
+            setOverrides={setOverrides}
           />
         ))}
       </ul>
@@ -95,23 +102,26 @@ function TreeBranch({
   activeCategorySlug,
   activeArticleSlug,
   depth,
+  overrides,
+  setOverrides,
 }: {
   category: KnowledgeCategoryNode;
   articles: Map<string, KnowledgeTreeArticle[]>;
   activeCategorySlug: string | null;
   activeArticleSlug: string | null;
   depth: number;
+  overrides: Record<string, boolean>;
+  setOverrides: Dispatch<SetStateAction<Record<string, boolean>>>;
 }) {
   const children = category.children ?? [];
   const ownArticles = articles.get(category.id) ?? [];
   const expandable = children.length > 0 || ownArticles.length > 0;
   const onActivePath = branchContainsActive(category, activeCategorySlug);
 
-  const [expandedOverride, setExpandedOverride] = useState<boolean | null>(null);
-  const open = expandedOverride ?? onActivePath;
+  const open = overrides[category.id] ?? onActivePath;
 
   const isCurrent = category.slug === activeCategorySlug && !activeArticleSlug;
-  const indent = `${0.5 + depth * 0.85}rem`;
+  const indent = `${0.25 + depth}rem`;
 
   return (
     <li>
@@ -119,7 +129,12 @@ function TreeBranch({
         {expandable ? (
           <button
             type="button"
-            onClick={() => setExpandedOverride(!open)}
+            onClick={() =>
+              setOverrides((current) => ({
+                ...current,
+                [category.id]: !open,
+              }))
+            }
             aria-expanded={open}
             aria-label={category.name}
             className="flex size-5 shrink-0 items-center justify-center text-muted hover:text-content"
@@ -137,17 +152,15 @@ function TreeBranch({
               <path d="m9 6 6 6-6 6" />
             </svg>
           </button>
-        ) : (
-          <span className="size-5 shrink-0" aria-hidden />
-        )}
+        ) : null}
 
         <Link
           href={`/kb/${category.slug}`}
           aria-current={isCurrent ? "page" : undefined}
-          className={`flex-1 truncate rounded px-1.5 py-1.5 ${
+          className={`flex-1 truncate rounded px-2 py-2 leading-6 ${
             isCurrent
-              ? "font-semibold text-brand"
-              : "text-content hover:text-brand"
+              ? "bg-brand font-semibold text-white"
+              : "text-content hover:bg-surface-subtle hover:text-brand"
           }`}
         >
           {category.name}
@@ -164,6 +177,8 @@ function TreeBranch({
               activeCategorySlug={activeCategorySlug}
               activeArticleSlug={activeArticleSlug}
               depth={depth + 1}
+              overrides={overrides}
+              setOverrides={setOverrides}
             />
           ))}
 
@@ -172,23 +187,42 @@ function TreeBranch({
 
             return (
               <li key={article.id}>
-                <Link
-                  href={`/kb/${category.slug}/${article.slug}`}
-                  aria-current={current ? "page" : undefined}
-                  style={{ paddingInlineStart: `${1.75 + depth * 0.85}rem` }}
-                  className={`block truncate rounded py-1.5 pe-1.5 text-[13px] ${
-                    current
-                      ? "font-semibold text-brand"
-                      : "text-muted hover:text-brand"
-                  }`}
-                >
-                  {article.title}
-                </Link>
+                <div style={{ paddingInlineStart: `${1.5 + depth}rem` }}>
+                  <Link
+                    href={`/kb/${category.slug}/${article.slug}`}
+                    aria-current={current ? "page" : undefined}
+                    className={`flex items-center gap-2 rounded px-2 py-2 text-[13px] leading-6 ${
+                      current
+                        ? "bg-brand font-semibold text-white"
+                        : "text-muted hover:bg-surface-subtle hover:text-content"
+                    }`}
+                  >
+                    <ArticleIcon />
+                    <span className="min-w-0 truncate">{article.title}</span>
+                  </Link>
+                </div>
               </li>
             );
           })}
         </ul>
       ) : null}
     </li>
+  );
+}
+
+/** Marks a leaf as an article rather than a category. */
+function ArticleIcon() {
+  return (
+    <svg
+      viewBox="0 0 640 640"
+      className="size-3.5 shrink-0 opacity-70"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M98.91,25h442.19v590H98.91V25ZM486.31,320.08c0-78.07,0-156.14,0-234.21q0-5.97-5.97-5.97c-106.92,0-213.84,0-320.75,0q-5.97,0-5.97,5.98c0,156.14,0,312.28,0,468.42q0,5.97,5.97,5.97c106.92,0,213.84,0,320.75,0q5.97,0,5.97-5.98c0-78.07,0-156.14,0-234.21Z" />
+      <path d="M209.54,227.3v-54.51h220.78v54.51h-220.78Z" />
+      <path d="M209.54,338.06v-54.51h220.78v54.51h-220.78Z" />
+      <path d="M209.54,448.81v-54.51h110.03v54.51h-110.03Z" />
+    </svg>
   );
 }

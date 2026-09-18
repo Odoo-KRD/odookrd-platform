@@ -68,6 +68,8 @@ export interface KnowledgeAdminDictionary {
   selectCategory: string;
   status_: string;
   more: string;
+  expand: string;
+  collapse: string;
 }
 
 export const knowledgeAdminDictionaries: Record<
@@ -142,6 +144,8 @@ export const knowledgeAdminDictionaries: Record<
     selectCategory: "پۆلێک هەڵبژێرە",
     status_: "دۆخ",
     more: "زیاتر",
+    expand: "کردنەوە",
+    collapse: "داخستن",
   },
   ar: {
     section: "قاعدة المعرفة",
@@ -211,6 +215,8 @@ export const knowledgeAdminDictionaries: Record<
     selectCategory: "اختر فئة",
     status_: "الحالة",
     more: "المزيد",
+    expand: "توسيع",
+    collapse: "طي",
   },
   en: {
     section: "Knowledge base",
@@ -280,5 +286,7 @@ export const knowledgeAdminDictionaries: Record<
     selectCategory: "Select a category",
     status_: "Status",
     more: "More",
+    expand: "Expand",
+    collapse: "Collapse",
   },
 };

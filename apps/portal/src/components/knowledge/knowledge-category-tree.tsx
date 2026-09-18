@@ -8,6 +8,10 @@ import {
   AdminActionMenu,
   type AdminActionMenuItem,
 } from "@/components/admin/admin-action-menu";
+import {
+  SortableTree,
+  type SortableTreeItem,
+} from "@/components/admin/sortable-tree";
 
 interface ActionResult {
   ok: boolean;
@@ -38,18 +42,15 @@ export interface TreeLabels {
   saving: string;
   saved: string;
   newSubcategory: string;
+  expand: string;
+  collapse: string;
 }
 
 /**
- * The category tree, ordered by dragging a row's handle.
+ * Category management: a sortable tree, saved as soon as a row is dropped.
  *
- * This replaces the data table: categories are a hierarchy of maybe a few dozen
- * rows that people arrange, not a dataset they page through -- so ordering is
- * done here rather than on a separate screen, and saved as soon as a row is
- * dropped.
- *
- * Dragging is confined to a row's own sibling group, because sortOrder only has
- * meaning among siblings. Changing a category's parent is the edit form's job.
+ * Depth is shown by indentation alone -- no glyph before the name -- with the
+ * slug underneath for orientation.
  */
 export function KnowledgeCategoryTree({
   categories,
@@ -68,10 +69,9 @@ export function KnowledgeCategoryTree({
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(categories);
-  const [dragging, setDragging] = useState<string | null>(null);
-  const [over, setOver] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
 
   const run = (action: () => Promise<ActionResult>) => {
     startTransition(async () => {
@@ -83,46 +83,31 @@ export function KnowledgeCategoryTree({
     });
   };
 
-  const drop = (targetId: string) => {
-    const sourceId = dragging;
-
-    setDragging(null);
-    setOver(null);
-
-    if (!sourceId || sourceId === targetId) return;
-
-    const source = rows.find((row) => row.id === sourceId);
-    const target = rows.find((row) => row.id === targetId);
-
-    // Same parent only: a drop anywhere else is ignored rather than guessed at.
-    if (!source || !target || source.parentId !== target.parentId) return;
-
-    const siblings = rows.filter((row) => row.parentId === source.parentId);
-    const from = siblings.findIndex((row) => row.id === sourceId);
-    const to = siblings.findIndex((row) => row.id === targetId);
-
-    const reordered = [...siblings];
-    const [moved] = reordered.splice(from, 1);
-    reordered.splice(to, 0, moved);
-
-    // Rebuild the flat list so the tree keeps parents above their children.
+  const reorder = (parentId: string | null, orderedIds: string[]) => {
+    // Rebuild the flat list from the new sibling order so parents keep their
+    // descendants beneath them.
     const byParent = new Map<string | null, TreeCategory[]>();
-    for (const row of rows) {
-      const key = row.parentId;
-      byParent.set(key, [...(byParent.get(key) ?? []), row]);
-    }
-    byParent.set(source.parentId, reordered);
 
-    const flatten = (parentId: string | null): TreeCategory[] =>
-      (byParent.get(parentId) ?? []).flatMap((row) => [
-        row,
-        ...flatten(row.id),
-      ]);
+    for (const row of rows) {
+      byParent.set(row.parentId, [...(byParent.get(row.parentId) ?? []), row]);
+    }
+
+    const siblings = byParent.get(parentId) ?? [];
+    byParent.set(
+      parentId,
+      orderedIds
+        .map((id) => siblings.find((row) => row.id === id))
+        .filter((row): row is TreeCategory => Boolean(row)),
+    );
+
+    const flatten = (id: string | null): TreeCategory[] =>
+      (byParent.get(id) ?? []).flatMap((row) => [row, ...flatten(row.id)]);
 
     setRows(flatten(null));
     setStatus(labels.saving);
+
     run(async () => {
-      const result = await reorderAction(reordered.map((row) => row.id));
+      const result = await reorderAction(orderedIds);
 
       if (result.ok) setStatus(labels.saved);
 
@@ -130,130 +115,98 @@ export function KnowledgeCategoryTree({
     });
   };
 
+  const items: SortableTreeItem[] = rows.map((category) => {
+    const menu: AdminActionMenuItem[] = [
+      {
+        key: "add-child",
+        label: labels.newSubcategory,
+        href: `/admin/knowledge/categories/new?parentId=${category.id}`,
+      },
+      category.status === "ACTIVE"
+        ? {
+            key: "deactivate",
+            label: labels.deactivate,
+            tone: "warning",
+            onSelect: () => run(() => deactivateAction(category.id)),
+          }
+        : {
+            key: "activate",
+            label: labels.activate,
+            onSelect: () => run(() => activateAction(category.id)),
+          },
+      {
+        key: "delete",
+        label: labels.delete,
+        tone: "danger",
+        icon: "delete",
+        separatorBefore: true,
+        onSelect: () => {
+          if (window.confirm(labels.deleteConfirm)) {
+            run(() => deleteAction(category.id));
+          }
+        },
+      },
+    ];
+
+    return {
+      id: category.id,
+      parentId: category.parentId,
+      depth: category.depth,
+      content: (
+        <span
+          className={`block truncate ${
+            category.depth === 0 ? "font-semibold text-content" : "text-content"
+          }`}
+        >
+          {category.name}
+          {category.status === "INACTIVE" ? (
+            <span className="ms-2 rounded bg-surface-subtle px-1.5 py-0.5 text-[11px] font-normal text-muted">
+              {labels.inactive}
+            </span>
+          ) : null}
+        </span>
+      ),
+      trailing: (
+        <>
+          <span className="text-xs text-muted">
+            {category.articles} {labels.articleCount}
+          </span>
+          <Link
+            href={`/admin/knowledge/categories/${category.id}`}
+            className="inline-flex h-8 items-center rounded-md border border-line bg-white px-2.5 text-xs font-medium text-content hover:bg-surface-subtle"
+          >
+            {labels.edit}
+          </Link>
+          <AdminActionMenu label={labels.more} items={menu} />
+        </>
+      ),
+    };
+  });
+
   return (
     <div className="grid gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-muted">{labels.dragHint}</p>
-        {status ? <p className="text-xs text-muted">{status}</p> : null}
-      </div>
+      {status ? <p className="text-xs text-muted">{status}</p> : null}
 
-      <ul className="overflow-hidden rounded-md border border-line bg-surface-panel">
-        {rows.map((category) => {
-          const items: AdminActionMenuItem[] = [
-            {
-              key: "add-child",
-              label: labels.newSubcategory,
-              href: `/admin/knowledge/categories/new?parentId=${category.id}`,
-            },
-            category.status === "ACTIVE"
-              ? {
-                  key: "deactivate",
-                  label: labels.deactivate,
-                  tone: "warning",
-                  onSelect: () => run(() => deactivateAction(category.id)),
-                }
-              : {
-                  key: "activate",
-                  label: labels.activate,
-                  onSelect: () => run(() => activateAction(category.id)),
-                },
-            {
-              key: "delete",
-              label: labels.delete,
-              tone: "danger",
-              separatorBefore: true,
-              onSelect: () => {
-                if (window.confirm(labels.deleteConfirm)) {
-                  run(() => deleteAction(category.id));
-                }
-              },
-            },
-          ];
+      <SortableTree
+        items={items}
+        onReorder={reorder}
+        disabled={pending}
+        dragHint={labels.dragHint}
+        collapse={{
+          collapsed,
+          onToggle: (id) =>
+            setCollapsed((current) => {
+              const next = new Set(current);
 
-          return (
-            <li
-              key={category.id}
-              draggable
-              onDragStart={(event) => {
-                event.dataTransfer.setData("text/plain", category.id);
-                event.dataTransfer.effectAllowed = "move";
-                setDragging(category.id);
-              }}
-              onDragEnd={() => {
-                setDragging(null);
-                setOver(null);
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = "move";
-                setOver(category.id);
-              }}
-              onDragLeave={() => setOver(null)}
-              onDrop={(event) => {
-                event.preventDefault();
-                drop(category.id);
-              }}
-              className={`flex items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0 ${
-                dragging === category.id ? "opacity-40" : ""
-              } ${over === category.id ? "bg-brand-soft" : "hover:bg-surface-subtle"}`}
-            >
-              <span
-                aria-hidden
-                title={labels.dragHint}
-                className="cursor-grab select-none text-base leading-none text-muted active:cursor-grabbing"
-              >
-                ⠿
-              </span>
+              if (next.has(id)) next.delete(id);
+              else next.add(id);
 
-              <span
-                className="flex min-w-0 flex-1 items-center gap-2"
-                style={{ paddingInlineStart: `${category.depth * 1.5}rem` }}
-              >
-                {category.depth > 0 ? (
-                  <span aria-hidden className="text-muted">
-                    ↳
-                  </span>
-                ) : null}
-                <span className="min-w-0">
-                  <span
-                    className={`block truncate ${
-                      category.depth === 0
-                        ? "font-semibold text-content"
-                        : "text-content"
-                    }`}
-                  >
-                    {category.name}
-                    {category.status === "INACTIVE" ? (
-                      <span className="ms-2 rounded bg-surface-subtle px-1.5 py-0.5 text-[11px] font-normal text-muted">
-                        {labels.inactive}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="block truncate text-xs text-muted" dir="ltr">
-                    /{category.slug}
-                  </span>
-                </span>
-              </span>
-
-              <span className="shrink-0 text-xs text-muted">
-                {category.articles} {labels.articleCount}
-              </span>
-
-              <span className="flex shrink-0 items-center gap-1.5">
-                <Link
-                  href={`/admin/knowledge/categories/${category.id}`}
-                  className="inline-flex h-8 items-center rounded-md border border-line bg-white px-2.5 text-xs font-medium text-content hover:bg-surface-subtle"
-                >
-                  {labels.edit}
-                </Link>
-                <AdminActionMenu label={labels.more} items={items} />
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      {pending ? <span className="sr-only">{labels.saving}</span> : null}
+              return next;
+            }),
+          expandLabel: labels.expand,
+          collapseLabel: labels.collapse,
+        }}
+      />
     </div>
   );
 }

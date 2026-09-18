@@ -39,7 +39,7 @@ export default async function KnowledgeArticlePage({
   return (
     <article className="w-full space-y-5">
       <nav aria-label={labels.browseTitle} className="text-xs">
-        <ol className="flex flex-wrap items-center gap-1.5 text-content-muted">
+        <ol className="flex flex-wrap items-center gap-1.5 text-muted">
           <li>
             <Link href="/kb" className="hover:text-content">
               {labels.title}
@@ -59,9 +59,9 @@ export default async function KnowledgeArticlePage({
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-content">{article.title}</h1>
         {article.excerpt ? (
-          <p className="text-sm text-content-muted">{article.excerpt}</p>
+          <p className="text-sm text-muted">{article.excerpt}</p>
         ) : null}
-        <p className="text-xs text-content-muted">
+        <p className="text-xs text-muted">
           {labels.updatedAt}:{" "}
           {new Date(article.updatedAt).toLocaleDateString(
             locale === "en" ? "en-GB" : locale === "ar" ? "ar-IQ" : "ckb-IQ",
@@ -69,22 +69,26 @@ export default async function KnowledgeArticlePage({
         </p>
       </header>
 
+      {/* Article bodies carry content wider than the column -- tables pasted
+          from documentation, screenshots, code blocks. Each of those scrolls
+          inside the card; without this the whole page slides sideways, which in
+          RTL pushes the text under the sidebar. */}
       <RichTextViewer
         document={article.body}
         dir={direction}
-        className="rounded-md border border-line bg-white p-5 text-sm text-content sm:p-7"
+        className="max-w-full overflow-x-auto rounded-md border border-line bg-white p-5 text-content sm:p-7 [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:w-max [&_table]:max-w-full [&_table]:overflow-x-auto"
       />
 
       {article.tags.length > 0 ? (
         <footer className="space-y-2">
-          <h2 className="text-xs font-semibold text-content-muted">
+          <h2 className="text-xs font-semibold text-muted">
             {labels.tags}
           </h2>
           <ul className="flex flex-wrap gap-1.5">
             {article.tags.map((tag) => (
               <li
                 key={tag}
-                className="rounded-full bg-surface-muted px-2.5 py-1 text-xs text-content-muted"
+                className="rounded-full bg-surface-muted px-2.5 py-1 text-xs text-muted"
               >
                 {tag}
               </li>

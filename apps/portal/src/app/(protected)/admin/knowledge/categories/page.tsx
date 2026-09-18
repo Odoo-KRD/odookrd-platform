@@ -82,6 +82,8 @@ export default async function KnowledgeCategoriesPage() {
               saving: labels.saving,
               saved: labels.reorderSaved,
               newSubcategory: labels.newCategory,
+              expand: labels.expand,
+              collapse: labels.collapse,
             }}
             reorderAction={reorderKnowledgeCategoriesAction}
             activateAction={activateKnowledgeCategoryAction}
