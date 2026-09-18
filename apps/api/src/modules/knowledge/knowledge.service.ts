@@ -137,6 +137,14 @@ export class KnowledgeService {
     const where: Prisma.KnowledgeArticleWhereInput = {
       ...VISIBLE_ARTICLE_WHERE,
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+      ...(query.categorySlug
+        ? {
+            category: {
+              ...VISIBLE_ARTICLE_WHERE.category,
+              slug: query.categorySlug,
+            },
+          }
+        : {}),
     };
 
     const [items, total] = await this.prisma.$transaction([

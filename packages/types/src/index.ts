@@ -1865,3 +1865,47 @@ export type TrainingReportLearnerPage =
 export type TrainingReportQuizPage = TrainingReportPage<TrainingReportQuizRow>;
 export type TrainingReportCertificatePage =
   TrainingReportPage<TrainingReportCertificateRow>;
+
+export interface KnowledgeCategoryNode {
+  id: string;
+  slug: string;
+  name: string;
+  nameTranslations: LocalizedText;
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+  articleCount: number;
+  children?: KnowledgeCategoryNode[];
+}
+
+export interface KnowledgeArticleCategoryRef {
+  id: string;
+  slug: string;
+  name: string;
+  nameTranslations: LocalizedText;
+  parentId?: string | null;
+}
+
+export interface KnowledgeArticleListItem {
+  id: string;
+  slug: string;
+  title: string;
+  titleTranslations: LocalizedText;
+  excerpt: string | null;
+  excerptTranslations: LocalizedText;
+  tags: string[];
+  publishedAt: string | null;
+  sortOrder: number;
+  category: KnowledgeArticleCategoryRef;
+}
+
+export interface KnowledgeArticleDetail extends KnowledgeArticleListItem {
+  /** Resolved to the request locale by the API, not a translations map. */
+  body: RichTextDocument | null;
+  updatedAt: string;
+  breadcrumb: KnowledgeArticleCategoryRef[];
+}
+
+export interface KnowledgeArticlePage {
+  items: KnowledgeArticleListItem[];
+  pagination: Pagination;
+}
