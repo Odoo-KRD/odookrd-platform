@@ -252,6 +252,14 @@ export class FilesService {
       return asset;
     }
 
+    // Platform-scoped assets are platform content -- knowledge base images,
+    // certificate artwork, branding -- and are readable by any authenticated
+    // user. Without this, an image a platform admin embeds in a knowledge base
+    // article 404s for every customer, since it carries no companyId to match.
+    if (asset.accountScope === AccountScope.PLATFORM) {
+      return asset;
+    }
+
     if (
       principal.accountScope !== AccountScope.COMPANY ||
       !principal.companyId ||

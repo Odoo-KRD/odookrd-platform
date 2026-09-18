@@ -37,9 +37,9 @@ export default async function KnowledgeArticlePage({
   const direction = getTextDirection(locale);
 
   return (
-    <article className="max-w-4xl space-y-5">
+    <article className="w-full space-y-5">
       <nav aria-label={labels.browseTitle} className="text-xs">
-        <ol className="flex flex-wrap items-center gap-1.5 text-muted">
+        <ol className="flex flex-wrap items-center gap-1.5 text-content-muted">
           <li>
             <Link href="/kb" className="hover:text-content">
               {labels.title}
@@ -59,9 +59,9 @@ export default async function KnowledgeArticlePage({
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-content">{article.title}</h1>
         {article.excerpt ? (
-          <p className="text-sm text-muted">{article.excerpt}</p>
+          <p className="text-sm text-content-muted">{article.excerpt}</p>
         ) : null}
-        <p className="text-xs text-muted">
+        <p className="text-xs text-content-muted">
           {labels.updatedAt}:{" "}
           {new Date(article.updatedAt).toLocaleDateString(
             locale === "en" ? "en-GB" : locale === "ar" ? "ar-IQ" : "ckb-IQ",
@@ -77,14 +77,14 @@ export default async function KnowledgeArticlePage({
 
       {article.tags.length > 0 ? (
         <footer className="space-y-2">
-          <h2 className="text-xs font-semibold text-muted">
+          <h2 className="text-xs font-semibold text-content-muted">
             {labels.tags}
           </h2>
           <ul className="flex flex-wrap gap-1.5">
             {article.tags.map((tag) => (
               <li
                 key={tag}
-                className="rounded-full bg-surface-subtle px-2.5 py-1 text-xs text-muted"
+                className="rounded-full bg-surface-muted px-2.5 py-1 text-xs text-content-muted"
               >
                 {tag}
               </li>

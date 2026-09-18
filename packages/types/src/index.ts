@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   TRAINING_ASSIGN: "training.assign",
   TRAINING_PROGRESS_READ: "training.progress.read",
   TRAINING_REPORTS_READ: "training.reports.read",
+  KNOWLEDGE_MANAGE: "knowledge.manage",
 
   AUDIT_LOGS_READ: "audit_logs.read",
 } as const;

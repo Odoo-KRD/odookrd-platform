@@ -22,6 +22,9 @@ export interface AdminNavigationLabels {
   trainingCertificateTemplates: string;
   trainingCertificates: string;
   trainingReports: string;
+  knowledge: string;
+  knowledgeCategories: string;
+  knowledgeArticles: string;
   notifications: string;
   deliveryLog: string;
   notificationsInbox: string;
@@ -172,6 +175,30 @@ export function buildAdminNavigation(
       label: labels.training,
       icon: "training",
       children: trainingChildren,
+    });
+  }
+
+  if (
+    session.user.accountScope === "PLATFORM" &&
+    hasPermission(session, PERMISSIONS.KNOWLEDGE_MANAGE)
+  ) {
+    entries.push({
+      kind: "group",
+      id: "knowledge",
+      label: labels.knowledge,
+      icon: "overview",
+      children: [
+        {
+          kind: "item",
+          href: "/admin/knowledge/articles",
+          label: labels.knowledgeArticles,
+        },
+        {
+          kind: "item",
+          href: "/admin/knowledge/categories",
+          label: labels.knowledgeCategories,
+        },
+      ],
     });
   }
 

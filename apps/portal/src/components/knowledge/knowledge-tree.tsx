@@ -5,39 +5,70 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 
+export interface KnowledgeTreeArticle {
+  id: string;
+  slug: string;
+  title: string;
+  categoryId: string;
+}
+
 /**
- * The knowledge base tree, up to three levels.
+ * The knowledge base navigation tree: categories three deep, with each
+ * category's articles as leaves beneath it -- the shape Odoo's own docs
+ * sidebar uses, where a page and a section sit in the same list.
  *
- * Only the branch containing the current page is expanded; the rest stay
- * collapsed. A fully expanded tree stops being scannable somewhere around
- * thirty categories, and this one is meant to hold Odoo's documentation.
+ * Only the branch containing the current page is expanded. A tree that opens
+ * everything stops being scannable once there are a few dozen entries.
  *
- * Chevrons rotate toward the inline end, so the same component reads correctly
- * in both RTL and LTR without a direction prop.
+ * Chevrons rotate toward the inline end, so one component serves RTL and LTR.
  */
 export function KnowledgeTree({
   categories,
+  articles,
   ariaLabel,
 }: {
   categories: KnowledgeCategoryNode[];
+  articles: KnowledgeTreeArticle[];
   ariaLabel: string;
 }) {
   const pathname = usePathname();
-  const activeSlug = useMemo(() => {
+
+  const { activeCategorySlug, activeArticleSlug } = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
 
-    // /kb/:categorySlug or /kb/:categorySlug/:articleSlug
-    return segments[0] === "kb" ? (segments[1] ?? null) : null;
+    if (segments[0] !== "kb") {
+      return { activeCategorySlug: null, activeArticleSlug: null };
+    }
+
+    return {
+      activeCategorySlug: segments[1] ?? null,
+      activeArticleSlug: segments[2] ?? null,
+    };
   }, [pathname]);
+
+  const byCategory = useMemo(() => {
+    const map = new Map<string, KnowledgeTreeArticle[]>();
+
+    for (const article of articles) {
+      map.set(article.categoryId, [
+        ...(map.get(article.categoryId) ?? []),
+        article,
+      ]);
+    }
+
+    return map;
+  }, [articles]);
 
   return (
     <nav aria-label={ariaLabel} className="text-sm">
-      <ul className="space-y-0.5">
+      <ul>
         {categories.map((category) => (
           <TreeBranch
             key={category.id}
             category={category}
-            activeSlug={activeSlug}
+            articles={byCategory}
+            activeCategorySlug={activeCategorySlug}
+            activeArticleSlug={activeArticleSlug}
             depth={0}
           />
         ))}
@@ -46,7 +77,7 @@ export function KnowledgeTree({
   );
 }
 
-function containsSlug(
+function branchContainsActive(
   category: KnowledgeCategoryNode,
   slug: string | null,
 ): boolean {
@@ -54,47 +85,53 @@ function containsSlug(
   if (category.slug === slug) return true;
 
   return (category.children ?? []).some((child) =>
-    containsSlug(child, slug),
+    branchContainsActive(child, slug),
   );
 }
 
 function TreeBranch({
   category,
-  activeSlug,
+  articles,
+  activeCategorySlug,
+  activeArticleSlug,
   depth,
 }: {
   category: KnowledgeCategoryNode;
-  activeSlug: string | null;
+  articles: Map<string, KnowledgeTreeArticle[]>;
+  activeCategorySlug: string | null;
+  activeArticleSlug: string | null;
   depth: number;
 }) {
   const children = category.children ?? [];
-  const onActivePath = containsSlug(category, activeSlug);
-  const [expanded, setExpanded] = useState(onActivePath);
-  const isActive = category.slug === activeSlug;
-  const open = expanded || onActivePath;
+  const ownArticles = articles.get(category.id) ?? [];
+  const expandable = children.length > 0 || ownArticles.length > 0;
+  const onActivePath = branchContainsActive(category, activeCategorySlug);
+
+  const [expandedOverride, setExpandedOverride] = useState<boolean | null>(null);
+  const open = expandedOverride ?? onActivePath;
+
+  const isCurrent = category.slug === activeCategorySlug && !activeArticleSlug;
+  const indent = `${0.5 + depth * 0.85}rem`;
 
   return (
     <li>
-      <div
-        className="flex items-center gap-1"
-        style={{ paddingInlineStart: `${depth * 0.75}rem` }}
-      >
-        {children.length > 0 ? (
+      <div className="flex items-center" style={{ paddingInlineStart: indent }}>
+        {expandable ? (
           <button
             type="button"
-            onClick={() => setExpanded((value) => !value)}
+            onClick={() => setExpandedOverride(!open)}
             aria-expanded={open}
             aria-label={category.name}
-            className="flex size-5 shrink-0 items-center justify-center rounded text-muted hover:bg-surface-subtle"
+            className="flex size-5 shrink-0 items-center justify-center text-muted hover:text-content"
           >
             <svg
               viewBox="0 0 24 24"
-              className={`size-3.5 transition-transform ${
+              className={`size-3 transition-transform ${
                 open ? "rotate-90" : "rtl:-scale-x-100"
               }`}
               fill="none"
               stroke="currentColor"
-              strokeWidth={2.2}
+              strokeWidth={2.5}
               aria-hidden
             >
               <path d="m9 6 6 6-6 6" />
@@ -106,27 +143,50 @@ function TreeBranch({
 
         <Link
           href={`/kb/${category.slug}`}
-          aria-current={isActive ? "page" : undefined}
-          className={`flex-1 rounded px-2 py-1.5 ${
-            isActive
-              ? "bg-surface-subtle font-semibold text-content"
-              : "text-muted hover:bg-surface-subtle hover:text-content"
+          aria-current={isCurrent ? "page" : undefined}
+          className={`flex-1 truncate rounded px-1.5 py-1.5 ${
+            isCurrent
+              ? "font-semibold text-brand"
+              : "text-content hover:text-brand"
           }`}
         >
           {category.name}
         </Link>
       </div>
 
-      {open && children.length > 0 ? (
-        <ul className="mt-0.5 space-y-0.5">
+      {open ? (
+        <ul>
           {children.map((child) => (
             <TreeBranch
               key={child.id}
               category={child}
-              activeSlug={activeSlug}
+              articles={articles}
+              activeCategorySlug={activeCategorySlug}
+              activeArticleSlug={activeArticleSlug}
               depth={depth + 1}
             />
           ))}
+
+          {ownArticles.map((article) => {
+            const current = article.slug === activeArticleSlug;
+
+            return (
+              <li key={article.id}>
+                <Link
+                  href={`/kb/${category.slug}/${article.slug}`}
+                  aria-current={current ? "page" : undefined}
+                  style={{ paddingInlineStart: `${1.75 + depth * 0.85}rem` }}
+                  className={`block truncate rounded py-1.5 pe-1.5 text-[13px] ${
+                    current
+                      ? "font-semibold text-brand"
+                      : "text-muted hover:text-brand"
+                  }`}
+                >
+                  {article.title}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
     </li>
