@@ -1,170 +1,36 @@
-import {
-  PERMISSIONS,
-  type CustomerAccountProfile,
-  type CustomerNotificationPage,
-  type NotificationUnreadCount,
-  type TrainingCatalogStatus,
-} from "@odookrd/types";
 import { redirect } from "next/navigation";
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import type {
-  AdminNavigationEntry,
-  AdminNavigationItem,
-} from "@/components/admin/navigation";
 import { CustomerShellHeader } from "@/components/customer/customer-shell-header";
-import { apiRequest } from "@/lib/api";
-import { hasAdminAccess, hasPermission } from "@/lib/authorization";
-import { customerDashboardV2Dictionaries } from "@/lib/i18n/customer/dashboard";
-import { frontendTranslations } from "@/lib/i18n/public/translations";
-import { getPortalDictionary } from "@/lib/i18n/customer/server";
-import { getPublicSettings } from "@/lib/public-settings";
-import { getSessionToken, requireSession } from "@/lib/session";
-import { getUserUiPreferences } from "@/lib/user-ui-preferences";
+import { getCustomerShell } from "@/lib/customer-shell";
 
 export default async function ProtectedCustomerLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [
-    session,
-    { locale, dictionary, portal },
-    publicSettings,
-    uiPreferences,
-  ] = await Promise.all([
-    requireSession(),
-    getPortalDictionary(),
-    getPublicSettings(),
-    getUserUiPreferences(),
-  ]);
+  const shell = await getCustomerShell();
 
-  if (session.user.accountScope !== "COMPANY" || !session.user.companyId) {
+  if (!shell) {
     redirect("/admin");
   }
 
-  const token = await getSessionToken();
-  if (!token) {
-    redirect("/login");
-  }
-
-  const labels = customerDashboardV2Dictionaries[locale];
-  const canServices = hasPermission(session, PERMISSIONS.SERVICES_READ);
-  const canTraining = hasPermission(session, PERMISSIONS.TRAINING_READ);
-  const canCompany = hasPermission(session, PERMISSIONS.COMPANIES_READ);
-  const canNotifications = hasPermission(
+  const {
     session,
-    PERMISSIONS.NOTIFICATIONS_READ,
-  );
-  const canAdministration = hasAdminAccess(session);
-
-  const [profile, trainingStatus, notificationPage, unread] = await Promise.all(
-    [
-      apiRequest<CustomerAccountProfile>("/workspace/profile", { token }),
-      canTraining
-        ? apiRequest<TrainingCatalogStatus>("/training/catalog/status", {
-            token,
-          }).catch(() => ({ enabled: false }))
-        : Promise.resolve({ enabled: false }),
-      canNotifications
-        ? apiRequest<CustomerNotificationPage>(
-            "/notifications?limit=5&offset=0",
-            {
-              token,
-            },
-          ).catch(() => ({
-            items: [],
-            pagination: { limit: 5, offset: 0, total: 0 },
-          }))
-        : Promise.resolve(null),
-      canNotifications
-        ? apiRequest<NotificationUnreadCount>("/notifications/unread-count", {
-            token,
-          }).catch(() => ({ unread: 0 }))
-        : Promise.resolve(null),
-    ],
-  );
-  const trainingEnabled = trainingStatus.enabled;
-
-  const navigation: AdminNavigationEntry[] = [
-    {
-      kind: "item",
-      href: "/dashboard",
-      label: portal.navigation.dashboard,
-      icon: "dashboard",
-    },
-  ];
-
-  if (canServices) {
-    navigation.push({
-      kind: "item",
-      href: "/dashboard/services",
-      label: frontendTranslations[locale].services.title,
-      icon: "services",
-    });
-  }
-
-  const learningChildren: AdminNavigationItem[] = [];
-  if (canTraining && trainingEnabled) {
-    learningChildren.push({
-      kind: "item",
-      href: "/dashboard/training",
-      label: labels.navigation.myCourses,
-    });
-  }
-  if (canTraining) {
-    learningChildren.push({
-      kind: "item",
-      href: "/dashboard/training/certificates",
-      label: labels.navigation.myCertificates,
-    });
-  }
-  if (learningChildren.length > 0) {
-    navigation.push({
-      kind: "group",
-      id: "customer-learning",
-      label: labels.navigation.learning,
-      icon: "training",
-      children: learningChildren,
-    });
-  }
-
-  const accountChildren: AdminNavigationItem[] = [];
-  if (canCompany) {
-    accountChildren.push({
-      kind: "item",
-      href: "/dashboard/company",
-      label: labels.navigation.companyProfile,
-    });
-  }
-  accountChildren.push({
-    kind: "item",
-    href: "/dashboard/profile",
-    label: labels.navigation.myProfile,
-  });
-  navigation.push({
-    kind: "group",
-    id: "customer-company-account",
-    label: labels.navigation.companyAccount,
-    icon: "users",
-    children: accountChildren,
-  });
-
-  if (canNotifications) {
-    navigation.push({
-      kind: "item",
-      href: "/dashboard/notifications",
-      label: frontendTranslations[locale].notifications.navigation,
-      icon: "notifications",
-    });
-  }
-
-  if (canAdministration) {
-    navigation.push({
-      kind: "item",
-      href: "/admin",
-      label: portal.navigation.administration,
-      icon: "overview",
-    });
-  }
+    dictionary,
+    portal,
+    labels,
+    publicSettings,
+    uiPreferences,
+    navigation,
+    profile,
+    notificationPage,
+    unread,
+    locale,
+    trainingEnabled,
+    canCompany,
+    canTraining,
+    canNotifications,
+    canAdministration,
+  } = shell;
 
   return (
     <div className="min-h-screen bg-surface-page lg:flex lg:h-screen lg:overflow-hidden">
