@@ -911,9 +911,9 @@ model KnowledgeCategory {
   slug                    String                  @unique @db.VarChar(160)
   parentId                String?                 @map("parent_id") @db.Uuid
   name                    String                  @db.VarChar(200)
-  nameTranslations        Json                    @default("{}") @map("name_translations")
+  nameTranslations        Json                    @default("{}") @map("name_translations") @db.JsonB
   description             String?                 @db.VarChar(1000)
-  descriptionTranslations Json                    @default("{}") @map("description_translations")
+  descriptionTranslations Json                    @default("{}") @map("description_translations") @db.JsonB
   status                  KnowledgeCategoryStatus @default(ACTIVE)
   sortOrder               Int                     @default(0) @map("sort_order")
   createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -939,10 +939,10 @@ model KnowledgeArticle {
   slug                String                 @unique @db.VarChar(200)
   categoryId          String                 @map("category_id") @db.Uuid
   title               String                 @db.VarChar(250)
-  titleTranslations   Json                   @default("{}") @map("title_translations")
+  titleTranslations   Json                   @default("{}") @map("title_translations") @db.JsonB
   excerpt             String?                @db.VarChar(500)
-  excerptTranslations Json                   @default("{}") @map("excerpt_translations")
-  body                Json                   @default("{}")
+  excerptTranslations Json                   @default("{}") @map("excerpt_translations") @db.JsonB
+  bodyTranslations    Json                   @default("{}") @map("body_translations") @db.JsonB
   status              KnowledgeArticleStatus @default(DRAFT)
   publishedAt         DateTime?              @map("published_at") @db.Timestamptz(6)
   sortOrder           Int                    @default(0) @map("sort_order")
@@ -950,6 +950,7 @@ model KnowledgeArticle {
   searchTextAr        String                 @default("") @map("search_text_ar")
   searchTextEn        String                 @default("") @map("search_text_en")
   authorUserId        String?                @map("author_user_id") @db.Uuid
+  tagsTranslations    Json                   @default("{}") @map("tags_translations") @db.JsonB
   createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
 
