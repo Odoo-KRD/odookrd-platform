@@ -251,22 +251,52 @@ export function buildSearchTexts(
 }
 
 /**
+ * The category tree is three levels deep, matching how Odoo's own
+ * documentation is organised (section > subsection > topic, articles at the
+ * leaf). Nothing in the database enforces this -- the self-referencing FK
+ * allows any depth -- so every depth check reads this constant, and the
+ * queries below hardcode exactly this many ancestor hops.
+ *
+ * Raising it means revisiting activeAncestryWhere, the category tree select in
+ * knowledge.service.ts, and the ancestor joins in knowledge-search.service.ts.
+ * Past a fixed depth those all become recursive CTEs, which is the reason this
+ * is a small number rather than "unlimited".
+ */
+export const MAX_CATEGORY_DEPTH = 3;
+
+/**
+ * A category is reachable when it is ACTIVE and so is every ancestor above it.
+ * An inactive category hides its whole subtree, however deep.
+ *
+ * Expressed as nested OR branches -- one per level -- because Prisma has no
+ * recursive relation filter. The nesting depth here IS MAX_CATEGORY_DEPTH.
+ */
+const ACTIVE_ANCESTRY_WHERE = {
+  status: KnowledgeCategoryStatus.ACTIVE,
+  OR: [
+    { parentId: null },
+    {
+      parent: {
+        status: KnowledgeCategoryStatus.ACTIVE,
+        OR: [
+          { parentId: null },
+          { parent: { status: KnowledgeCategoryStatus.ACTIVE } },
+        ],
+      },
+    },
+  ],
+} satisfies Prisma.KnowledgeCategoryWhereInput;
+
+/**
  * Customer visibility, agreed for stage 5: an article is visible when it is
- * PUBLISHED, its category is ACTIVE, and the category's parent -- if it has one
- * -- is ACTIVE. An inactive parent hides its whole subtree.
+ * PUBLISHED and its category's whole ancestry is ACTIVE.
  *
  * Kept as a constant so listing, article fetch and search cannot drift apart.
  * The search service repeats it in raw SQL; change both together.
  */
 export const VISIBLE_ARTICLE_WHERE = {
   status: KnowledgeArticleStatus.PUBLISHED,
-  category: {
-    status: KnowledgeCategoryStatus.ACTIVE,
-    OR: [
-      { parentId: null },
-      { parent: { status: KnowledgeCategoryStatus.ACTIVE } },
-    ],
-  },
+  category: ACTIVE_ANCESTRY_WHERE,
 } satisfies Prisma.KnowledgeArticleWhereInput;
 
 export const VISIBLE_CATEGORY_WHERE = {

@@ -55,55 +55,78 @@ const articleDetailSelect = {
           slug: true,
           name: true,
           nameTranslations: true,
+          parent: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              nameTranslations: true,
+            },
+          },
         },
       },
     },
   },
 } satisfies Prisma.KnowledgeArticleSelect;
 
+const categoryOrder = [
+  { sortOrder: 'asc' },
+  { name: 'asc' },
+] satisfies Prisma.KnowledgeCategoryOrderByWithRelationInput[];
+
+const categoryFields = {
+  id: true,
+  slug: true,
+  name: true,
+  nameTranslations: true,
+  description: true,
+  descriptionTranslations: true,
+  _count: { select: { articles: { where: { ...VISIBLE_ARTICLE_WHERE } } } },
+} satisfies Prisma.KnowledgeCategorySelect;
+
+/**
+ * Three levels, written out rather than recursed: Prisma selects are static,
+ * and the depth is fixed by MAX_CATEGORY_DEPTH.
+ */
+const categoryTreeSelect = {
+  ...categoryFields,
+  children: {
+    where: VISIBLE_CATEGORY_WHERE,
+    orderBy: categoryOrder,
+    select: {
+      ...categoryFields,
+      children: {
+        where: VISIBLE_CATEGORY_WHERE,
+        orderBy: categoryOrder,
+        select: categoryFields,
+      },
+    },
+  },
+} satisfies Prisma.KnowledgeCategorySelect;
+
 @Injectable()
 export class KnowledgeService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * The category tree, two levels deep. An inactive parent is not returned at
-   * all, which drops its children with it -- the agreed subtree rule.
+   * The category tree, MAX_CATEGORY_DEPTH levels deep. An inactive category is
+   * not returned at all, which drops its descendants with it.
    */
   async listCategories() {
     const categories = await this.prisma.knowledgeCategory.findMany({
       where: { ...VISIBLE_CATEGORY_WHERE, parentId: null },
-      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        nameTranslations: true,
-        description: true,
-        descriptionTranslations: true,
-        _count: {
-          select: { articles: { where: { ...VISIBLE_ARTICLE_WHERE } } },
-        },
-        children: {
-          where: VISIBLE_CATEGORY_WHERE,
-          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            nameTranslations: true,
-            description: true,
-            descriptionTranslations: true,
-            _count: {
-              select: { articles: { where: { ...VISIBLE_ARTICLE_WHERE } } },
-            },
-          },
-        },
-      },
+      orderBy: categoryOrder,
+      select: categoryTreeSelect,
     });
 
     return categories.map((category) => ({
       ...this.withArticleCount(category),
-      children: category.children.map((child) => this.withArticleCount(child)),
+      children: category.children.map((child) => ({
+        ...this.withArticleCount(child),
+        children: child.children.map((grandchild) =>
+          this.withArticleCount(grandchild),
+        ),
+      })),
     }));
   }
 
@@ -185,15 +208,34 @@ export class KnowledgeService {
       slug: string;
       name: string;
       nameTranslations: unknown;
+      parent: {
+        id: string;
+        slug: string;
+        name: string;
+        nameTranslations: unknown;
+      } | null;
     } | null;
   }) {
-    const self = {
-      id: category.id,
-      slug: category.slug,
-      name: category.name,
-      nameTranslations: category.nameTranslations,
-    };
+    const trail = [
+      category.parent?.parent,
+      category.parent
+        ? {
+            id: category.parent.id,
+            slug: category.parent.slug,
+            name: category.parent.name,
+            nameTranslations: category.parent.nameTranslations,
+          }
+        : null,
+      {
+        id: category.id,
+        slug: category.slug,
+        name: category.name,
+        nameTranslations: category.nameTranslations,
+      },
+    ];
 
-    return category.parent ? [category.parent, self] : [self];
+    return trail.filter((entry): entry is NonNullable<typeof entry> =>
+      Boolean(entry),
+    );
   }
 }

@@ -32,6 +32,8 @@ interface SearchCountRow {
  *
  * The visibility rule below duplicates VISIBLE_ARTICLE_WHERE in knowledge.rules.ts.
  * It cannot be shared -- one is Prisma, one is SQL -- so change both together.
+ * One ancestor join per level above the article's own category, so the join
+ * count here is MAX_CATEGORY_DEPTH - 1.
  */
 @Injectable()
 export class KnowledgeSearchService {
@@ -66,9 +68,11 @@ export class KnowledgeSearchService {
       FROM "knowledge_articles" a
       JOIN "knowledge_categories" c ON c."id" = a."category_id"
       LEFT JOIN "knowledge_categories" p ON p."id" = c."parent_id"
+      LEFT JOIN "knowledge_categories" g ON g."id" = p."parent_id"
       WHERE a."status" = 'PUBLISHED'
         AND c."status" = 'ACTIVE'
         AND (c."parent_id" IS NULL OR p."status" = 'ACTIVE')
+        AND (p."parent_id" IS NULL OR g."status" = 'ACTIVE')
         AND (
           to_tsvector(${searchConfig}, ${searchColumn})
             @@ websearch_to_tsquery(${searchConfig}, ${term})
