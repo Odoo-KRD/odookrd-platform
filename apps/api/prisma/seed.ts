@@ -125,6 +125,11 @@ const permissions = [
     description: 'View training progress within the authorized scope.',
   },
   {
+    key: 'knowledge.manage',
+    name: 'Manage knowledge base',
+    description: 'Create and publish knowledge base categories and articles.',
+  },
+  {
     key: 'training.reports.read',
     name: 'Read training reports',
     description:
@@ -162,6 +167,7 @@ const roles = [
       'training.assign',
       'training.progress.read',
       'training.reports.read',
+      'knowledge.manage',
     ],
   },
   {

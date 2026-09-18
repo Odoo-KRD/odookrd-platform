@@ -1,5 +1,7 @@
 import {
   buildSearchText,
+  slugify,
+  uniqueSlug,
   buildSearchTexts,
   normalizeLocalizedTags,
   normalizeSearchInput,
@@ -217,5 +219,58 @@ describe('searchColumnFor', () => {
       column: 'search_text_ku',
       config: 'simple',
     });
+  });
+});
+
+describe('slugify', () => {
+  it('lowercases and hyphenates English titles', () => {
+    expect(slugify('How to pay an invoice')).toBe('how-to-pay-an-invoice');
+  });
+
+  it('collapses punctuation and repeated separators', () => {
+    expect(slugify('VAT:  what   changed? (2026)')).toBe(
+      'vat-what-changed-2026',
+    );
+  });
+
+  it('trims leading and trailing separators', () => {
+    expect(slugify('  --hello--  ')).toBe('hello');
+  });
+
+  it('transliterates Kurdish to Latin letters', () => {
+    expect(slugify('چۆن پارە بدەیت')).toBe('chon-pare-bdeyt');
+  });
+
+  it('transliterates Arabic to Latin letters', () => {
+    expect(slugify('الدفع')).toBe('aldfa');
+  });
+
+  it('maps Eastern Arabic digits to ASCII digits', () => {
+    expect(slugify('٢٠٢٦')).toBe('2026');
+  });
+
+  it('strips Latin accents', () => {
+    expect(slugify('Créer une facture')).toBe('creer-une-facture');
+  });
+
+  it('returns an empty string when nothing survives', () => {
+    expect(slugify('!!! ???')).toBe('');
+  });
+
+  it('never ends with a hyphen after truncation', () => {
+    expect(slugify('a'.repeat(300))).not.toMatch(/-$/);
+  });
+});
+
+describe('uniqueSlug', () => {
+  it('returns the base slug when it is free', () => {
+    expect(uniqueSlug('invoices', new Set())).toBe('invoices');
+  });
+
+  it('appends an incrementing suffix on collision', () => {
+    expect(uniqueSlug('invoices', new Set(['invoices']))).toBe('invoices-2');
+    expect(uniqueSlug('invoices', new Set(['invoices', 'invoices-2']))).toBe(
+      'invoices-3',
+    );
   });
 });

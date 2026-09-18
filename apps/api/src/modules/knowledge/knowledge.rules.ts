@@ -331,3 +331,136 @@ export function searchColumnFor(locale: ApiLocale): KnowledgeSearchColumn {
       return { column: 'search_text_ku', config: 'simple' };
   }
 }
+
+/**
+ * Transliteration for slug generation. Kurdish and Arabic titles have to reach
+ * a URL as ASCII, so each letter maps to its nearest Latin equivalent.
+ *
+ * Multi-character sequences are listed first and applied first: without that,
+ * "وو" would become "ww" instead of "u", and "ch" would never survive "چ".
+ * This is deliberately lossy -- two different titles can transliterate to the
+ * same slug, which is what the uniqueness suffix in the admin service is for.
+ */
+const SLUG_DIGRAPHS: ReadonlyArray<readonly [string, string]> = [
+  ['\u0648\u0648', 'u'],
+  ['\u06CE', 'e'],
+];
+
+const SLUG_LETTERS: Readonly<Record<string, string>> = {
+  // Shared Arabic-script letters
+  '\u0627': 'a',
+  '\u0628': 'b',
+  '\u062A': 't',
+  '\u062B': 'th',
+  '\u062C': 'j',
+  '\u062D': 'h',
+  '\u062E': 'kh',
+  '\u062F': 'd',
+  '\u0630': 'dh',
+  '\u0631': 'r',
+  '\u0632': 'z',
+  '\u0633': 's',
+  '\u0634': 'sh',
+  '\u0635': 's',
+  '\u0636': 'd',
+  '\u0637': 't',
+  '\u0638': 'z',
+  '\u0639': 'a',
+  '\u063A': 'gh',
+  '\u0641': 'f',
+  '\u0642': 'q',
+  '\u0643': 'k',
+  '\u0644': 'l',
+  '\u0645': 'm',
+  '\u0646': 'n',
+  '\u0647': 'h',
+  '\u0648': 'w',
+  '\u064A': 'y',
+  '\u0629': 'h',
+  '\u0649': 'y',
+  // Kurdish and Persian additions
+  '\u067E': 'p',
+  '\u0686': 'ch',
+  '\u0698': 'zh',
+  '\u06A9': 'k',
+  '\u06AF': 'g',
+  '\u06B5': 'll',
+  '\u0695': 'rr',
+  '\u06A4': 'v',
+  '\u06CC': 'y',
+  '\u06C6': 'o',
+  '\u06D5': 'e',
+  // Eastern Arabic digits
+  '\u0660': '0',
+  '\u0661': '1',
+  '\u0662': '2',
+  '\u0663': '3',
+  '\u0664': '4',
+  '\u0665': '5',
+  '\u0666': '6',
+  '\u0667': '7',
+  '\u0668': '8',
+  '\u0669': '9',
+  '\u06F0': '0',
+  '\u06F1': '1',
+  '\u06F2': '2',
+  '\u06F3': '3',
+  '\u06F4': '4',
+  '\u06F5': '5',
+  '\u06F6': '6',
+  '\u06F7': '7',
+  '\u06F8': '8',
+  '\u06F9': '9',
+};
+
+/**
+ * Room for a "-123" uniqueness suffix inside the column's 200 characters.
+ */
+export const MAX_SLUG_LENGTH = 190;
+
+/**
+ * Title to URL slug: transliterated to ASCII, lowercased, spaces and
+ * punctuation collapsed to single hyphens.
+ *
+ * Returns an empty string when nothing survives (a title of only punctuation,
+ * say); callers decide what to do about that rather than getting a slug of
+ * hyphens.
+ */
+export function slugify(value: string): string {
+  let text = value.normalize('NFKD').replace(/[\u0300-\u036F]/g, '');
+
+  for (const [sequence, replacement] of SLUG_DIGRAPHS) {
+    text = text.split(sequence).join(replacement);
+  }
+
+  text = Array.from(text)
+    .map((character) => SLUG_LETTERS[character] ?? character)
+    .join('');
+
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, MAX_SLUG_LENGTH)
+    .replace(/-+$/g, '');
+}
+
+/**
+ * Appends -2, -3 ... until the slug is not in `taken`. The caller supplies the
+ * set; the database unique index remains the real guarantee.
+ */
+export function uniqueSlug(base: string, taken: ReadonlySet<string>): string {
+  if (!taken.has(base)) {
+    return base;
+  }
+
+  for (let suffix = 2; suffix < 1000; suffix += 1) {
+    const candidate = `${base.slice(0, MAX_SLUG_LENGTH - 5)}-${suffix}`;
+
+    if (!taken.has(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(`Unable to derive a unique slug from "${base}".`);
+}
