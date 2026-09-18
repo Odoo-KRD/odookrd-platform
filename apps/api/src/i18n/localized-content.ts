@@ -84,6 +84,7 @@ export function localizeResponse(value: unknown, locale: ApiLocale): unknown {
   for (const [field, translationField] of [
     ['name', 'nameTranslations'],
     ['title', 'titleTranslations'],
+    ['excerpt', 'excerptTranslations'],
     ['summary', 'summaryTranslations'],
     ['description', 'descriptionTranslations'],
     ['displayName', 'displayNameTranslations'],

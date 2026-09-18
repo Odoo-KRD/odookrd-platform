@@ -15,6 +15,7 @@ import { ServicesModule } from './modules/services/services.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TrainingModule } from './modules/training/training.module';
+import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { FilesModule } from './modules/files/files.module';
 
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
@@ -46,6 +47,7 @@ import { UserAdministrationModule } from './modules/user-administration/user-adm
     SettingsModule,
     NotificationsModule,
     TrainingModule,
+    KnowledgeModule,
     FilesModule,
     WorkspaceModule,
   ],
