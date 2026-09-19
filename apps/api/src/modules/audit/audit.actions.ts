@@ -80,6 +80,9 @@ export const AUDIT_ACTIONS = {
     'training.certificate_template.updated',
   TRAINING_CERTIFICATE_ISSUED: 'training.certificate.issued',
   TRAINING_CERTIFICATE_REVOKED: 'training.certificate.revoked',
+
+  HELPDESK_TICKET_CREATED: 'helpdesk.ticket.created',
+  HELPDESK_TICKET_CLOSED: 'helpdesk.ticket.closed',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

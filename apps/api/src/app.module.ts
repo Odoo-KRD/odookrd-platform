@@ -17,6 +17,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { TrainingModule } from './modules/training/training.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { FilesModule } from './modules/files/files.module';
+import { HelpdeskModule } from './modules/helpdesk/helpdesk.module';
 
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { WorkspaceModule } from './modules/workspace/workspace.module';
@@ -49,6 +50,7 @@ import { UserAdministrationModule } from './modules/user-administration/user-adm
     TrainingModule,
     KnowledgeModule,
     FilesModule,
+    HelpdeskModule,
     WorkspaceModule,
   ],
 })
