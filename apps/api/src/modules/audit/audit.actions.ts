@@ -83,6 +83,11 @@ export const AUDIT_ACTIONS = {
 
   HELPDESK_TICKET_CREATED: 'helpdesk.ticket.created',
   HELPDESK_TICKET_CLOSED: 'helpdesk.ticket.closed',
+  HELPDESK_TICKET_UPDATED: 'helpdesk.ticket.updated',
+  HELPDESK_TICKET_ASSIGNED: 'helpdesk.ticket.assigned',
+  HELPDESK_DEPARTMENT_CREATED: 'helpdesk.department.created',
+  HELPDESK_DEPARTMENT_UPDATED: 'helpdesk.department.updated',
+  HELPDESK_DEPARTMENT_DELETED: 'helpdesk.department.deleted',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

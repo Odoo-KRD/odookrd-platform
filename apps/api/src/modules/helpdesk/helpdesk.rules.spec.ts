@@ -9,6 +9,8 @@ import {
   MAX_ATTACHMENTS_PER_MESSAGE,
   normalizeMessageBody,
   statusAfterCustomerReply,
+  statusAfterStaffReply,
+  statusChangeData,
   ticketYear,
 } from './helpdesk.rules';
 
@@ -60,6 +62,49 @@ describe('helpdesk rules', () => {
     expect(statusAfterCustomerReply(TicketStatus.IN_PROGRESS)).toBe(
       TicketStatus.IN_PROGRESS,
     );
+  });
+
+  it('moves a new ticket to IN_PROGRESS on a staff reply', () => {
+    expect(statusAfterStaffReply(TicketStatus.OPEN)).toBe(
+      TicketStatus.IN_PROGRESS,
+    );
+    expect(statusAfterStaffReply(TicketStatus.WAITING_ON_CUSTOMER)).toBe(
+      TicketStatus.WAITING_ON_CUSTOMER,
+    );
+  });
+
+  it('keeps status timestamps consistent', () => {
+    const now = new Date('2026-09-19T10:00:00Z');
+    const earlier = new Date('2026-09-18T10:00:00Z');
+    const open = {
+      status: TicketStatus.OPEN,
+      resolvedAt: null,
+      closedAt: null,
+    };
+
+    expect(statusChangeData(open, TicketStatus.RESOLVED, now)).toEqual({
+      status: TicketStatus.RESOLVED,
+      resolvedAt: now,
+      closedAt: null,
+    });
+    expect(
+      statusChangeData(
+        { status: TicketStatus.RESOLVED, resolvedAt: earlier, closedAt: null },
+        TicketStatus.CLOSED,
+        now,
+      ),
+    ).toEqual({
+      status: TicketStatus.CLOSED,
+      resolvedAt: earlier,
+      closedAt: now,
+    });
+    expect(
+      statusChangeData(
+        { status: TicketStatus.CLOSED, resolvedAt: earlier, closedAt: earlier },
+        TicketStatus.OPEN,
+        now,
+      ),
+    ).toEqual({ status: TicketStatus.OPEN, resolvedAt: null, closedAt: null });
   });
 
   it('rejects an empty message body', () => {

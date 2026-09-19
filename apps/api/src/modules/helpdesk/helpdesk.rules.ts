@@ -96,6 +96,54 @@ export function statusAfterCustomerReply(current: TicketStatus): TicketStatus {
   return current;
 }
 
+export interface TicketStatusState {
+  status: TicketStatus;
+  resolvedAt: Date | null;
+  closedAt: Date | null;
+}
+
+/**
+ * The status plus the timestamps that must move with it. resolvedAt records
+ * the latest resolution (kept when a resolved ticket is then closed);
+ * reopening clears both.
+ */
+export function statusChangeData(
+  current: TicketStatusState,
+  next: TicketStatus,
+  now: Date,
+): TicketStatusState {
+  switch (next) {
+    case TicketStatus.RESOLVED:
+      return {
+        status: next,
+        resolvedAt:
+          current.status === TicketStatus.RESOLVED && current.resolvedAt
+            ? current.resolvedAt
+            : now,
+        closedAt: null,
+      };
+    case TicketStatus.CLOSED:
+      return {
+        status: next,
+        resolvedAt: current.resolvedAt,
+        closedAt:
+          current.status === TicketStatus.CLOSED && current.closedAt
+            ? current.closedAt
+            : now,
+      };
+    default:
+      return { status: next, resolvedAt: null, closedAt: null };
+  }
+}
+
+/**
+ * Status after a public staff reply when the agent did not choose one: a new
+ * ticket moves to IN_PROGRESS, anything else keeps its status.
+ */
+export function statusAfterStaffReply(current: TicketStatus): TicketStatus {
+  return current === TicketStatus.OPEN ? TicketStatus.IN_PROGRESS : current;
+}
+
 export function normalizeMessageBody(body: string): string {
   const trimmed = body.trim();
 
