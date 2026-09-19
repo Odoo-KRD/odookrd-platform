@@ -240,10 +240,62 @@ export class KnowledgeAdminService {
       this.prisma.knowledgeArticle.count({ where }),
     ]);
 
+    // Feedback tallies for the rows on this page. Prisma cannot alias two
+    // filtered counts of the same relation in one select, so they come from a
+    // grouped query keyed by article -- one extra round trip for the page,
+    // rather than one per row.
+    const tallies = await this.prisma.knowledgeArticleFeedback.groupBy({
+      by: ['articleId', 'helpful'],
+      where: { articleId: { in: items.map((article) => article.id) } },
+      _count: { _all: true },
+    });
+
+    const feedbackByArticle = new Map<
+      string,
+      { helpful: number; unhelpful: number }
+    >();
+
+    for (const row of tallies) {
+      const current = feedbackByArticle.get(row.articleId) ?? {
+        helpful: 0,
+        unhelpful: 0,
+      };
+
+      if (row.helpful) current.helpful = row._count._all;
+      else current.unhelpful = row._count._all;
+
+      feedbackByArticle.set(row.articleId, current);
+    }
+
     return {
-      items,
+      items: items.map((article) => ({
+        ...article,
+        feedback: feedbackByArticle.get(article.id) ?? {
+          helpful: 0,
+          unhelpful: 0,
+        },
+      })),
       pagination: { limit: query.limit, offset: query.offset, total },
     };
+  }
+
+  /**
+   * Unhelpful answers with a comment, newest first -- the ones worth reading.
+   */
+  async listArticleComments(articleId: string) {
+    await this.getArticle(articleId);
+
+    return this.prisma.knowledgeArticleFeedback.findMany({
+      where: { articleId, helpful: false, NOT: { comment: null } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: {
+        id: true,
+        comment: true,
+        createdAt: true,
+        user: { select: { id: true, email: true } },
+      },
+    });
   }
 
   async getArticle(articleId: string) {

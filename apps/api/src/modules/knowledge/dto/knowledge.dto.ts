@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -28,4 +29,19 @@ export class SearchKnowledgeQueryDto extends PaginationQueryDto {
   @IsNotEmpty()
   @MaxLength(250)
   q!: string;
+}
+
+export class SubmitKnowledgeFeedbackDto {
+  @IsBoolean()
+  helpful!: boolean;
+
+  /**
+   * Only collected alongside an unhelpful answer, and optional even then. A
+   * comment sent with helpful: true is ignored rather than rejected -- the
+   * answer is what matters, and failing the request would lose it.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  comment?: string;
 }

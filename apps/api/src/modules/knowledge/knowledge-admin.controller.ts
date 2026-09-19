@@ -80,6 +80,11 @@ export class KnowledgeAdminController {
     return this.admin.getArticle(articleId);
   }
 
+  @Get('articles/:articleId/feedback')
+  listArticleComments(@Param('articleId', ParseUUIDPipe) articleId: string) {
+    return this.admin.listArticleComments(articleId);
+  }
+
   @Patch('articles/:articleId')
   updateArticle(
     @Param('articleId', ParseUUIDPipe) articleId: string,

@@ -45,6 +45,12 @@ export const apiAr = {
       'طلب أحد العملاء تجديد خدمة وهو بانتظار المراجعة.',
     adminCertificateIssuedSubject: 'تم إصدار شهادة',
     adminCertificateIssuedBody: 'أصدر أحد متعلمي العملاء شهادة دورة.',
+    adminKnowledgeFeedbackSubject:
+      'تم وسم مقالة في قاعدة المعرفة بأنها غير مفيدة',
+    adminKnowledgeFeedbackBody:
+      'ذكر أحد القرّاء أن المقالة لم تساعده وترك تعليقاً.',
+    adminArticleLabel: 'المقالة',
+    adminCommentLabel: 'التعليق',
     adminCompanyLabel: 'الشركة',
     adminUserLabel: 'المستخدم',
     adminCourseLabel: 'الدورة',

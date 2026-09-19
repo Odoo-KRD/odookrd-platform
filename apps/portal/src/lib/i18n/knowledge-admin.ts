@@ -70,6 +70,11 @@ export interface KnowledgeAdminDictionary {
   more: string;
   expand: string;
   collapse: string;
+  feedback: string;
+  feedbackComments: string;
+  feedbackCommentsEmpty: string;
+  feedbackHelpfulCount: string;
+  feedbackUnhelpfulCount: string;
 }
 
 export const knowledgeAdminDictionaries: Record<
@@ -146,6 +151,11 @@ export const knowledgeAdminDictionaries: Record<
     more: "زیاتر",
     expand: "کردنەوە",
     collapse: "داخستن",
+    feedback: "بەسوود / نا",
+    feedbackComments: "ڕاڤەکانی خوێنەران",
+    feedbackCommentsEmpty: "هێشتا هیچ ڕاڤەیەک نەنێردراوە.",
+    feedbackHelpfulCount: "بەسوود",
+    feedbackUnhelpfulCount: "بێسوود",
   },
   ar: {
     section: "قاعدة المعرفة",
@@ -217,6 +227,11 @@ export const knowledgeAdminDictionaries: Record<
     more: "المزيد",
     expand: "توسيع",
     collapse: "طي",
+    feedback: "مفيد / لا",
+    feedbackComments: "تعليقات القرّاء",
+    feedbackCommentsEmpty: "لا توجد تعليقات بعد.",
+    feedbackHelpfulCount: "مفيد",
+    feedbackUnhelpfulCount: "غير مفيد",
   },
   en: {
     section: "Knowledge base",
@@ -288,5 +303,10 @@ export const knowledgeAdminDictionaries: Record<
     more: "More",
     expand: "Expand",
     collapse: "Collapse",
+    feedback: "Helpful / not",
+    feedbackComments: "Reader comments",
+    feedbackCommentsEmpty: "No comments yet.",
+    feedbackHelpfulCount: "Helpful",
+    feedbackUnhelpfulCount: "Not helpful",
   },
 };

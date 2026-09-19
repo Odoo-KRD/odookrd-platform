@@ -469,6 +469,7 @@ model User {
   trainingCourseCompletions        TrainingCourseCompletion[]
   trainingCertificates             TrainingCertificate[]
   knowledgeArticles                KnowledgeArticle[]             @relation("KnowledgeArticleAuthor")
+  knowledgeArticleFeedback         KnowledgeArticleFeedback[]
   subscriptionPeriods              SubscriptionPeriod[]           @relation("SubscriptionPeriodActor")
   subscriptionRenewalsRequested    SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalRequestedBy")
   subscriptionRenewalsReviewed     SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalReviewedBy")
@@ -954,8 +955,9 @@ model KnowledgeArticle {
   createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  category KnowledgeCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  author   User?             @relation("KnowledgeArticleAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  category KnowledgeCategory          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author   User?                      @relation("KnowledgeArticleAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  feedback KnowledgeArticleFeedback[]
 
   @@index([categoryId, sortOrder], map: "knowledge_articles_category_sort_idx")
   @@index([status, publishedAt(sort: Desc)], map: "knowledge_articles_status_published_idx")
@@ -964,6 +966,33 @@ model KnowledgeArticle {
   @@index([searchTextAr(ops: raw("gin_trgm_ops"))], map: "knowledge_articles_trgm_ar_idx", type: Gin)
   @@index([searchTextEn(ops: raw("gin_trgm_ops"))], map: "knowledge_articles_trgm_en_idx", type: Gin)
   @@map("knowledge_articles")
+}
+
+/// Reader feedback on a knowledge base article.
+///
+/// One row per reader per article: answering again updates the existing row, so
+/// changing your mind corrects the count instead of inflating it. The comment
+/// is only collected alongside an unhelpful answer, and is optional even then.
+///
+/// Feedback dies with its article -- a count for something nobody can read is
+/// noise -- hence Cascade here, unlike the Restrict used elsewhere in the
+/// knowledge base.
+model KnowledgeArticleFeedback {
+  id        String   @id @default(uuid()) @db.Uuid
+  articleId String   @map("article_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  helpful   Boolean
+  comment   String?  @db.VarChar(2000)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  article KnowledgeArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, userId], map: "knowledge_article_feedback_article_user_key")
+  @@index([articleId, helpful], map: "knowledge_article_feedback_article_helpful_idx")
+  @@index([createdAt(sort: Desc)], map: "knowledge_article_feedback_created_idx")
+  @@map("knowledge_article_feedback")
 }
 
 model Notification {

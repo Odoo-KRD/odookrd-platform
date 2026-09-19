@@ -1,17 +1,22 @@
 import {
+  Body,
   Controller,
   Get,
   Headers,
   Param,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
 
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { resolveApiLocale } from '../../i18n';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import {
   ListKnowledgeArticlesQueryDto,
   SearchKnowledgeQueryDto,
+  SubmitKnowledgeFeedbackDto,
 } from './dto/knowledge.dto';
 import { KnowledgeSearchService } from './knowledge-search.service';
 import { KnowledgeService } from './knowledge.service';
@@ -53,9 +58,23 @@ export class KnowledgeController {
 
   @Get('articles/:slug')
   getArticle(
+    @CurrentUser() principal: AuthenticatedPrincipal,
     @Param('slug') slug: string,
     @Headers('accept-language') acceptLanguage?: string,
   ) {
-    return this.knowledge.getArticle(slug, resolveApiLocale(acceptLanguage));
+    return this.knowledge.getArticle(
+      slug,
+      resolveApiLocale(acceptLanguage),
+      principal.userId,
+    );
+  }
+
+  @Post('articles/:slug/feedback')
+  submitFeedback(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('slug') slug: string,
+    @Body() input: SubmitKnowledgeFeedbackDto,
+  ) {
+    return this.knowledge.submitFeedback(slug, principal.userId, input);
   }
 }

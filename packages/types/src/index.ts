@@ -1899,11 +1899,18 @@ export interface KnowledgeArticleListItem {
   category: KnowledgeArticleCategoryRef;
 }
 
+export interface KnowledgeArticleFeedbackAnswer {
+  helpful: boolean;
+  comment: string | null;
+}
+
 export interface KnowledgeArticleDetail extends KnowledgeArticleListItem {
   /** Resolved to the request locale by the API, not a translations map. */
   body: RichTextDocument | null;
   updatedAt: string;
   breadcrumb: KnowledgeArticleCategoryRef[];
+  /** This reader's own answer, so the widget opens in the right state. */
+  viewerFeedback: KnowledgeArticleFeedbackAnswer | null;
 }
 
 export interface KnowledgeArticlePage {

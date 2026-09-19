@@ -47,6 +47,12 @@ export const apiEn = {
     adminCertificateIssuedSubject: 'A certificate was issued',
     adminCertificateIssuedBody:
       'A customer learner has issued a course certificate.',
+    adminKnowledgeFeedbackSubject:
+      'A knowledge base article was marked unhelpful',
+    adminKnowledgeFeedbackBody:
+      'A reader said an article did not help them and left a comment.',
+    adminArticleLabel: 'Article',
+    adminCommentLabel: 'Comment',
     adminCompanyLabel: 'Company',
     adminUserLabel: 'User',
     adminCourseLabel: 'Course',

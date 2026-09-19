@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { RichTextViewer } from "@/components/i18n/rich-text-viewer";
+import { KnowledgeArticleFeedback } from "@/components/knowledge/knowledge-article-feedback";
 import { apiRequest } from "@/lib/api";
 import { getTextDirection } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
@@ -77,6 +78,12 @@ export default async function KnowledgeArticlePage({
         document={article.body}
         dir={direction}
         className="max-w-full overflow-x-auto rounded-md border border-line bg-white p-5 text-content sm:p-7 [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:w-max [&_table]:max-w-full [&_table]:overflow-x-auto"
+      />
+
+      <KnowledgeArticleFeedback
+        slug={article.slug}
+        labels={labels}
+        initial={article.viewerFeedback}
       />
 
       {article.tags.length > 0 ? (

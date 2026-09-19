@@ -28,6 +28,18 @@ export interface KnowledgeDictionary {
   tags: string;
   openArticle: string;
   loadError: string;
+  feedbackQuestion: string;
+  feedbackYes: string;
+  feedbackNo: string;
+  feedbackCommentPrompt: string;
+  feedbackCommentPlaceholder: string;
+  feedbackSend: string;
+  feedbackSending: string;
+  feedbackSkip: string;
+  feedbackThanks: string;
+  feedbackThanksNegative: string;
+  feedbackError: string;
+  feedbackChange: string;
 }
 
 export const knowledgeDictionaries: Record<Locale, KnowledgeDictionary> = {
@@ -59,6 +71,18 @@ export const knowledgeDictionaries: Record<Locale, KnowledgeDictionary> = {
     tags: "تاگەکان",
     openArticle: "کردنەوە",
     loadError: "نەتوانرا بنکەی زانیاری باربکرێت.",
+    feedbackQuestion: "ئایا ئەمە بەسوود بوو؟",
+    feedbackYes: "بەڵێ",
+    feedbackNo: "نەخێر",
+    feedbackCommentPrompt: "دەتوانیت یارمەتیمان بدەیت باشتری بکەین؟",
+    feedbackCommentPlaceholder: "چی کەم بوو؟ (ئارەزوومەندانە)",
+    feedbackSend: "ناردن",
+    feedbackSending: "دەنێردرێت...",
+    feedbackSkip: "بەبێ ڕاڤە بنێرە",
+    feedbackThanks: "سوپاس بۆ وەڵامەکەت.",
+    feedbackThanksNegative: "سوپاس، ئەمە یارمەتیدەرە بۆ باشترکردنی.",
+    feedbackError: "نەتوانرا بنێردرێت. دووبارە هەوڵ بدەرەوە.",
+    feedbackChange: "گۆڕینی وەڵام",
   },
   ar: {
     navigation: "قاعدة المعرفة",
@@ -88,6 +112,18 @@ export const knowledgeDictionaries: Record<Locale, KnowledgeDictionary> = {
     tags: "الوسوم",
     openArticle: "فتح",
     loadError: "تعذّر تحميل قاعدة المعرفة.",
+    feedbackQuestion: "هل كان هذا مفيداً؟",
+    feedbackYes: "نعم",
+    feedbackNo: "لا",
+    feedbackCommentPrompt: "هل يمكنك مساعدتنا على تحسينه؟",
+    feedbackCommentPlaceholder: "ما الذي كان ناقصاً؟ (اختياري)",
+    feedbackSend: "إرسال",
+    feedbackSending: "جارٍ الإرسال...",
+    feedbackSkip: "إرسال بدون تعليق",
+    feedbackThanks: "شكراً على ملاحظتك.",
+    feedbackThanksNegative: "شكراً، هذا يساعدنا على تحسينه.",
+    feedbackError: "تعذّر الإرسال. حاول مرة أخرى.",
+    feedbackChange: "تغيير الإجابة",
   },
   en: {
     navigation: "Knowledge base",
@@ -117,5 +153,17 @@ export const knowledgeDictionaries: Record<Locale, KnowledgeDictionary> = {
     tags: "Tags",
     openArticle: "Open",
     loadError: "The knowledge base could not be loaded.",
+    feedbackQuestion: "Was this helpful?",
+    feedbackYes: "Yes",
+    feedbackNo: "No",
+    feedbackCommentPrompt: "Could you help us make it better?",
+    feedbackCommentPlaceholder: "What was missing? (optional)",
+    feedbackSend: "Send",
+    feedbackSending: "Sending...",
+    feedbackSkip: "Send without a comment",
+    feedbackThanks: "Thanks for the feedback.",
+    feedbackThanksNegative: "Thanks - this helps us improve it.",
+    feedbackError: "That could not be sent. Please try again.",
+    feedbackChange: "Change answer",
   },
 };

@@ -117,6 +117,33 @@ export class AdminEventNotificationService {
     });
   }
 
+  /**
+   * Fires on every unhelpful answer that carries a comment. The idempotency key
+   * includes the feedback row's revision, so an edited comment notifies again
+   * while a retried request does not.
+   */
+  async knowledgeArticleMarkedUnhelpful(input: {
+    companyId: string;
+    feedbackId: string;
+    revision: number;
+    articleTitle?: string | null;
+    comment?: string | null;
+    companyName?: string | null;
+    articleId: string;
+  }): Promise<void> {
+    await this.publish({
+      companyId: input.companyId,
+      templateKey: 'admin.knowledge.feedback',
+      variables: {
+        articleTitle: input.articleTitle ?? undefined,
+        comment: input.comment ?? undefined,
+        companyName: input.companyName ?? undefined,
+      },
+      idempotencyKey: `admin:knowledge.feedback:${input.feedbackId}:${input.revision}`,
+      actionUrl: `/admin/knowledge/articles/${input.articleId}`,
+    });
+  }
+
   private async publish<K extends NotificationTemplateKey>(
     input: AdminEventInput<K>,
   ): Promise<void> {

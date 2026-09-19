@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { AdminEventNotificationService } from '../notifications/admin-event-notification.service';
+
 import type { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { ApiLocale } from '../../i18n/types';
@@ -106,7 +108,10 @@ const categoryTreeSelect = {
 
 @Injectable()
 export class KnowledgeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly adminEvents: AdminEventNotificationService,
+  ) {}
 
   /**
    * The category tree, MAX_CATEGORY_DEPTH levels deep. An inactive category is
@@ -164,24 +169,96 @@ export class KnowledgeService {
     };
   }
 
-  async getArticle(slug: string, locale: ApiLocale) {
+  async getArticle(slug: string, locale: ApiLocale, viewerUserId?: string) {
     const article = await this.prisma.knowledgeArticle.findFirst({
       where: { ...VISIBLE_ARTICLE_WHERE, slug },
-      select: articleDetailSelect,
+      select: {
+        ...articleDetailSelect,
+        feedback: viewerUserId
+          ? {
+              where: { userId: viewerUserId },
+              select: { helpful: true, comment: true },
+              take: 1,
+            }
+          : false,
+      },
     });
 
     if (!article) {
       throw new NotFoundException('Knowledge article not found.');
     }
 
-    const { bodyTranslations, tagsTranslations, ...rest } = article;
+    const { bodyTranslations, tagsTranslations, feedback, ...rest } = article;
 
     return {
       ...rest,
       tags: resolveLocalizedTags(tagsTranslations, locale),
       body: resolveLocalizedRichText(bodyTranslations, locale),
       breadcrumb: this.toBreadcrumb(article.category),
+      viewerFeedback: Array.isArray(feedback) ? (feedback[0] ?? null) : null,
     };
+  }
+
+  /**
+   * Records or replaces this reader's answer.
+   *
+   * Upsert on (articleId, userId): answering again corrects the tally instead
+   * of inflating it. A comment sent with a helpful answer is dropped, since the
+   * question is only asked when the answer is no.
+   */
+  async submitFeedback(
+    slug: string,
+    userId: string,
+    input: { helpful: boolean; comment?: string },
+  ) {
+    const article = await this.prisma.knowledgeArticle.findFirst({
+      where: { ...VISIBLE_ARTICLE_WHERE, slug },
+      select: { id: true, title: true },
+    });
+
+    if (!article) {
+      throw new NotFoundException('Knowledge article not found.');
+    }
+
+    const comment = input.helpful ? null : (input.comment?.trim() ?? null);
+
+    const saved = await this.prisma.knowledgeArticleFeedback.upsert({
+      where: {
+        articleId_userId: { articleId: article.id, userId },
+      },
+      create: {
+        articleId: article.id,
+        userId,
+        helpful: input.helpful,
+        comment: comment || null,
+      },
+      update: { helpful: input.helpful, comment: comment || null },
+      select: { id: true, helpful: true, comment: true, updatedAt: true },
+    });
+
+    // Every unhelpful answer that carries a comment raises an admin
+    // notification. The event service swallows its own failures, so a
+    // notification problem never costs us the feedback itself.
+    if (!saved.helpful && saved.comment) {
+      const reader = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true, company: { select: { name: true } } },
+      });
+
+      if (reader?.companyId) {
+        await this.adminEvents.knowledgeArticleMarkedUnhelpful({
+          companyId: reader.companyId,
+          feedbackId: saved.id,
+          revision: saved.updatedAt.getTime(),
+          articleId: article.id,
+          articleTitle: article.title,
+          comment: saved.comment,
+          companyName: reader.company?.name ?? null,
+        });
+      }
+    }
+
+    return { helpful: saved.helpful, comment: saved.comment };
   }
 
   /**

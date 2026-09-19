@@ -37,6 +37,13 @@ interface AdminArticleDetail {
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 }
 
+interface ArticleComment {
+  id: string;
+  comment: string | null;
+  createdAt: string;
+  user: { id: string; email: string };
+}
+
 interface EditArticlePageProps {
   params: Promise<{ id: string }>;
 }
@@ -54,7 +61,7 @@ export default async function EditKnowledgeArticlePage({
 
   const labels = knowledgeAdminDictionaries[locale];
 
-  const [article, categories] = await Promise.all([
+  const [article, categories, comments] = await Promise.all([
     apiRequest<AdminArticleDetail>(
       `/knowledge/admin/articles/${encodeURIComponent(id)}`,
       { token },
@@ -62,6 +69,10 @@ export default async function EditKnowledgeArticlePage({
     apiRequest<AdminCategory[]>("/knowledge/admin/categories", { token }).catch(
       () => [] as AdminCategory[],
     ),
+    apiRequest<ArticleComment[]>(
+      `/knowledge/admin/articles/${encodeURIComponent(id)}/feedback`,
+      { token },
+    ).catch(() => [] as ArticleComment[]),
   ]);
 
   if (!article) {
@@ -120,6 +131,39 @@ export default async function EditKnowledgeArticlePage({
           }}
           cancelHref="/admin/knowledge/articles"
         />
+      </Panel>
+
+      {/* Unhelpful answers that carried a comment. The counts say an article is
+          failing; these say why, which is the only part you can act on. */}
+      <Panel className="p-5 sm:p-7">
+        <h2 className="text-sm font-semibold text-content">
+          {labels.feedbackComments}
+        </h2>
+
+        {comments.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">
+            {labels.feedbackCommentsEmpty}
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-line">
+            {comments.map((entry) => (
+              <li key={entry.id} className="py-3">
+                <p className="text-sm text-content">{entry.comment}</p>
+                <p className="mt-1 text-xs text-muted">
+                  {entry.user.email}
+                  {" · "}
+                  {new Date(entry.createdAt).toLocaleDateString(
+                    locale === "en"
+                      ? "en-GB"
+                      : locale === "ar"
+                        ? "ar-IQ"
+                        : "ckb-IQ",
+                  )}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </Panel>
     </div>
   );

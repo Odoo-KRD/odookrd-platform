@@ -38,6 +38,11 @@ export interface NotificationTemplateVariablesByKey {
     learnerName?: string;
     courseTitle?: string;
   };
+  'admin.knowledge.feedback': {
+    articleTitle?: string;
+    comment?: string;
+    companyName?: string;
+  };
 }
 
 export type NotificationTemplateKey = keyof NotificationTemplateVariablesByKey;
@@ -178,6 +183,20 @@ export class NotificationTemplateService {
             [copy.adminCompanyLabel, input.companyName],
             [copy.adminUserLabel, input.learnerName],
             [copy.adminCourseLabel, input.courseTitle],
+          ]),
+        };
+      }
+
+      case 'admin.knowledge.feedback': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.knowledge.feedback'];
+
+        return {
+          title: copy.adminKnowledgeFeedbackSubject,
+          body: this.withDetails(copy.adminKnowledgeFeedbackBody, [
+            [copy.adminArticleLabel, input.articleTitle],
+            [copy.adminCommentLabel, input.comment],
+            [copy.adminCompanyLabel, input.companyName],
           ]),
         };
       }

@@ -40,6 +40,10 @@ export interface ApiTranslations {
     adminRenewalRequestedBody: string;
     adminCertificateIssuedSubject: string;
     adminCertificateIssuedBody: string;
+    adminKnowledgeFeedbackSubject: string;
+    adminKnowledgeFeedbackBody: string;
+    adminArticleLabel: string;
+    adminCommentLabel: string;
     adminCompanyLabel: string;
     adminUserLabel: string;
     adminCourseLabel: string;

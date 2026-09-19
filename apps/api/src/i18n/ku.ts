@@ -47,6 +47,11 @@ export const apiKu = {
       'کڕیارێک داوای نوێکردنەوەی خزمەتگوزارییەکی کردووە و چاوەڕوانی پشکنینە.',
     adminCertificateIssuedSubject: 'بڕوانامەیەک دەرکرا',
     adminCertificateIssuedBody: 'فێرخوازێکی کڕیار بڕوانامەی کۆرسێکی دەرکرد.',
+    adminKnowledgeFeedbackSubject: 'بابەتێکی بنکەی زانیاری بە بێسوود نیشان کرا',
+    adminKnowledgeFeedbackBody:
+      'خوێنەرێک وتویەتی بابەتەکە یارمەتی نەداوە و ڕاڤەیەکی نووسیوە.',
+    adminArticleLabel: 'بابەت',
+    adminCommentLabel: 'ڕاڤە',
     adminCompanyLabel: 'کۆمپانیا',
     adminUserLabel: 'بەکارهێنەر',
     adminCourseLabel: 'کۆرس',

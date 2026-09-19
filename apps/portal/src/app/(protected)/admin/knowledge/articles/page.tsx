@@ -36,6 +36,7 @@ interface AdminArticle {
   publishedAt: string | null;
   sortOrder: number;
   updatedAt: string;
+  feedback: { helpful: number; unhelpful: number };
 }
 
 interface ArticlesPageProps {
@@ -141,6 +142,26 @@ export default async function KnowledgeArticlesPage({
             )
           : "—",
         muted: true,
+      },
+      feedback: {
+        type: "node",
+        value: (
+          <span className="flex items-center gap-2 text-xs">
+            <span className="text-emerald-700">
+              {article.feedback?.helpful ?? 0}
+            </span>
+            <span className="text-muted">/</span>
+            <span
+              className={
+                (article.feedback?.unhelpful ?? 0) > 0
+                  ? "font-semibold text-red-700"
+                  : "text-muted"
+              }
+            >
+              {article.feedback?.unhelpful ?? 0}
+            </span>
+          </span>
+        ),
       },
       actions: {
         type: "node",
@@ -274,6 +295,7 @@ export default async function KnowledgeArticlesPage({
           { key: "slug", label: labels.slug },
           { key: "status", label: labels.status },
           { key: "publishedAt", label: labels.publishedAt },
+          { key: "feedback", label: labels.feedback },
           { key: "actions", label: labels.actions },
         ]}
         rows={rows}
