@@ -135,6 +135,55 @@ const permissions = [
     description:
       'View training reporting and analytics within the authorized scope.',
   },
+  {
+    key: 'helpdesk.read',
+    name: 'Use helpdesk',
+    description:
+      'Open support tickets, reply to them, and read the tickets you created.',
+  },
+  {
+    key: 'helpdesk.company.read',
+    name: 'Read company tickets',
+    description: "Read every support ticket filed by the user's company.",
+  },
+  {
+    key: 'helpdesk.manage',
+    name: 'Manage helpdesk',
+    description:
+      'Work the support queue: reply, add internal notes, change status and priority, and manage departments.',
+  },
+  {
+    key: 'helpdesk.assign',
+    name: 'Assign tickets',
+    description: 'Assign support tickets to staff members.',
+  },
+] as const;
+
+/**
+ * Default helpdesk departments. Created once and never overwritten: admins
+ * rename, reorder and archive them from the UI, and the seed re-runs on every
+ * deploy. The base name column holds Kurdish, matching normalizeLocalizedText.
+ */
+const ticketDepartments = [
+  {
+    slug: 'general',
+    sortOrder: 10,
+    nameTranslations: { ku: 'گشتی', ar: 'عام', en: 'General' },
+  },
+  {
+    slug: 'technical',
+    sortOrder: 20,
+    nameTranslations: {
+      ku: 'پشتگیری تەکنیکی',
+      ar: 'الدعم الفني',
+      en: 'Technical support',
+    },
+  },
+  {
+    slug: 'billing',
+    sortOrder: 30,
+    nameTranslations: { ku: 'پسوولە و پارەدان', ar: 'الفوترة', en: 'Billing' },
+  },
 ] as const;
 
 const roles = [
@@ -168,6 +217,10 @@ const roles = [
       'training.progress.read',
       'training.reports.read',
       'knowledge.manage',
+      'helpdesk.read',
+      'helpdesk.company.read',
+      'helpdesk.manage',
+      'helpdesk.assign',
     ],
   },
   {
@@ -195,6 +248,8 @@ const roles = [
       'training.assign',
       'training.progress.read',
       'training.reports.read',
+      'helpdesk.read',
+      'helpdesk.company.read',
     ],
   },
   {
@@ -210,6 +265,7 @@ const roles = [
       'files.read',
       'files.upload',
       'training.read',
+      'helpdesk.read',
     ],
   },
 ] as const;
@@ -276,10 +332,25 @@ async function main(): Promise<void> {
         }),
       });
     }
+
+    for (const department of ticketDepartments) {
+      await tx.ticketDepartment.upsert({
+        where: {
+          slug: department.slug,
+        },
+        update: {},
+        create: {
+          slug: department.slug,
+          name: department.nameTranslations.ku,
+          nameTranslations: department.nameTranslations,
+          sortOrder: department.sortOrder,
+        },
+      });
+    }
   });
 
   console.log(
-    `RBAC seed completed: ${roles.length} roles, ${permissions.length} permissions.`,
+    `RBAC seed completed: ${roles.length} roles, ${permissions.length} permissions, ${ticketDepartments.length} helpdesk departments ensured.`,
   );
 }
 

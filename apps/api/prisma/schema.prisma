@@ -368,6 +368,32 @@ enum CompanyIdentityChangeRequestStatus {
   @@map("company_identity_change_request_status")
 }
 
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_ON_CUSTOMER
+  RESOLVED
+  CLOSED
+
+  @@map("ticket_status")
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+
+  @@map("ticket_priority")
+}
+
+enum TicketDepartmentStatus {
+  ACTIVE
+  ARCHIVED
+
+  @@map("ticket_department_status")
+}
+
 model Company {
   id               String        @id @default(uuid()) @db.Uuid
   name             String        @db.VarChar(200)
@@ -404,6 +430,7 @@ model Company {
   trainingCertificates      TrainingCertificate[]
   logoFileAsset             FileAsset?                     @relation("CompanyLogoFileAsset", fields: [logoFileAssetId], references: [id], onDelete: SetNull)
   identityChangeRequests    CompanyIdentityChangeRequest[]
+  tickets                   Ticket[]
 
   @@index([logoFileAssetId], map: "companies_logo_file_asset_idx")
   @@map("companies")
@@ -475,6 +502,9 @@ model User {
   subscriptionRenewalsReviewed     SubscriptionRenewalRequest[]   @relation("SubscriptionRenewalReviewedBy")
   companyIdentityRequestsRequested CompanyIdentityChangeRequest[] @relation("CompanyIdentityRequestedBy")
   companyIdentityRequestsReviewed  CompanyIdentityChangeRequest[] @relation("CompanyIdentityReviewedBy")
+  ticketsCreated                   Ticket[]                       @relation("TicketCreatedBy")
+  ticketsAssigned                  Ticket[]                       @relation("TicketAssignee")
+  ticketMessages                   TicketMessage[]                @relation("TicketMessageAuthor")
 
   @@index([companyId])
   @@index([avatarFileAssetId], map: "users_avatar_file_asset_idx")
@@ -524,6 +554,7 @@ model FileAsset {
   trainingCertificateTemplateLogos       TrainingCertificateTemplate[] @relation("TrainingCertificateTemplateLogo")
   trainingCertificateTemplateBackgrounds TrainingCertificateTemplate[] @relation("TrainingCertificateTemplateBackground")
   trainingCertificateTemplateSignatures  TrainingCertificateTemplate[] @relation("TrainingCertificateTemplateSignature")
+  ticketAttachments                      TicketAttachment[]            @relation("TicketAttachmentFile")
 
   @@unique([storageProvider, storageKey])
   @@index([companyId])
@@ -1664,4 +1695,130 @@ model TrainingCertificate {
   @@index([userId, issuedAt(sort: Desc)], map: "training_certificates_user_issued_idx")
   @@index([courseId, issuedAt(sort: Desc)], map: "training_certificates_course_issued_idx")
   @@map("training_certificates")
+}
+
+/// A helpdesk department: the queue a ticket is routed to.
+///
+/// Admin-managed like knowledge categories. Departments are archived, not
+/// deleted, once tickets reference them -- Restrict on Ticket.departmentId
+/// makes a delete of a used department fail rather than orphan its tickets.
+/// An archived department is hidden from the new-ticket form but still shown
+/// on the tickets already filed under it.
+model TicketDepartment {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  slug                    String                 @unique @db.VarChar(160)
+  name                    String                 @db.VarChar(200)
+  nameTranslations        Json                   @default("{}") @map("name_translations") @db.JsonB
+  description             String?                @db.VarChar(1000)
+  descriptionTranslations Json                   @default("{}") @map("description_translations") @db.JsonB
+  status                  TicketDepartmentStatus @default(ACTIVE)
+  sortOrder               Int                    @default(0) @map("sort_order")
+  createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tickets Ticket[]
+
+  @@index([status, sortOrder], map: "ticket_departments_status_sort_idx")
+  @@map("ticket_departments")
+}
+
+/// Per-year counter behind Ticket.reference (TKT-2026-00041).
+///
+/// Incremented inside the ticket-create transaction with an upsert, so the
+/// numbering resets each January without a scheduled job and without a raw
+/// SQL sequence that Prisma cannot see.
+model TicketSequence {
+  year      Int      @id
+  lastValue Int      @default(0) @map("last_value")
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("ticket_sequences")
+}
+
+/// A helpdesk ticket.
+///
+/// companyId is the tenant boundary for every customer-facing query and is
+/// always taken from the authenticated principal, never from the request.
+/// Subject and message bodies are user-authored and therefore not localized.
+///
+/// firstRespondedAt and resolvedAt exist for later SLA reporting; SLA itself
+/// is out of scope for Stage 6.
+model Ticket {
+  id               String         @id @default(uuid()) @db.Uuid
+  reference        String         @unique @db.VarChar(32)
+  companyId        String         @map("company_id") @db.Uuid
+  departmentId     String         @map("department_id") @db.Uuid
+  createdByUserId  String         @map("created_by_user_id") @db.Uuid
+  assigneeUserId   String?        @map("assignee_user_id") @db.Uuid
+  subject          String         @db.VarChar(250)
+  status           TicketStatus   @default(OPEN)
+  priority         TicketPriority @default(NORMAL)
+  lastMessageAt    DateTime       @default(now()) @map("last_message_at") @db.Timestamptz(6)
+  firstRespondedAt DateTime?      @map("first_responded_at") @db.Timestamptz(6)
+  resolvedAt       DateTime?      @map("resolved_at") @db.Timestamptz(6)
+  closedAt         DateTime?      @map("closed_at") @db.Timestamptz(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  company    Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  department TicketDepartment @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  createdBy  User             @relation("TicketCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  assignee   User?            @relation("TicketAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
+  messages   TicketMessage[]
+
+  @@index([companyId, status, createdAt(sort: Desc)], map: "tickets_company_status_created_idx")
+  @@index([companyId, createdByUserId, createdAt(sort: Desc)], map: "tickets_company_creator_created_idx")
+  @@index([status, priority, createdAt], map: "tickets_queue_idx")
+  @@index([assigneeUserId, status], map: "tickets_assignee_status_idx")
+  @@index([departmentId, status], map: "tickets_department_status_idx")
+  @@map("tickets")
+}
+
+/// One message on a ticket: a customer reply, a staff reply, or an internal
+/// note.
+///
+/// isInternal is the most security-sensitive column in the helpdesk: an
+/// internal note reaching a customer is a data leak. Every customer-facing
+/// query filters isInternal = false in the where clause itself. authorScope is
+/// a snapshot of the author's account scope at write time, so the thread can
+/// show customer versus staff authorship without a join and without changing
+/// if the user is later moved. A CHECK constraint added by hand in migration
+/// 043 (see docs/stage-6-helpdesk.md) rejects isInternal = true unless
+/// authorScope = PLATFORM.
+model TicketMessage {
+  id           String       @id @default(uuid()) @db.Uuid
+  ticketId     String       @map("ticket_id") @db.Uuid
+  authorUserId String       @map("author_user_id") @db.Uuid
+  authorScope  AccountScope @map("author_scope")
+  isInternal   Boolean      @default(false) @map("is_internal")
+  body         String       @db.Text
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  ticket      Ticket             @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author      User               @relation("TicketMessageAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  attachments TicketAttachment[]
+
+  @@index([ticketId, isInternal, createdAt], map: "ticket_messages_ticket_visibility_created_idx")
+  @@index([authorUserId], map: "ticket_messages_author_idx")
+  @@map("ticket_messages")
+}
+
+/// Joins a message to an uploaded FileAsset; bytes live in file storage.
+///
+/// The asset is scoped to the ticket's company whether a customer or staff
+/// member uploaded it -- a PLATFORM-scoped asset would be readable by every
+/// authenticated user. Restrict on the asset keeps a referenced file from
+/// being hard-deleted underneath a ticket.
+model TicketAttachment {
+  id          String   @id @default(uuid()) @db.Uuid
+  messageId   String   @map("message_id") @db.Uuid
+  fileAssetId String   @map("file_asset_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  message   TicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileAsset FileAsset     @relation("TicketAttachmentFile", fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([messageId, fileAssetId], map: "ticket_attachments_message_file_key")
+  @@index([fileAssetId], map: "ticket_attachments_file_asset_idx")
+  @@map("ticket_attachments")
 }
