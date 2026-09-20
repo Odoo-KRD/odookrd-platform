@@ -15,6 +15,7 @@ import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-pr
 import { RequirePermissions } from '../authorization/decorators/require-permissions.decorator';
 import { AuthorizationGuard } from '../authorization/guards/authorization.guard';
 import { PERMISSIONS } from '../authorization/permissions';
+import { BatchMutationIdsDto } from '../../common/batch/batch-mutation.dto';
 import {
   CreateTicketDto,
   CreateTicketReplyDto,
@@ -47,6 +48,21 @@ export class HelpdeskController {
     @Query() query: ListCustomerTicketsQueryDto,
   ) {
     return this.helpdesk.listTickets(principal, query);
+  }
+
+  /** Declared before tickets/:ticketId so the literal path wins. */
+  @Get('tickets/summary')
+  summary(@CurrentUser() principal: AuthenticatedPrincipal) {
+    return this.helpdesk.summary(principal);
+  }
+
+  /** Declared before tickets/:ticketId/... so "batch" is not read as an id. */
+  @Post('tickets/batch/close')
+  batchClose(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() input: BatchMutationIdsDto,
+  ) {
+    return this.helpdesk.batchClose(principal, input);
   }
 
   @Post('tickets')

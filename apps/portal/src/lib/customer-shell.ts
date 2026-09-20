@@ -10,6 +10,7 @@ import type { AdminNavigationEntry, AdminNavigationItem } from "@/components/adm
 import { apiRequest } from "@/lib/api";
 import { hasAdminAccess, hasPermission } from "@/lib/authorization";
 import { customerDashboardV2Dictionaries } from "@/lib/i18n/customer/dashboard";
+import { helpdeskDictionaries } from "@/lib/i18n/helpdesk";
 import { knowledgeDictionaries } from "@/lib/i18n/knowledge";
 import { frontendTranslations } from "@/lib/i18n/public/translations";
 import { getPortalDictionary } from "@/lib/i18n/customer/server";
@@ -54,6 +55,7 @@ export async function getCustomerShell() {
     session,
     PERMISSIONS.NOTIFICATIONS_READ,
   );
+  const canHelpdesk = hasPermission(session, PERMISSIONS.HELPDESK_READ);
   const canAdministration = hasAdminAccess(session);
 
   const [profile, trainingStatus, notificationPage, unread] = await Promise.all([
@@ -94,6 +96,15 @@ export async function getCustomerShell() {
       href: "/dashboard/services",
       label: frontendTranslations[locale].services.title,
       icon: "services",
+    });
+  }
+
+  if (canHelpdesk) {
+    navigation.push({
+      kind: "item",
+      href: "/dashboard/helpdesk",
+      label: helpdeskDictionaries[locale].navigation,
+      icon: "helpdesk",
     });
   }
 

@@ -1921,3 +1921,91 @@ export interface KnowledgeArticlePage {
   items: KnowledgeArticleListItem[];
   pagination: Pagination;
 }
+
+// ---------------------------------------------------------------- helpdesk
+
+export type TicketStatus =
+  "OPEN" | "IN_PROGRESS" | "WAITING_ON_CUSTOMER" | "RESOLVED" | "CLOSED";
+
+export type TicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
+
+export const TICKET_STATUSES: readonly TicketStatus[] = [
+  "OPEN",
+  "IN_PROGRESS",
+  "WAITING_ON_CUSTOMER",
+  "RESOLVED",
+  "CLOSED",
+];
+
+export interface TicketDepartmentRef {
+  id: string;
+  slug: string;
+  /** Resolved to the request locale by the API. */
+  name: string;
+  nameTranslations: LocalizedText;
+}
+
+export interface TicketUserRef {
+  id: string;
+  /** Null for support staff in customer responses. */
+  email: string | null;
+  displayName: string | null;
+}
+
+export interface TicketAttachment {
+  id: string;
+  fileAsset: {
+    id: string;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+  };
+}
+
+export interface CustomerTicketListItem {
+  id: string;
+  reference: string;
+  subject: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  lastMessageAt: string;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  department: TicketDepartmentRef;
+  createdBy: TicketUserRef;
+}
+
+/** A message as a customer sees it: internal notes never appear here. */
+export interface CustomerTicketMessage {
+  id: string;
+  body: string;
+  authorScope: "PLATFORM" | "COMPANY";
+  createdAt: string;
+  author: TicketUserRef;
+  attachments: TicketAttachment[];
+}
+
+export interface CustomerTicketDetail extends CustomerTicketListItem {
+  messages: CustomerTicketMessage[];
+}
+
+/** A department as offered on the new-ticket form. */
+export interface TicketDepartmentOption extends TicketDepartmentRef {
+  /** Resolved to the request locale by the API. */
+  description: string | null;
+  descriptionTranslations: LocalizedText;
+}
+
+export interface TicketSummary {
+  total: number;
+  byStatus: Record<TicketStatus, number>;
+}
+
+export const TICKET_PRIORITIES: readonly TicketPriority[] = [
+  "LOW",
+  "NORMAL",
+  "HIGH",
+  "URGENT",
+];

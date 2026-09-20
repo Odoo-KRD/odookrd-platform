@@ -13,6 +13,7 @@ export type AdminNavigationIconName =
   | "services"
   | "training"
   | "notifications"
+  | "helpdesk"
   | "settings";
 
 export interface AdminNavigationItem {
@@ -204,6 +205,12 @@ function NavigationIcon({
       return (
         <svg {...common}>
           <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+        </svg>
+      );
+    case "helpdesk":
+      return (
+        <svg {...common}>
+          <path d="M4 13v-2a8 8 0 0 1 16 0v2M4 13h3v6H5a1 1 0 0 1-1-1v-5ZM20 13h-3v6h2a1 1 0 0 0 1-1v-5ZM17 19c0 1.1-1.8 2-4 2" />
         </svg>
       );
     case "settings":

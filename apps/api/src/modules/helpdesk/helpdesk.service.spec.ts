@@ -12,6 +12,7 @@ import { HelpdeskService } from './helpdesk.service';
 
 const COMPANY_ID = '7f28dd10-86d3-4286-81ff-f2f58bb8bd21';
 const TICKET_ID = '3c1e5a0e-2f7b-4b8e-9d51-6a0f1b2c3d4e';
+const OTHER_TICKET_ID = '4d2f6b1f-3a8c-4c9f-8e62-7b1a2c3d4e5f';
 
 const companyUser: AuthenticatedPrincipal = {
   sessionId: 'company-session',
@@ -51,8 +52,12 @@ function ticketRow(overrides: Record<string, unknown> = {}) {
 function serviceFor(options: {
   permissions?: string[];
   ticket?: Record<string, unknown> | null;
+  groups?: Array<{ status: TicketStatus; _count: { _all: number } }>;
+  visibleTickets?: number;
 }) {
+  const findManyCalls: Array<{ where: Record<string, unknown> }> = [];
   const findFirstCalls: FindFirstArgs[] = [];
+  const groupByCalls: Array<{ where: Record<string, unknown> }> = [];
   const updateCalls: UpdateArgs[] = [];
 
   const ticketDelegate = {
@@ -65,6 +70,18 @@ function serviceFor(options: {
     update: jest.fn((args: UpdateArgs) => {
       updateCalls.push(args);
       return Promise.resolve({ id: TICKET_ID });
+    }),
+    findMany: jest.fn((args: { where: Record<string, unknown> }) => {
+      findManyCalls.push(args);
+      return Promise.resolve(
+        Array.from({ length: options.visibleTickets ?? 0 }, () =>
+          ticketRow({ updatedAt: new Date() }),
+        ),
+      );
+    }),
+    groupBy: jest.fn((args: { where: Record<string, unknown> }) => {
+      groupByCalls.push(args);
+      return Promise.resolve(options.groups ?? []);
     }),
   };
 
@@ -94,6 +111,8 @@ function serviceFor(options: {
     service: new HelpdeskService(prisma, authorization),
     findFirstCalls,
     updateCalls,
+    groupByCalls,
+    findManyCalls,
   };
 }
 
@@ -142,6 +161,41 @@ describe('HelpdeskService (customer)', () => {
     };
     expect(messages.where).toEqual({ isInternal: false });
     expect(messages.select).not.toHaveProperty('isInternal');
+  });
+
+  it('counts only the tickets the principal may see', async () => {
+    const { service, groupByCalls } = serviceFor({
+      groups: [
+        { status: TicketStatus.OPEN, _count: { _all: 3 } },
+        { status: TicketStatus.RESOLVED, _count: { _all: 2 } },
+      ],
+    });
+
+    const summary = await service.summary(companyUser);
+
+    expect(groupByCalls[0].where).toEqual({
+      companyId: COMPANY_ID,
+      createdByUserId: 'company-user',
+    });
+    expect(summary.total).toBe(5);
+    expect(summary.byStatus).toMatchObject({
+      OPEN: 3,
+      RESOLVED: 2,
+      CLOSED: 0,
+    });
+  });
+
+  it('batch-closes only visible tickets and fails on any other id', async () => {
+    const { service, findManyCalls } = serviceFor({ visibleTickets: 1 });
+
+    await expect(
+      service.batchClose(companyUser, { ids: [TICKET_ID, OTHER_TICKET_ID] }),
+    ).rejects.toThrow(NotFoundException);
+    expect(findManyCalls[0].where).toEqual({
+      id: { in: [TICKET_ID, OTHER_TICKET_ID] },
+      companyId: COMPANY_ID,
+      createdByUserId: 'company-user',
+    });
   });
 
   it('reports a ticket outside scope as not found', async () => {

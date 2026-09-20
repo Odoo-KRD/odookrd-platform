@@ -6,6 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import {
+  batchMutationResult,
+  type BatchMutationIdsDto,
+  type BatchMutationItem,
+  type BatchMutationResult,
+} from '../../common/batch/batch-mutation.dto';
 import type { PaginatedResult } from '../../common/pagination/paginated-result.interface';
 import type { Prisma } from '../../generated/prisma/client';
 import {
@@ -93,6 +99,15 @@ const ticketDetailSelect = {
   messages: customerMessagesSelect,
 } as const satisfies Prisma.TicketSelect;
 
+/** The new-ticket form shows each department's description too. */
+const departmentOptionSelect = {
+  ...departmentSelect,
+  description: true,
+  descriptionTranslations: true,
+} as const satisfies Prisma.TicketDepartmentSelect;
+
+export type TicketStatusCounts = Record<TicketStatus, number>;
+
 type CustomerMessage = Prisma.TicketMessageGetPayload<{
   select: (typeof customerMessagesSelect)['select'];
 }>;
@@ -123,8 +138,35 @@ export class HelpdeskService {
     return this.prisma.ticketDepartment.findMany({
       where: { status: TicketDepartmentStatus.ACTIVE },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-      select: departmentSelect,
+      select: departmentOptionSelect,
     });
+  }
+
+  /**
+   * Ticket counts per status for the list page's summary cards and tabs,
+   * over exactly the tickets this principal may see.
+   */
+  async summary(
+    principal: AuthenticatedPrincipal,
+  ): Promise<{ total: number; byStatus: TicketStatusCounts }> {
+    const scope = await this.resolveScope(principal);
+    const groups = await this.prisma.ticket.groupBy({
+      by: ['status'],
+      where: this.visibleTicketsWhere(scope),
+      _count: { _all: true },
+    });
+
+    const byStatus = Object.fromEntries(
+      Object.values(TicketStatus).map((status) => [status, 0]),
+    ) as TicketStatusCounts;
+    let total = 0;
+
+    for (const group of groups) {
+      byStatus[group.status] = group._count._all;
+      total += group._count._all;
+    }
+
+    return { total, byStatus };
   }
 
   async listTickets(
@@ -365,6 +407,69 @@ export class HelpdeskService {
     });
 
     return this.getTicket(principal, ticketId);
+  }
+
+  /**
+   * Closes several of the customer's tickets at once (the list's batch
+   * action). Every id must be visible to the caller; one that is not fails
+   * the whole batch as not found, like the single-ticket endpoints.
+   */
+  async batchClose(
+    principal: AuthenticatedPrincipal,
+    dto: BatchMutationIdsDto,
+  ): Promise<BatchMutationResult> {
+    const scope = await this.resolveScope(principal);
+
+    return this.prisma.$transaction(async (transaction) => {
+      const tickets = await transaction.ticket.findMany({
+        where: { id: { in: dto.ids }, ...this.visibleTicketsWhere(scope) },
+        select: { id: true, status: true, reference: true, updatedAt: true },
+        orderBy: { id: 'asc' },
+      });
+
+      if (tickets.length !== dto.ids.length) {
+        throw new NotFoundException('One or more tickets were not found.');
+      }
+
+      const now = new Date();
+      const items: BatchMutationItem[] = [];
+
+      for (const ticket of tickets) {
+        if (ticket.status === TicketStatus.CLOSED) {
+          items.push({
+            id: ticket.id,
+            outcome: 'UNCHANGED',
+            updatedAt: ticket.updatedAt,
+          });
+          continue;
+        }
+
+        const updated = await transaction.ticket.update({
+          where: { id: ticket.id },
+          data: { status: TicketStatus.CLOSED, closedAt: now },
+          select: { id: true, updatedAt: true },
+        });
+
+        await transaction.auditLog.create({
+          data: {
+            actorUserId: scope.userId,
+            companyId: scope.companyId,
+            action: AUDIT_ACTIONS.HELPDESK_TICKET_CLOSED,
+            targetType: 'ticket',
+            targetId: ticket.id,
+            metadata: {
+              reference: ticket.reference,
+              previousStatus: ticket.status,
+              batch: true,
+            },
+          },
+        });
+
+        items.push({ ...updated, outcome: 'CHANGED' });
+      }
+
+      return batchMutationResult(items);
+    });
   }
 
   /**
