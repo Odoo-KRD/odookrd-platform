@@ -1,6 +1,10 @@
 "use server";
 
-import { PERMISSIONS } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  TICKET_PRIORITIES,
+  type TicketPriority,
+} from "@odookrd/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -58,12 +62,25 @@ export async function createTicketAction(
   const { token } = await getCustomerApiContext(PERMISSIONS.HELPDESK_READ);
   const dictionary = await labels();
   const departmentId = text(formData, "departmentId");
+  const companyServiceId = text(formData, "companyServiceId");
+  const priority = text(formData, "priority");
   const subject = text(formData, "subject");
   const body = text(formData, "body");
   const attachments = attachmentIds(formData);
 
   if (!uuidPattern.test(departmentId)) {
     return { message: dictionary.departmentRequired };
+  }
+
+  if (companyServiceId && !uuidPattern.test(companyServiceId)) {
+    return { message: dictionary.genericError };
+  }
+
+  if (
+    priority &&
+    !(TICKET_PRIORITIES as readonly string[]).includes(priority)
+  ) {
+    return { message: dictionary.genericError };
   }
 
   if (!subject || subject.length > MAX_SUBJECT) {
@@ -88,6 +105,8 @@ export async function createTicketAction(
         departmentId,
         subject,
         body,
+        ...(priority ? { priority: priority as TicketPriority } : {}),
+        ...(companyServiceId ? { companyServiceId } : {}),
         ...(attachments.length > 0 ? { attachmentIds: attachments } : {}),
       }),
     });

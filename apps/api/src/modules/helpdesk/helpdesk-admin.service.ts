@@ -66,6 +66,14 @@ const userSummarySelect = {
   displayName: true,
 } as const satisfies Prisma.UserSelect;
 
+const companyServiceSelect = {
+  id: true,
+  displayName: true,
+  displayNameTranslations: true,
+  status: true,
+  service: { select: { id: true, name: true, nameTranslations: true } },
+} as const satisfies Prisma.CompanyServiceSelect;
+
 const queueSelect = {
   id: true,
   reference: true,
@@ -80,6 +88,7 @@ const queueSelect = {
   updatedAt: true,
   company: { select: { id: true, name: true } },
   department: { select: departmentSelect },
+  companyService: { select: companyServiceSelect },
   createdBy: { select: userSummarySelect },
   assignee: { select: userSummarySelect },
 } as const satisfies Prisma.TicketSelect;

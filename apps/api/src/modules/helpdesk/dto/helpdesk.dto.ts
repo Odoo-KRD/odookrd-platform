@@ -9,20 +9,26 @@ import {
 } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/pagination/pagination-query.dto';
-import { TicketStatus } from '../../../generated/prisma/enums';
+import { TicketPriority, TicketStatus } from '../../../generated/prisma/enums';
 import {
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_BODY_LENGTH,
   MAX_TICKET_SUBJECT_LENGTH,
 } from '../helpdesk.rules';
 
-/**
- * Customers do not choose a priority: staff triage it (default NORMAL), so
- * every ticket cannot arrive as URGENT.
- */
 export class CreateTicketDto {
   @IsUUID()
   departmentId!: string;
+
+  /** Customer's own assessment; staff can re-triage it afterwards. */
+  @IsOptional()
+  @IsEnum(TicketPriority)
+  priority?: TicketPriority;
+
+  /** The company service this is about; omitted when none applies. */
+  @IsOptional()
+  @IsUUID()
+  companyServiceId?: string;
 
   @IsString()
   @MaxLength(MAX_TICKET_SUBJECT_LENGTH)

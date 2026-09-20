@@ -48,6 +48,14 @@ const departmentSelect = {
   nameTranslations: true,
 } as const satisfies Prisma.TicketDepartmentSelect;
 
+const companyServiceSelect = {
+  id: true,
+  displayName: true,
+  displayNameTranslations: true,
+  status: true,
+  service: { select: { id: true, name: true, nameTranslations: true } },
+} as const satisfies Prisma.CompanyServiceSelect;
+
 const ticketListSelect = {
   id: true,
   reference: true,
@@ -60,6 +68,7 @@ const ticketListSelect = {
   createdAt: true,
   updatedAt: true,
   department: { select: departmentSelect },
+  companyService: { select: companyServiceSelect },
   createdBy: { select: { id: true, email: true, displayName: true } },
 } as const satisfies Prisma.TicketSelect;
 
@@ -236,6 +245,11 @@ export class HelpdeskService {
       throw new BadRequestException('The subject cannot be empty.');
     }
 
+    const companyServiceId = await this.resolveCompanyService(
+      scope.companyId,
+      dto.companyServiceId,
+    );
+
     const department = await this.prisma.ticketDepartment.findFirst({
       where: {
         id: dto.departmentId,
@@ -263,6 +277,8 @@ export class HelpdeskService {
           companyId: scope.companyId,
           departmentId: department.id,
           createdByUserId: scope.userId,
+          companyServiceId,
+          ...(dto.priority ? { priority: dto.priority } : {}),
           subject,
           lastMessageAt: now,
           messages: {
@@ -291,6 +307,8 @@ export class HelpdeskService {
           metadata: {
             reference: ticket.reference,
             departmentId: department.id,
+            companyServiceId,
+            priority: dto.priority ?? null,
             attachments: attachmentIds.length,
           },
         },
@@ -470,6 +488,30 @@ export class HelpdeskService {
 
       return batchMutationResult(items);
     });
+  }
+
+  /**
+   * A ticket may only point at a service of the customer's own company;
+   * anything else is reported as not found rather than confirming it exists.
+   */
+  private async resolveCompanyService(
+    companyId: string,
+    companyServiceId: string | undefined,
+  ): Promise<string | null> {
+    if (!companyServiceId) {
+      return null;
+    }
+
+    const companyService = await this.prisma.companyService.findFirst({
+      where: { id: companyServiceId, companyId },
+      select: { id: true },
+    });
+
+    if (!companyService) {
+      throw new NotFoundException('The selected service was not found.');
+    }
+
+    return companyService.id;
   }
 
   /**

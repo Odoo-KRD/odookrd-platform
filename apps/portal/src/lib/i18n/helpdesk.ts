@@ -47,6 +47,15 @@ export interface HelpdeskDictionary {
   stepDepartment: string;
   stepDetails: string;
   department: string;
+  departmentPlaceholder: string;
+  priorityHint: string;
+  relatedService: string;
+  relatedServiceNone: string;
+  relatedServiceHint: string;
+  noServices: string;
+  suggestionsTitle: string;
+  suggestionsHint: string;
+  charactersLeft: string;
   subject: string;
   subjectPlaceholder: string;
   message: string;
@@ -158,7 +167,17 @@ export const helpdeskDictionaries: Record<Locale, HelpdeskDictionary> = {
     newTicketTitle: "داواکاری پشتگیری نوێ",
     newTicketDescription:
       "کێشەکەت بە وردی باس بکە تا تیمی پشتگیری بە خێرایی یارمەتیت بدات.",
-    stepDepartment: "بەشێک هەڵبژێرە",
+    stepDepartment: "بەش، گرنگی و خزمەتگوزاری",
+    departmentPlaceholder: "بەشێک هەڵبژێرە",
+    priorityHint: "تیمی پشتگیری دەتوانێت گرنگییەکە بگۆڕێت.",
+    relatedService: "خزمەتگوزاری پەیوەندیدار",
+    relatedServiceNone: "هیچ خزمەتگوزارییەک",
+    relatedServiceHint: "ئەگەر کێشەکە تایبەتە بە خزمەتگوزارییەک، هەڵیبژێرە.",
+    noServices: "هیچ خزمەتگوزارییەکت نییە.",
+    suggestionsTitle: "لەوانەیە ئەم بابەتانە یارمەتیت بدەن",
+    suggestionsHint: "پێش ناردن سەیریان بکە؛ لەوانەیە وەڵامەکەت لەوێ بێت.",
+    charactersLeft: "{count} پیت ماوە",
+
     stepDetails: "کێشەکە باس بکە",
     department: "بەش",
     subject: "بابەت",
@@ -277,7 +296,17 @@ export const helpdeskDictionaries: Record<Locale, HelpdeskDictionary> = {
     newTicketTitle: "طلب دعم جديد",
     newTicketDescription:
       "صف مشكلتك بالتفصيل ليتمكن فريق الدعم من مساعدتك بسرعة.",
-    stepDepartment: "اختر القسم",
+    stepDepartment: "القسم والأولوية والخدمة",
+    departmentPlaceholder: "اختر قسماً",
+    priorityHint: "يمكن لفريق الدعم تغيير الأولوية.",
+    relatedService: "الخدمة المرتبطة",
+    relatedServiceNone: "لا توجد خدمة",
+    relatedServiceHint: "إذا كانت المشكلة تخص خدمة محددة، اخترها.",
+    noServices: "لا توجد خدمات لديك.",
+    suggestionsTitle: "قد تساعدك هذه المقالات",
+    suggestionsHint: "اطّلع عليها قبل الإرسال؛ قد تجد الإجابة هناك.",
+    charactersLeft: "بقي {count} حرف",
+
     stepDetails: "صف المشكلة",
     department: "القسم",
     subject: "الموضوع",
@@ -393,7 +422,17 @@ export const helpdeskDictionaries: Record<Locale, HelpdeskDictionary> = {
     newTicketTitle: "New support ticket",
     newTicketDescription:
       "Describe the problem in detail so the support team can help quickly.",
-    stepDepartment: "Choose a department",
+    stepDepartment: "Department, priority and service",
+    departmentPlaceholder: "Choose a department",
+    priorityHint: "The support team can change the priority.",
+    relatedService: "Related service",
+    relatedServiceNone: "No service",
+    relatedServiceHint: "If the problem is about one service, choose it.",
+    noServices: "You have no services yet.",
+    suggestionsTitle: "These articles may help",
+    suggestionsHint: "Have a look before you submit; the answer may be there.",
+    charactersLeft: "{count} characters left",
+
     stepDetails: "Describe the problem",
     department: "Department",
     subject: "Subject",

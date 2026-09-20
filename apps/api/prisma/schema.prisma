@@ -738,6 +738,7 @@ model CompanyService {
   features        CompanyServiceFeature[]
   lifecycleEvents CompanyServiceLifecycleEvent[]
   subscription    Subscription?
+  tickets         Ticket[]
 
   @@index([companyId, status], map: "company_services_company_status_idx")
   @@index([serviceId], map: "company_services_service_id_idx")
@@ -1750,6 +1751,10 @@ model Ticket {
   departmentId     String         @map("department_id") @db.Uuid
   createdByUserId  String         @map("created_by_user_id") @db.Uuid
   assigneeUserId   String?        @map("assignee_user_id") @db.Uuid
+  /// The company service the ticket is about, when the customer named one.
+  /// SetNull rather than Restrict: removing a service must not block, and an
+  /// old ticket stays readable without it.
+  companyServiceId String?        @map("company_service_id") @db.Uuid
   subject          String         @db.VarChar(250)
   status           TicketStatus   @default(OPEN)
   priority         TicketPriority @default(NORMAL)
@@ -1760,17 +1765,19 @@ model Ticket {
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  company    Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  department TicketDepartment @relation(fields: [departmentId], references: [id], onDelete: Restrict)
-  createdBy  User             @relation("TicketCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
-  assignee   User?            @relation("TicketAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
-  messages   TicketMessage[]
+  company        Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  department     TicketDepartment @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  createdBy      User             @relation("TicketCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  companyService CompanyService?  @relation(fields: [companyServiceId], references: [id], onDelete: SetNull)
+  assignee       User?            @relation("TicketAssignee", fields: [assigneeUserId], references: [id], onDelete: SetNull)
+  messages       TicketMessage[]
 
   @@index([companyId, status, createdAt(sort: Desc)], map: "tickets_company_status_created_idx")
   @@index([companyId, createdByUserId, createdAt(sort: Desc)], map: "tickets_company_creator_created_idx")
   @@index([status, priority, createdAt], map: "tickets_queue_idx")
   @@index([assigneeUserId, status], map: "tickets_assignee_status_idx")
   @@index([departmentId, status], map: "tickets_department_status_idx")
+  @@index([companyServiceId], map: "tickets_company_service_idx")
   @@map("tickets")
 }
 

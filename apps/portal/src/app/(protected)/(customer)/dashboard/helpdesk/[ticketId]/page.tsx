@@ -201,6 +201,14 @@ export default async function TicketPage({ params }: TicketPageProps) {
               <DetailItem label={labels.department}>
                 {ticket.department.name}
               </DetailItem>
+              {ticket.companyService ? (
+                <DetailItem label={labels.relatedService}>
+                  <bdi>
+                    {ticket.companyService.displayName ??
+                      ticket.companyService.service.name}
+                  </bdi>
+                </DetailItem>
+              ) : null}
               <DetailItem label={labels.reference}>
                 <TicketReference reference={ticket.reference} />
               </DetailItem>

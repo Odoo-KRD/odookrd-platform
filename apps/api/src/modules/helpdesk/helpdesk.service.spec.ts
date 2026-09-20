@@ -54,6 +54,7 @@ function serviceFor(options: {
   ticket?: Record<string, unknown> | null;
   groups?: Array<{ status: TicketStatus; _count: { _all: number } }>;
   visibleTickets?: number;
+  companyService?: { id: string } | null;
 }) {
   const findManyCalls: Array<{ where: Record<string, unknown> }> = [];
   const findFirstCalls: FindFirstArgs[] = [];
@@ -95,6 +96,12 @@ function serviceFor(options: {
 
   const prisma = {
     ticket: ticketDelegate,
+    ticketDepartment: {
+      findFirst: jest.fn().mockResolvedValue({ id: 'department' }),
+    },
+    companyService: {
+      findFirst: jest.fn().mockResolvedValue(options.companyService ?? null),
+    },
     $transaction: jest.fn(
       (callback: (client: typeof transactionClient) => Promise<unknown>) =>
         callback(transactionClient),
@@ -196,6 +203,19 @@ describe('HelpdeskService (customer)', () => {
       companyId: COMPANY_ID,
       createdByUserId: 'company-user',
     });
+  });
+
+  it('refuses a service that belongs to another company', async () => {
+    const { service } = serviceFor({ companyService: null });
+
+    await expect(
+      service.createTicket(companyUser, {
+        departmentId: '5a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d',
+        subject: 'Printer',
+        body: 'It is broken',
+        companyServiceId: '6b2c3d4e-5f6a-4b7c-8d8e-9f0a1b2c3d4e',
+      }),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('reports a ticket outside scope as not found', async () => {

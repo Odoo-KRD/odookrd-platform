@@ -1,16 +1,21 @@
-import { PERMISSIONS, type TicketDepartmentOption } from "@odookrd/types";
+import {
+  PERMISSIONS,
+  type CustomerServiceAssignmentCard,
+  type PaginatedResult,
+  type TicketDepartmentOption,
+} from "@odookrd/types";
 import Link from "next/link";
 
 import { NewTicketForm } from "@/components/helpdesk/new-ticket-form";
 import { apiRequest } from "@/lib/api";
-import { getCustomerApiContext } from "@/lib/authorization";
+import { getCustomerApiContext, hasPermission } from "@/lib/authorization";
 import { helpdeskDictionaries } from "@/lib/i18n/helpdesk";
 import { getLocale } from "@/lib/i18n/server";
 
 import { createTicketAction } from "../actions";
 
 export default async function NewTicketPage() {
-  const [{ token }, locale] = await Promise.all([
+  const [{ session, token }, locale] = await Promise.all([
     getCustomerApiContext(PERMISSIONS.HELPDESK_READ),
     getLocale(),
   ]);
@@ -19,6 +24,22 @@ export default async function NewTicketPage() {
     "/helpdesk/departments",
     { token },
   );
+
+  // The service list is optional context: a user without services.read simply
+  // gets no "related service" options, and the form still works.
+  const services = hasPermission(session, PERMISSIONS.SERVICES_READ)
+    ? await apiRequest<PaginatedResult<CustomerServiceAssignmentCard>>(
+        "/service-assignments?limit=100&offset=0",
+        { token },
+      )
+        .then((page) =>
+          page.items.map((assignment) => ({
+            id: assignment.id,
+            label: assignment.displayName ?? assignment.service.name,
+          })),
+        )
+        .catch(() => [])
+    : [];
 
   return (
     <div className="grid gap-6">
@@ -56,6 +77,7 @@ export default async function NewTicketPage() {
           <NewTicketForm
             action={createTicketAction}
             departments={departments}
+            services={services}
             labels={labels}
           />
         </section>

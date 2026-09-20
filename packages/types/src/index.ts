@@ -1962,6 +1962,19 @@ export interface TicketAttachment {
   };
 }
 
+/** The company service a ticket is about, as returned with the ticket. */
+export interface TicketServiceRef {
+  id: string;
+  displayName: string | null;
+  displayNameTranslations: LocalizedText;
+  status: CompanyServiceStatus;
+  service: {
+    id: string;
+    name: string;
+    nameTranslations: LocalizedText;
+  };
+}
+
 export interface CustomerTicketListItem {
   id: string;
   reference: string;
@@ -1974,6 +1987,7 @@ export interface CustomerTicketListItem {
   createdAt: string;
   updatedAt: string;
   department: TicketDepartmentRef;
+  companyService: TicketServiceRef | null;
   createdBy: TicketUserRef;
 }
 
