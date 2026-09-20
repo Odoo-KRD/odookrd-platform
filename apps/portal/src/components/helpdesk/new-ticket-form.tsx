@@ -64,20 +64,20 @@ export function NewTicketForm({
     >
       <fieldset className="grid gap-4" disabled={pending}>
         <Step number={1} title={labels.stepDepartment} />
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Flex, not a two-column grid: the fields sit next to each other and
+            the leftover width falls at the end of the row. */}
+        <div className="flex flex-wrap items-start gap-4">
           <DepartmentSelect
             departments={departments}
             labels={labels}
             disabled={pending}
           />
           <PrioritySelect labels={labels} disabled={pending} />
-          <div className="sm:col-span-2">
-            <RelatedServiceSelect
-              services={services}
-              labels={labels}
-              disabled={pending}
-            />
-          </div>
+          <RelatedServiceSelect
+            services={services}
+            labels={labels}
+            disabled={pending}
+          />
         </div>
       </fieldset>
 
