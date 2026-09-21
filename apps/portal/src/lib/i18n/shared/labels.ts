@@ -218,7 +218,7 @@ const ku: SharedLabels = {
   chooseMp4: "MP4 هەڵبژێرە",
   choosePdf: "PDF هەڵبژێرە",
   clearFilters: "پاککردنەوە",
-  collapseSidebar: "کورتکردنەوەی لاتەنیشت",
+  collapseSidebar: "بچوککرنەوە",
   companyAdministrator: "بەڕێوەبەری کۆمپانیا",
   companyUser: "بەکارهێنەری کۆمپانیا",
   configured: "ڕێکخراوە",

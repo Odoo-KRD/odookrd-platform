@@ -38,7 +38,7 @@ const ku = {
     dashboard: sharedText.ku.labels.dashboard,
     administration: "بەڕێوەبردنی کۆمپانیا",
     portal: "ژینگەی کڕیار",
-    collapseSidebar: "بچووککردنەوەی مێنیوی لاتەنیشت",
+    collapseSidebar: sharedText.ku.labels.collapseSidebar,
     expandSidebar: "گەورەکردنەوەی مێنیوی لاتەنیشت",
   },
   dashboard: {

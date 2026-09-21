@@ -12,8 +12,6 @@ interface AdminSidebarProps {
   administrationLabel: string;
   navigationLabel: string;
   entries: AdminNavigationEntry[];
-  signedInAsLabel: string;
-  email: string;
   initialCollapsed: boolean;
   collapseLabel: string;
   expandLabel: string;
@@ -40,8 +38,6 @@ export function AdminSidebar({
   administrationLabel,
   navigationLabel,
   entries,
-  signedInAsLabel,
-  email,
   initialCollapsed,
   collapseLabel,
   expandLabel,
@@ -127,28 +123,6 @@ export function AdminSidebar({
             </span>
           )}
         </button>
-      </div>
-
-      <div className="shrink-0 border-t border-line px-4 py-4">
-        {collapsed ? (
-          <div
-            title={email}
-            className="mx-auto h-2.5 w-2.5 rounded-full bg-brand"
-          />
-        ) : (
-          <>
-            <p title={signedInAsLabel} className="truncate text-xs text-muted">
-              {signedInAsLabel}
-            </p>
-            <p
-              dir="ltr"
-              title={email}
-              className="mt-1 truncate text-sm font-medium text-content"
-            >
-              {email}
-            </p>
-          </>
-        )}
       </div>
     </aside>
   );

@@ -14,7 +14,6 @@ export default async function ProtectedCustomerLayout({
   }
 
   const {
-    session,
     dictionary,
     portal,
     labels,
@@ -39,8 +38,6 @@ export default async function ProtectedCustomerLayout({
         administrationLabel={portal.navigation.portal}
         navigationLabel={portal.navigation.label}
         entries={navigation}
-        signedInAsLabel={dictionary.workspace.signedInAs}
-        email={session.user.email}
         initialCollapsed={uiPreferences.sidebarCollapsed}
         collapseLabel={portal.navigation.collapseSidebar}
         expandLabel={portal.navigation.expandSidebar}

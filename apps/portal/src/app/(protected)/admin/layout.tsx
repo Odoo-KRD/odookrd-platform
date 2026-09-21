@@ -120,8 +120,6 @@ export default async function ProtectedAdminLayout({
         administrationLabel={administrationLabel}
         navigationLabel={navLabels.label}
         entries={navigation}
-        signedInAsLabel={dictionary.workspace.signedInAs}
-        email={session.user.email}
         initialCollapsed={uiPreferences.sidebarCollapsed}
         collapseLabel={navLabels.collapseSidebar}
         expandLabel={navLabels.expandSidebar}

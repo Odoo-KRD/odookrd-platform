@@ -338,9 +338,22 @@ export function ShellHeader({
                                   menus.closeAll();
                                   setOpenedNotification(item);
                                 }}
-                                className="line-clamp-1 w-full text-start text-sm font-semibold text-content hover:text-brand"
+                                className="w-full text-start hover:text-brand"
                               >
-                                {item.title}
+                                {/* The weight sits on a span, not the button:
+                                    an unlayered "button { font: inherit }" rule
+                                    in globals.css overrides Tailwind font
+                                    classes placed on the button itself. Unread
+                                    titles are bold, read ones medium. */}
+                                <span
+                                  className={`line-clamp-1 text-sm ${
+                                    item.readAt
+                                      ? "font-medium text-muted"
+                                      : "font-bold text-content"
+                                  }`}
+                                >
+                                  {item.title}
+                                </span>
                               </button>
                               {/* Opening the message marks it read, so the
                                   row needs no separate "mark as read" button. */}
