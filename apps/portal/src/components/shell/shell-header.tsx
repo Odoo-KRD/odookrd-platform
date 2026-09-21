@@ -20,6 +20,7 @@ import {
   type AdminNavigationEntry,
 } from "@/components/admin/navigation";
 import { NotificationMessageDialog } from "@/components/notifications/notification-message-dialog";
+import { NotificationText } from "@/components/notifications/notification-text";
 import { LanguageSelect } from "@/components/preferences/language-select";
 import type { ShellHeaderLabels } from "@/lib/i18n/shell/header";
 import { plural } from "@/lib/i18n/plural";
@@ -358,7 +359,7 @@ export function ShellHeader({
                               {/* Opening the message marks it read, so the
                                   row needs no separate "mark as read" button. */}
                               <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
-                                {item.body}
+                                <NotificationText text={item.body} />
                               </p>
                             </div>
                           </div>

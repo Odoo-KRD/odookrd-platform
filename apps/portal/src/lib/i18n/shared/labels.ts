@@ -232,7 +232,7 @@ const ku: SharedLabels = {
   deliveryLog: "مێژووی گەیاندن",
   discardTranslations: "پاشگەزبوونەوە",
   exitFullscreen: "دەرچوون لە پڕشاشە",
-  expandSidebar: "فراوانکردنی لاتەنیشت",
+  expandSidebar: "گەورەکردنەوە",
   featureDefinitions: "تایبەتمەندییەکان",
   features: "تایبەتمەندییەکان",
   height: "بەرزی",

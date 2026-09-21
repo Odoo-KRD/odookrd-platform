@@ -16,6 +16,7 @@ import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "./actions";
+import { NotificationText } from "@/components/notifications/notification-text";
 
 const PAGE_SIZE = 20;
 
@@ -119,7 +120,7 @@ export default async function NotificationsPage({
                     dir="auto"
                     className="mt-3 line-clamp-3 whitespace-pre-wrap break-words text-start text-sm leading-7 text-slate-600"
                   >
-                    {item.body}
+                    <NotificationText text={item.body} />
                   </p>
                   <p className="mt-4 text-xs text-slate-500">
                     {formatDate(item.createdAt, locale)}

@@ -9,6 +9,8 @@ import { markNotificationReadAction } from "@/app/(protected)/(customer)/dashboa
 import { ModalDialog } from "@/components/ui/modal-dialog";
 import { formatDate } from "@/lib/format";
 
+import { NotificationText } from "./notification-text";
+
 export interface NotificationMessageLabels {
   viewMessage: string;
   closeMessage: string;
@@ -73,7 +75,7 @@ export function NotificationMessageDialog({
             dir="auto"
             className="whitespace-pre-wrap break-words text-start text-sm leading-7 text-content"
           >
-            {notification.body}
+            <NotificationText text={notification.body} />
           </p>
 
           <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">

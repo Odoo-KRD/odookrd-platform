@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/api";
 import { getNotificationApiContext } from "@/lib/authorization";
 import { formatDate } from "@/lib/format";
 import { getFrontendDictionary } from "@/lib/i18n/public/server";
+import { NotificationText } from "@/components/notifications/notification-text";
 
 const PAGE_SIZE = 20;
 
@@ -121,7 +122,7 @@ export default async function AdminNotificationInboxPage({
                     dir="auto"
                     className="mt-3 line-clamp-3 whitespace-pre-wrap break-words text-start text-sm leading-7 text-muted"
                   >
-                    {item.body}
+                    <NotificationText text={item.body} />
                   </p>
                   <p className="mt-4 text-xs text-muted">
                     {formatDate(item.createdAt, locale)}

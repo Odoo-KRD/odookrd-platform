@@ -39,7 +39,7 @@ const ku = {
     administration: "بەڕێوەبردنی کۆمپانیا",
     portal: "ژینگەی کڕیار",
     collapseSidebar: sharedText.ku.labels.collapseSidebar,
-    expandSidebar: "گەورەکردنەوەی مێنیوی لاتەنیشت",
+    expandSidebar: sharedText.ku.labels.expandSidebar,
   },
   dashboard: {
     title: "داشبۆردی کڕیار",
