@@ -57,13 +57,18 @@ const WHATSAPP_TEST_TEXT = {
   en: 'This is a test message from OdooKRD.',
 } as const;
 
-/** Sample values for testing an approved template. */
+/**
+ * Sample values for testing an approved template, one per variable name used
+ * by the helpdesk and subscription-reminder notifications.
+ */
 const WHATSAPP_TEST_VARIABLES: Record<string, string> = {
   reference: 'TKT-2026-00001',
   subject: 'Test',
   companyName: 'OdooKRD',
   serviceName: 'Odoo',
-  expiresAt: '2026-12-31',
+  milestone: '7',
+  expiresOn: '2026-12-31',
+  daysRemaining: '7',
 };
 
 @Injectable()

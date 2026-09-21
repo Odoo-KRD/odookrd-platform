@@ -100,6 +100,12 @@ function selectOptions(
   if (setting.key === "notifications.email.provider") {
     return [["amazon_ses", "Amazon SES"]];
   }
+  if (setting.key === "notifications.whatsapp.provider") {
+    return [
+      ["meta", "Meta Cloud API"],
+      ["twilio", "Twilio"],
+    ];
+  }
   if (setting.key === "notifications.email.amazon_ses.transport") {
     return [
       ["api", "SES API"],
@@ -674,6 +680,20 @@ export function SettingsForm({
               ? labels.booleanOptions.enabled
               : labels.booleanOptions.disabled}
           </label>
+        ) : setting.key ===
+          "notifications.whatsapp.twilio.content_templates" ? (
+          // JSON map, too long for one line; kept LTR and monospaced.
+          <textarea
+            id={`setting-${setting.key}`}
+            name={`setting.${setting.key}`}
+            dir="ltr"
+            rows={10}
+            spellCheck={false}
+            defaultValue={String(setting.value ?? "")}
+            disabled={!editable}
+            placeholder={'{\n  "helpdesk.ticket.replied": {\n    "variables": ["reference", "subject"],\n    "ku": "HX…", "ar": "HX…", "en": "HX…"\n  }\n}'}
+            className="mt-4 w-full max-w-2xl rounded-md border border-line bg-white px-3 py-2 font-mono text-xs leading-5 text-content disabled:bg-slate-50 disabled:text-muted"
+          />
         ) : options ? (
           <select
             id={`setting-${setting.key}`}

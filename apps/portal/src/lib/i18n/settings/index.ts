@@ -163,6 +163,30 @@ const en = {
       label: "Webhook Verify Token",
       description: "Secret used to verify webhook setup.",
     },
+    "notifications.whatsapp.provider": {
+      label: "WhatsApp provider",
+      description: "Twilio, or Meta's Cloud API directly.",
+    },
+    "notifications.whatsapp.twilio.account_sid": {
+      label: "Twilio Account SID",
+      description: "Starts with AC; from the Twilio Console dashboard.",
+    },
+    "notifications.whatsapp.twilio.auth_token": {
+      label: "Twilio Auth Token",
+      description: "Secret; it is never shown again.",
+    },
+    "notifications.whatsapp.twilio.primary_sender": {
+      label: "Twilio sender (primary)",
+      description: "WhatsApp number that sends first, e.g. +9647701599232.",
+    },
+    "notifications.whatsapp.twilio.fallback_sender": {
+      label: "Twilio sender (backup)",
+      description: "Used once if the primary fails. Leave empty for none.",
+    },
+    "notifications.whatsapp.twilio.content_templates": {
+      label: "Twilio Content Templates (JSON)",
+      description: "Approved template (HX…) per notification type and language, with variable names in {{1}}, {{2}} order.",
+    },
   },
 } satisfies SettingsDictionary;
 
@@ -321,6 +345,30 @@ const ku = {
       label: "Webhook Verify Token",
       description: "تۆکنی پشتڕاستکردنەوەی webhook.",
     },
+    "notifications.whatsapp.provider": {
+      label: "دابینکەری WhatsApp",
+      description: "Twilio یان ڕاستەوخۆ Cloud API ـی Meta.",
+    },
+    "notifications.whatsapp.twilio.account_sid": {
+      label: "Twilio Account SID",
+      description: "بە AC دەست پێدەکات؛ لە داشبۆردی Twilio.",
+    },
+    "notifications.whatsapp.twilio.auth_token": {
+      label: "Twilio Auth Token",
+      description: "نهێنییە؛ دووبارە پیشان نادرێتەوە.",
+    },
+    "notifications.whatsapp.twilio.primary_sender": {
+      label: "ژمارەی نێرەر (سەرەکی)",
+      description: "ژمارەی WhatsApp کە یەکەمجار دەنێرێت، بۆ نموونە ‎+9647701599232.",
+    },
+    "notifications.whatsapp.twilio.fallback_sender": {
+      label: "ژمارەی نێرەر (یەدەگ)",
+      description: "ئەگەر سەرەکییەکە سەرکەوتوو نەبوو یەکجار بەکاردێت. بەتاڵی بهێڵە ئەگەر نەتەوێت.",
+    },
+    "notifications.whatsapp.twilio.content_templates": {
+      label: "قاڵبەکانی Twilio (JSON)",
+      description: "قاڵبی پەسەندکراو (HX…) بۆ هەر جۆرە ئاگادارکردنەوەیەک و هەر زمانێک، لەگەڵ ناوی گۆڕاوەکان بە ڕیزی {{1}} و {{2}}.",
+    },
   },
 } satisfies SettingsDictionary;
 
@@ -478,6 +526,30 @@ const ar = {
     "notifications.whatsapp.webhook_verify_token": {
       label: "Webhook Verify Token",
       description: "رمز التحقق من webhook.",
+    },
+    "notifications.whatsapp.provider": {
+      label: "مزوّد WhatsApp",
+      description: "Twilio أو واجهة Cloud API من Meta مباشرة.",
+    },
+    "notifications.whatsapp.twilio.account_sid": {
+      label: "Twilio Account SID",
+      description: "يبدأ بـ AC؛ من لوحة تحكم Twilio.",
+    },
+    "notifications.whatsapp.twilio.auth_token": {
+      label: "Twilio Auth Token",
+      description: "سرّي؛ لن يُعرض مرة أخرى.",
+    },
+    "notifications.whatsapp.twilio.primary_sender": {
+      label: "رقم الإرسال (الأساسي)",
+      description: "رقم WhatsApp الذي يرسل أولاً، مثل ‎+9647701599232.",
+    },
+    "notifications.whatsapp.twilio.fallback_sender": {
+      label: "رقم الإرسال (الاحتياطي)",
+      description: "يُستخدم مرة واحدة إذا فشل الأساسي. اتركه فارغاً لعدم الاستخدام.",
+    },
+    "notifications.whatsapp.twilio.content_templates": {
+      label: "قوالب Twilio (JSON)",
+      description: "القالب المعتمد (HX…) لكل نوع إشعار ولغة، مع أسماء المتغيرات بترتيب {{1}} و{{2}}.",
     },
   },
 } satisfies SettingsDictionary;

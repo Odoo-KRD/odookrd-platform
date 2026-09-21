@@ -5,6 +5,8 @@ import {
 import { Badge, PageHeading, Panel } from "@odookrd/ui";
 import { redirect } from "next/navigation";
 
+import { sendNotificationTestWhatsAppAction } from "@/app/(protected)/admin/notifications/actions";
+import { ProviderTestWhatsAppForm } from "@/components/notifications/provider-test-whatsapp-form";
 import { apiRequest } from "@/lib/api";
 import { getAdminApiContext } from "@/lib/authorization";
 import { getAdminDictionary } from "@/lib/i18n/admin/server";
@@ -73,6 +75,38 @@ export default async function NotificationProvidersPage() {
         ]),
   ];
 
+  const whatsapp = providerStatus.whatsapp;
+  const whatsappEntries: Array<[string, string]> =
+    whatsapp.provider === "twilio"
+      ? [
+          [labels.whatsappProviderName, "Twilio"],
+          [
+            labels.twilioAccountSid,
+            whatsapp.twilio.accountSid.masked ?? labels.notConfigured,
+          ],
+          [
+            labels.twilioAuthToken,
+            whatsapp.twilio.authToken.masked ?? labels.notConfigured,
+          ],
+          [
+            labels.primarySender,
+            whatsapp.twilio.primarySender ?? labels.notConfigured,
+          ],
+          [labels.fallbackSender, whatsapp.twilio.fallbackSender ?? "—"],
+          [
+            labels.contentTemplates,
+            whatsapp.twilio.templatesValid
+              ? String(whatsapp.twilio.templateCount)
+              : labels.templatesInvalid,
+          ],
+        ]
+      : [
+          [labels.whatsappProviderName, "Meta Cloud API"],
+          ["API URL", whatsapp.apiUrl ?? labels.notConfigured],
+          ["Phone Number ID", whatsapp.phoneNumberId ?? labels.notConfigured],
+          ["Access Token", whatsapp.accessToken.masked ?? labels.notConfigured],
+        ];
+
   return (
     <div className="grid gap-7">
       <PageHeading
@@ -110,6 +144,49 @@ export default async function NotificationProvidersPage() {
         <p className="mt-5 text-xs leading-5 text-muted">
           {labels.secretNotice}
         </p>
+      </Panel>
+
+      <Panel className="p-5 sm:p-7">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-base font-semibold text-content">
+            {labels.whatsappProvider}
+          </h2>
+          <Badge tone={whatsapp.ready ? "success" : "danger"}>
+            {whatsapp.ready ? labels.ready : labels.notReady}
+          </Badge>
+        </div>
+
+        {whatsapp.enabled ? null : (
+          <p className="mt-3 text-sm text-muted">{labels.whatsappDisabled}</p>
+        )}
+
+        <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {whatsappEntries.map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-md border border-line bg-slate-50 p-4"
+            >
+              <dt className="text-xs font-medium text-muted">{label}</dt>
+              <dd
+                dir="ltr"
+                className="mt-2 break-all text-sm font-medium text-content"
+              >
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </Panel>
+
+      <Panel className="p-5 sm:p-7">
+        <h2 className="mb-4 text-base font-semibold text-content">
+          {labels.whatsappTest}
+        </h2>
+        <ProviderTestWhatsAppForm
+          action={sendNotificationTestWhatsAppAction}
+          locale={locale}
+          labels={labels}
+        />
       </Panel>
     </div>
   );

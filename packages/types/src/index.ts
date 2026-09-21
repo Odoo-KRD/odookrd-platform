@@ -714,9 +714,21 @@ export interface EmailProviderAdministrationStatus {
   };
 }
 
+export interface TwilioWhatsAppAdministrationStatus {
+  accountSid: NotificationProviderSecretStatus;
+  authToken: NotificationProviderSecretStatus;
+  primarySender: string | null;
+  fallbackSender: string | null;
+  /** Notification types that have approved templates mapped. */
+  templateCount: number;
+  templatesValid: boolean;
+}
+
 export interface WhatsAppProviderAdministrationStatus {
   enabled: boolean;
   ready: boolean;
+  provider: "meta" | "twilio";
+  twilio: TwilioWhatsAppAdministrationStatus;
   apiUrl: string | null;
   phoneNumberId: string | null;
   accessToken: NotificationProviderSecretStatus;
@@ -762,7 +774,7 @@ export interface NotificationAdministrationDeliveryPage {
 
 export interface NotificationProviderTestResult {
   id: string;
-  channel: "EMAIL";
+  channel: "EMAIL" | "WHATSAPP";
   recipient: string;
   status: NotificationDeliveryStatus;
   providerMessageId: string | null;

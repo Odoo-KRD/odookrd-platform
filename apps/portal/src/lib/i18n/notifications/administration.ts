@@ -37,6 +37,22 @@ export interface NotificationAdministrationDictionary {
   testEmailDescription: string;
   recipient: string;
   sendTestEmail: string;
+  whatsappProvider: string;
+  whatsappProviderName: string;
+  twilioAccountSid: string;
+  twilioAuthToken: string;
+  primarySender: string;
+  fallbackSender: string;
+  contentTemplates: string;
+  templatesInvalid: string;
+  whatsappDisabled: string;
+  whatsappTest: string;
+  whatsappTestHint: string;
+  destination: string;
+  testTemplate: string;
+  testTemplatePlain: string;
+  sendTestWhatsapp: string;
+  sendingTestWhatsapp: string;
   sendingTestEmail: string;
   testSent: string;
   testFailed: string;
@@ -99,6 +115,22 @@ export const notificationAdministrationDictionaries: Record<
       "ئیمەیڵێکی ڕاستەقینە بە هەمان دابینکەری Amazon SES ـی ئاگادارکردنەوەکان بنێرە.",
     recipient: "وەرگر",
     sendTestEmail: "ناردنی ئیمەیڵی تاقیکردنەوە",
+    whatsappProvider: "دابینکەری WhatsApp",
+    whatsappProviderName: "دابینکەر",
+    twilioAccountSid: "Twilio Account SID",
+    twilioAuthToken: "Twilio Auth Token",
+    primarySender: "ژمارەی نێرەر (سەرەکی)",
+    fallbackSender: "ژمارەی نێرەر (یەدەگ)",
+    contentTemplates: "قاڵبە پەسەندکراوەکان",
+    templatesInvalid: "JSON ـی قاڵبەکان هەڵەیە",
+    whatsappDisabled: "WhatsApp لە ڕێکخستنەکاندا ناچالاکە.",
+    whatsappTest: "تاقیکردنەوەی WhatsApp",
+    whatsappTestHint: "نامەی ئاسایی تەنها لە ماوەی ٢٤ کاتژمێر دوای دوایین نامەی وەرگر دەگات. بۆ تاقیکردنەوە، سەرەتا لە مۆبایلەکەتەوە نامەیەک بنێرە بۆ ژمارەی سەرەکی، یان قاڵبێکی پەسەندکراو هەڵبژێرە.",
+    destination: "ژمارەی WhatsApp ـی وەرگر",
+    testTemplate: "قاڵب",
+    testTemplatePlain: "نامەی ئاسایی (بێ قاڵب)",
+    sendTestWhatsapp: "ناردنی نامەی تاقیکردنەوە",
+    sendingTestWhatsapp: "ناردن...",
     sendingTestEmail: "دەنێردرێت...",
     testSent: "ئیمەیڵی تاقیکردنەوە نێردرا.",
     testFailed: "ناردنی ئیمەیڵی تاقیکردنەوە سەرکەوتوو نەبوو.",
@@ -172,6 +204,22 @@ export const notificationAdministrationDictionaries: Record<
       "أرسل رسالة حقيقية عبر نفس مزود Amazon SES المستخدم للإشعارات.",
     recipient: "المستلم",
     sendTestEmail: "إرسال بريد اختباري",
+    whatsappProvider: "مزوّد WhatsApp",
+    whatsappProviderName: "المزوّد",
+    twilioAccountSid: "Twilio Account SID",
+    twilioAuthToken: "Twilio Auth Token",
+    primarySender: "رقم الإرسال (الأساسي)",
+    fallbackSender: "رقم الإرسال (الاحتياطي)",
+    contentTemplates: "القوالب المعتمدة",
+    templatesInvalid: "JSON القوالب غير صالح",
+    whatsappDisabled: "WhatsApp معطّل في الإعدادات.",
+    whatsappTest: "اختبار WhatsApp",
+    whatsappTestHint: "الرسالة النصية تصل فقط خلال 24 ساعة من آخر رسالة من المستلم. للاختبار، أرسل أولاً رسالة من هاتفك إلى الرقم الأساسي، أو اختر قالباً معتمداً.",
+    destination: "رقم WhatsApp للمستلم",
+    testTemplate: "القالب",
+    testTemplatePlain: "رسالة نصية (بدون قالب)",
+    sendTestWhatsapp: "إرسال رسالة اختبار",
+    sendingTestWhatsapp: "جارٍ الإرسال...",
     sendingTestEmail: "جارٍ الإرسال...",
     testSent: "تم إرسال البريد الاختباري.",
     testFailed: "فشل إرسال البريد الاختباري.",
@@ -244,6 +292,22 @@ export const notificationAdministrationDictionaries: Record<
       "Send a real message through the same Amazon SES provider used by notifications.",
     recipient: "Recipient",
     sendTestEmail: "Send test email",
+    whatsappProvider: "WhatsApp provider",
+    whatsappProviderName: "Provider",
+    twilioAccountSid: "Twilio Account SID",
+    twilioAuthToken: "Twilio Auth Token",
+    primarySender: "Sender (primary)",
+    fallbackSender: "Sender (backup)",
+    contentTemplates: "Approved templates",
+    templatesInvalid: "Template JSON is invalid",
+    whatsappDisabled: "WhatsApp is disabled in Settings.",
+    whatsappTest: "WhatsApp test",
+    whatsappTestHint: "Plain text is only delivered within 24 hours of the recipient's last message. To test, first send any message from your phone to the primary number, or pick an approved template.",
+    destination: "Recipient WhatsApp number",
+    testTemplate: "Template",
+    testTemplatePlain: "Plain text (no template)",
+    sendTestWhatsapp: "Send test message",
+    sendingTestWhatsapp: "Sending...",
     sendingTestEmail: "Sending...",
     testSent: "The test email was sent.",
     testFailed: "The test email could not be sent.",
