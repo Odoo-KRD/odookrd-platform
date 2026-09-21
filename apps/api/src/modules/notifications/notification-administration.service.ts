@@ -18,6 +18,7 @@ import { SettingsService } from '../settings/settings.service';
 import type { ListNotificationAdministrationDeliveriesDto } from './dto/notification-administration.dto';
 import { NotificationAdministrationTemplateService } from './notification-administration-template.service';
 import { NotificationProviderError } from './notification-provider.error';
+import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
 import { EmailProviderService } from './providers/email-provider.service';
 
 interface DeliveryLogRow {
@@ -47,12 +48,31 @@ interface CompanyRow {
   name: string;
 }
 
+import type { TestWhatsAppNotificationDto } from './dto/notification-administration.dto';
+
+/** Plain-text test, per language; delivered only inside the 24-hour window. */
+const WHATSAPP_TEST_TEXT = {
+  ku: 'ئەمە نامەیەکی تاقیکردنەوەیە لە OdooKRD.',
+  ar: 'هذه رسالة اختبار من OdooKRD.',
+  en: 'This is a test message from OdooKRD.',
+} as const;
+
+/** Sample values for testing an approved template. */
+const WHATSAPP_TEST_VARIABLES: Record<string, string> = {
+  reference: 'TKT-2026-00001',
+  subject: 'Test',
+  companyName: 'OdooKRD',
+  serviceName: 'Odoo',
+  expiresAt: '2026-12-31',
+};
+
 @Injectable()
 export class NotificationAdministrationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly emailProvider: EmailProviderService,
+    private readonly whatsappProvider: WhatsAppProviderService,
     private readonly templates: NotificationAdministrationTemplateService,
   ) {}
 
@@ -149,6 +169,8 @@ export class NotificationAdministrationService {
     const whatsappApiUrl = this.stringValue(whatsappApiUrlValue);
     const whatsappPhoneNumberId = this.stringValue(whatsappPhoneNumberIdValue);
 
+    const twilio = await this.twilioStatus();
+
     const apiReady = Boolean(
       region && senderEmail && accessKeyId && secretAccessKey,
     );
@@ -187,11 +209,15 @@ export class NotificationAdministrationService {
       },
       whatsapp: {
         enabled: whatsappEnabled,
+        provider: twilio.provider,
         ready:
           whatsappEnabled &&
-          Boolean(
-            whatsappApiUrl && whatsappPhoneNumberId && whatsappAccessToken,
-          ),
+          (twilio.provider === 'twilio'
+            ? twilio.ready
+            : Boolean(
+                whatsappApiUrl && whatsappPhoneNumberId && whatsappAccessToken,
+              )),
+        twilio: twilio.status,
         apiUrl: whatsappApiUrl,
         phoneNumberId: whatsappPhoneNumberId,
         accessToken: this.maskedSecret(whatsappAccessToken, false),
@@ -323,6 +349,162 @@ export class NotificationAdministrationService {
         sentAt: result.sentAt,
       };
     }
+  }
+
+  /**
+   * Sends one WhatsApp test through the active provider, recorded like the
+   * email test (rate-limited, stored in notification_provider_tests, audited).
+   */
+  async testWhatsApp(
+    principal: AuthenticatedPrincipal,
+    input: TestWhatsAppNotificationDto,
+  ) {
+    this.assertPlatform(principal);
+    await this.enforceTestRateLimit(principal.userId);
+
+    const destination = input.destination.replace(/[\s()-]/gu, '');
+    const attempt = await this.prisma.notificationProviderTest.create({
+      data: {
+        actorUserId: principal.userId,
+        channel: NotificationChannel.WHATSAPP,
+        destination,
+        status: NotificationDeliveryStatus.PROCESSING,
+        attemptCount: 1,
+        lastAttemptAt: new Date(),
+      },
+      select: { id: true },
+    });
+
+    const body = WHATSAPP_TEST_TEXT[input.locale];
+    let status: NotificationDeliveryStatus = NotificationDeliveryStatus.SENT;
+    let providerMessageId: string | null = null;
+    let failureCode: string | null = null;
+
+    try {
+      providerMessageId = await this.whatsappProvider.send(
+        null,
+        destination,
+        body,
+        input.templateKey
+          ? {
+              templateKey: input.templateKey,
+              locale: input.locale,
+              variables: WHATSAPP_TEST_VARIABLES,
+            }
+          : undefined,
+      );
+    } catch (error: unknown) {
+      status = NotificationDeliveryStatus.FAILED;
+      failureCode =
+        error instanceof NotificationProviderError
+          ? this.safeFailureCode(error.code)
+          : 'WHATSAPP_TEST_FAILED';
+    }
+
+    const result = await this.prisma.notificationProviderTest.update({
+      where: { id: attempt.id },
+      data: {
+        status,
+        providerMessageId,
+        failureCode,
+        sentAt: status === NotificationDeliveryStatus.SENT ? new Date() : null,
+      },
+      select: {
+        id: true,
+        destination: true,
+        status: true,
+        providerMessageId: true,
+        failureCode: true,
+        sentAt: true,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId: principal.userId,
+        companyId: null,
+        action:
+          status === NotificationDeliveryStatus.SENT
+            ? 'notification.provider.whatsapp.test.sent'
+            : 'notification.provider.whatsapp.test.failed',
+        targetType: 'notification_provider_test',
+        targetId: attempt.id,
+        metadata: {
+          status: result.status,
+          failureCode,
+          templateKey: input.templateKey ?? null,
+        },
+      },
+    });
+
+    return {
+      id: result.id,
+      channel: 'WHATSAPP' as const,
+      recipient: result.destination,
+      status: result.status,
+      providerMessageId: result.providerMessageId,
+      failureCode: result.failureCode,
+      sentAt: result.sentAt,
+    };
+  }
+
+  /** Twilio configuration for the status page, secrets masked. */
+  private async twilioStatus() {
+    const [provider, accountSid, authToken, primary, fallback, templates] =
+      await Promise.all([
+        this.settings.resolveValue('notifications.whatsapp.provider', null),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.account_sid',
+          null,
+        ),
+        this.settings.resolveSecret(
+          'notifications.whatsapp.twilio.auth_token',
+          null,
+        ),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.primary_sender',
+          null,
+        ),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.fallback_sender',
+          null,
+        ),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.content_templates',
+          null,
+        ),
+      ]);
+
+    const sid = this.stringValue(accountSid);
+    const primarySender = this.stringValue(primary);
+    let templateCount = 0;
+    let templatesValid = true;
+    const map = this.stringValue(templates);
+
+    if (map) {
+      try {
+        const parsed: unknown = JSON.parse(map);
+        templateCount =
+          typeof parsed === 'object' && parsed !== null
+            ? Object.keys(parsed).length
+            : 0;
+      } catch {
+        templatesValid = false;
+      }
+    }
+
+    return {
+      provider: this.stringValue(provider) === 'twilio' ? 'twilio' : 'meta',
+      ready: Boolean(sid && authToken && primarySender && templatesValid),
+      status: {
+        accountSid: this.maskedSecret(sid, true),
+        authToken: this.maskedSecret(authToken, false),
+        primarySender,
+        fallbackSender: this.stringValue(fallback),
+        templateCount,
+        templatesValid,
+      },
+    };
   }
 
   async listDeliveries(

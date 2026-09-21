@@ -9,6 +9,7 @@ import { PERMISSIONS } from '../authorization/permissions';
 import {
   ListNotificationAdministrationDeliveriesDto,
   TestEmailNotificationDto,
+  TestWhatsAppNotificationDto,
 } from './dto/notification-administration.dto';
 import { NotificationAdministrationService } from './notification-administration.service';
 
@@ -35,6 +36,14 @@ export class NotificationAdministrationController {
       input.recipient,
       input.locale,
     );
+  }
+
+  @Post('test-whatsapp')
+  testWhatsApp(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Body() input: TestWhatsAppNotificationDto,
+  ) {
+    return this.administration.testWhatsApp(principal, input);
   }
 
   @Get('deliveries')

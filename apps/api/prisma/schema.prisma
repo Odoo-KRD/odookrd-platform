@@ -1028,13 +1028,17 @@ model KnowledgeArticleFeedback {
 }
 
 model Notification {
-  id             String   @id @default(uuid()) @db.Uuid
-  companyId      String   @map("company_id") @db.Uuid
-  templateKey    String   @map("template_key") @db.VarChar(150)
-  idempotencyKey String   @map("idempotency_key") @db.VarChar(200)
-  actionUrl      String?  @map("action_url") @db.VarChar(500)
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                String   @id @default(uuid()) @db.Uuid
+  companyId         String   @map("company_id") @db.Uuid
+  templateKey       String   @map("template_key") @db.VarChar(150)
+  idempotencyKey    String   @map("idempotency_key") @db.VarChar(200)
+  actionUrl         String?  @map("action_url") @db.VarChar(500)
+  /// String values of the template variables (reference, subject, …), kept so
+  /// a WhatsApp delivery retried later can fill an approved template. Never
+  /// store secrets here: invitation links are sent outside this pipeline.
+  templateVariables Json     @default("{}") @map("template_variables") @db.JsonB
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   company    Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
   recipients NotificationRecipient[]

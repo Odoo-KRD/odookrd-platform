@@ -22,9 +22,12 @@ const deliverySelect = {
   recipient: {
     select: {
       companyId: true,
+      locale: true,
       title: true,
       body: true,
-      notification: { select: { id: true } },
+      notification: {
+        select: { id: true, templateKey: true, templateVariables: true },
+      },
     },
   },
 } satisfies Prisma.NotificationDeliverySelect;
@@ -225,6 +228,13 @@ export class NotificationDispatcherService {
         delivery.recipient.companyId,
         delivery.destination,
         delivery.recipient.body,
+        {
+          templateKey: delivery.recipient.notification.templateKey,
+          locale: delivery.recipient.locale,
+          variables: stringValues(
+            delivery.recipient.notification.templateVariables,
+          ),
+        },
       );
     }
 
@@ -255,4 +265,17 @@ export class NotificationDispatcherService {
       .slice(0, 80);
     return normalized || 'DELIVERY_FAILED';
   }
+}
+
+/** The stored template variables as plain strings; anything else is dropped. */
+function stringValues(value: unknown): Record<string, string> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
+  );
 }

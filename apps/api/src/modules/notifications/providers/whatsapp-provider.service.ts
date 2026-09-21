@@ -2,6 +2,17 @@ import { Injectable } from '@nestjs/common';
 
 import { SettingsService } from '../../settings/settings.service';
 import { NotificationProviderError } from '../notification-provider.error';
+import {
+  resolveContentTemplate,
+  sendTwilioWhatsApp,
+} from './twilio-whatsapp.client';
+
+/** What a notification knows about itself, for approved templates. */
+export interface WhatsAppTemplateContext {
+  templateKey: string;
+  locale: string;
+  variables: Record<string, string>;
+}
 
 interface WhatsAppApiResponse {
   messages?: Array<{ id?: string }>;
@@ -11,7 +22,95 @@ interface WhatsAppApiResponse {
 export class WhatsAppProviderService {
   constructor(private readonly settings: SettingsService) {}
 
+  /**
+   * Sends through the provider chosen in notifications.whatsapp.provider.
+   * With Twilio, a notification whose type has an approved Content Template
+   * is sent as that template; anything else goes as free text, which WhatsApp
+   * only delivers within 24 hours of the customer's last message.
+   */
   async send(
+    companyId: string | null,
+    destination: string,
+    body: string,
+    template?: WhatsAppTemplateContext,
+  ): Promise<string | null> {
+    const provider = this.configuredString(
+      await this.settings.resolveValue(
+        'notifications.whatsapp.provider',
+        companyId,
+      ),
+    );
+
+    if (provider === 'twilio') {
+      return this.sendWithTwilio(companyId, destination, body, template);
+    }
+
+    return this.sendWithMeta(companyId, destination, body);
+  }
+
+  private async sendWithTwilio(
+    companyId: string | null,
+    destination: string,
+    body: string,
+    template?: WhatsAppTemplateContext,
+  ): Promise<string | null> {
+    const [accountSidValue, authToken, primaryValue, fallbackValue, mapValue] =
+      await Promise.all([
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.account_sid',
+          companyId,
+        ),
+        this.settings.resolveSecret(
+          'notifications.whatsapp.twilio.auth_token',
+          companyId,
+        ),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.primary_sender',
+          companyId,
+        ),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.fallback_sender',
+          companyId,
+        ),
+        this.settings.resolveValue(
+          'notifications.whatsapp.twilio.content_templates',
+          companyId,
+        ),
+      ]);
+
+    const accountSid = this.configuredString(accountSidValue);
+    const primary = this.configuredString(primaryValue);
+
+    if (!accountSid || !authToken || !primary) {
+      throw new NotificationProviderError(
+        'WHATSAPP_CONFIGURATION_MISSING',
+        false,
+        'Notification delivery configuration is incomplete.',
+      );
+    }
+
+    const content = template
+      ? resolveContentTemplate(
+          this.configuredString(mapValue),
+          template.templateKey,
+          template.locale,
+          template.variables,
+        )
+      : null;
+
+    return sendTwilioWhatsApp(
+      { accountSid, authToken },
+      { primary, fallback: this.configuredString(fallbackValue) },
+      {
+        destination,
+        body,
+        contentSid: content?.contentSid ?? null,
+        contentVariables: content?.contentVariables,
+      },
+    );
+  }
+
+  private async sendWithMeta(
     companyId: string | null,
     destination: string,
     body: string,

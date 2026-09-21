@@ -306,6 +306,7 @@ export class NotificationsService {
             templateKey: input.templateKey,
             idempotencyKey,
             actionUrl,
+            templateVariables: templateVariableStrings(input.variables),
             recipients: {
               create: input.recipients.map((recipient) => {
                 const user = usersById.get(recipient.userId);
@@ -536,4 +537,28 @@ export class NotificationsService {
 
     return normalized;
   }
+}
+
+/**
+ * The template variables as strings, for WhatsApp templates filled at send
+ * time. Numbers and booleans become text; anything else is left out.
+ */
+function templateVariableStrings(variables: unknown): Record<string, string> {
+  if (typeof variables !== 'object' || variables === null) {
+    return {};
+  }
+
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(variables)) {
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
+      result[key] = String(value).slice(0, 1000);
+    }
+  }
+
+  return result;
 }
