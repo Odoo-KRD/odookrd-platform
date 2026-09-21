@@ -22,6 +22,9 @@ export interface AdminNavigationLabels {
   trainingCertificateTemplates: string;
   trainingCertificates: string;
   trainingReports: string;
+  helpdesk: string;
+  helpdeskQueue: string;
+  helpdeskDepartments: string;
   knowledge: string;
   knowledgeCategories: string;
   knowledgeArticles: string;
@@ -175,6 +178,30 @@ export function buildAdminNavigation(
       label: labels.training,
       icon: "training",
       children: trainingChildren,
+    });
+  }
+
+  if (
+    session.user.accountScope === "PLATFORM" &&
+    hasPermission(session, PERMISSIONS.HELPDESK_MANAGE)
+  ) {
+    entries.push({
+      kind: "group",
+      id: "helpdesk",
+      label: labels.helpdesk,
+      icon: "helpdesk",
+      children: [
+        {
+          kind: "item",
+          href: "/admin/helpdesk",
+          label: labels.helpdeskQueue,
+        },
+        {
+          kind: "item",
+          href: "/admin/helpdesk/departments",
+          label: labels.helpdeskDepartments,
+        },
+      ],
     });
   }
 

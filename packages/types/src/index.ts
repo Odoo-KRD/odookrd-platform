@@ -2012,6 +2012,22 @@ export interface TicketDepartmentOption extends TicketDepartmentRef {
   descriptionTranslations: LocalizedText;
 }
 
+/** Queue row: the customer ticket plus the company and assignee staff need. */
+export interface StaffTicketListItem extends CustomerTicketListItem {
+  firstRespondedAt: string | null;
+  company: { id: string; name: string };
+  assignee: TicketUserRef | null;
+}
+
+/** Staff see internal notes; the flag is present on every message. */
+export interface StaffTicketMessage extends CustomerTicketMessage {
+  isInternal: boolean;
+}
+
+export interface StaffTicketDetail extends StaffTicketListItem {
+  messages: StaffTicketMessage[];
+}
+
 export interface TicketSummary {
   total: number;
   byStatus: Record<TicketStatus, number>;

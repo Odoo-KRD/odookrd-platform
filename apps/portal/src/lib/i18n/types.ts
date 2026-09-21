@@ -63,6 +63,9 @@ export interface AdminNavigationDictionary {
   trainingCertificateTemplates: string;
   trainingCertificates: string;
   trainingReports: string;
+  helpdesk: string;
+  helpdeskQueue: string;
+  helpdeskDepartments: string;
   knowledge: string;
   knowledgeCategories: string;
   knowledgeArticles: string;

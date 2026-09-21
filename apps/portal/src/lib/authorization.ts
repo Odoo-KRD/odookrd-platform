@@ -19,6 +19,8 @@ const administrativePermissions = new Set<string>([
   PERMISSIONS.TRAINING_ASSIGN,
   PERMISSIONS.TRAINING_PROGRESS_READ,
   PERMISSIONS.TRAINING_REPORTS_READ,
+  PERMISSIONS.KNOWLEDGE_MANAGE,
+  PERMISSIONS.HELPDESK_MANAGE,
 ]);
 
 export function hasPermission(
@@ -73,7 +75,9 @@ export async function getCustomerAccountApiContext(): Promise<{
   const session = await requireSession();
 
   if (session.user.accountScope !== "COMPANY" || !session.user.companyId) {
-    redirect(session.user.accountScope === "PLATFORM" ? "/admin" : "/dashboard");
+    redirect(
+      session.user.accountScope === "PLATFORM" ? "/admin" : "/dashboard",
+    );
   }
 
   const token = await getSessionToken();

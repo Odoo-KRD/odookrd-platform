@@ -58,6 +58,7 @@ const SIBLING_ROUTES: Record<string, readonly string[]> = {
     "/admin/services/pipeline",
   ],
   "/dashboard/training": ["/dashboard/training/certificates"],
+  "/admin/helpdesk": ["/admin/helpdesk/departments"],
 };
 
 function isItemActive(pathname: string, href: string): boolean {
