@@ -14,10 +14,7 @@ import {
   type SyntheticEvent,
 } from "react";
 
-import {
-  markAllNotificationsReadAction,
-  markNotificationReadAction,
-} from "@/app/(protected)/(customer)/dashboard/notifications/actions";
+import { markAllNotificationsReadAction } from "@/app/(protected)/(customer)/dashboard/notifications/actions";
 import {
   AdminNavigation,
   type AdminNavigationEntry,
@@ -308,31 +305,13 @@ export function ShellHeader({
                 </summary>
 
                 <div className="absolute end-0 top-[calc(100%+0.65rem)] z-50 w-[min(92vw,24rem)] overflow-hidden rounded-xl border border-line bg-white shadow-xl">
-                  {/* min-w-0 lets the heading shrink and the action keep its
-                      width. Kurdish "mark all as read" is a third longer than
-                      the English, and without this the two fought for space. */}
-                  <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3.5">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-content">
-                        {labels.recentNotifications}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted">
-                        {plural(unreadPhrase, locale, unreadCount)}
-                      </p>
-                    </div>
-                    {unreadCount > 0 ? (
-                      <form
-                        action={markAllNotificationsReadAction}
-                        className="shrink-0"
-                      >
-                        <button
-                          type="submit"
-                          className="text-start text-xs font-semibold text-brand hover:text-brand-hover"
-                        >
-                          {labels.markAllRead}
-                        </button>
-                      </form>
-                    ) : null}
+                  <div className="border-b border-line px-4 py-3.5">
+                    <p className="text-sm font-semibold text-content">
+                      {labels.recentNotifications}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {plural(unreadPhrase, locale, unreadCount)}
+                    </p>
                   </div>
 
                   {notifications.length === 0 ? (
@@ -363,36 +342,11 @@ export function ShellHeader({
                               >
                                 {item.title}
                               </button>
+                              {/* Opening the message marks it read, so the
+                                  row needs no separate "mark as read" button. */}
                               <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted">
                                 {item.body}
                               </p>
-                              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    menus.closeAll();
-                                    setOpenedNotification(item);
-                                  }}
-                                  className="text-xs font-semibold text-brand hover:text-brand-hover"
-                                >
-                                  {labels.viewMessage}
-                                </button>
-                              {!item.readAt ? (
-                                <form action={markNotificationReadAction}>
-                                  <input
-                                    type="hidden"
-                                    name="recipientId"
-                                    value={item.id}
-                                  />
-                                  <button
-                                    type="submit"
-                                    className="text-xs font-semibold text-brand hover:text-brand-hover"
-                                  >
-                                    {labels.markRead}
-                                  </button>
-                                </form>
-                              ) : null}
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -400,12 +354,27 @@ export function ShellHeader({
                     </div>
                   )}
 
-                  <Link
-                    href={notificationsHref}
-                    className="flex h-11 items-center justify-center border-t border-line text-sm font-semibold text-brand hover:bg-surface-subtle"
-                  >
-                    {labels.viewAll}
-                  </Link>
+                  {/* One undivided row: both actions sit together with a
+                      gap, and "mark all" only appears when something is
+                      unread. whitespace-nowrap keeps each label on one line. */}
+                  <div className="flex h-12 items-center justify-center gap-6 border-t border-line px-4">
+                    <Link
+                      href={notificationsHref}
+                      className="whitespace-nowrap rounded-md px-2 py-1.5 text-sm font-semibold text-brand hover:bg-surface-subtle"
+                    >
+                      {labels.viewAll}
+                    </Link>
+                    {unreadCount > 0 ? (
+                      <form action={markAllNotificationsReadAction}>
+                        <button
+                          type="submit"
+                          className="whitespace-nowrap rounded-md px-2 py-1.5 text-sm font-semibold text-brand hover:bg-surface-subtle"
+                        >
+                          {labels.markAllRead}
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
                 </div>
               </details>
             ) : null}
