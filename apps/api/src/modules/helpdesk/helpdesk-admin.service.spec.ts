@@ -8,6 +8,7 @@ import { AccountScope, TicketStatus } from '../../generated/prisma/enums';
 import type { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { HelpdeskAdminService } from './helpdesk-admin.service';
+import type { HelpdeskNotificationService } from './helpdesk-notification.service';
 
 const COMPANY_ID = '7f28dd10-86d3-4286-81ff-f2f58bb8bd21';
 const TICKET_ID = '3c1e5a0e-2f7b-4b8e-9d51-6a0f1b2c3d4e';
@@ -100,8 +101,19 @@ function serviceFor(options: {
     ),
   } as unknown as PrismaService;
 
+  const notifier = {
+    ticketCreated: jest.fn().mockResolvedValue(undefined),
+    customerReplied: jest.fn().mockResolvedValue(undefined),
+    staffReplied: jest.fn().mockResolvedValue(undefined),
+    ticketResolved: jest.fn().mockResolvedValue(undefined),
+  };
+
   return {
-    service: new HelpdeskAdminService(prisma),
+    service: new HelpdeskAdminService(
+      prisma,
+      notifier as unknown as HelpdeskNotificationService,
+    ),
+    notifier,
     messageCreates,
     ticketUpdates,
     fileQueries,
@@ -150,6 +162,69 @@ describe('HelpdeskAdminService', () => {
       });
 
       expect(messageCreates).toHaveLength(1);
+    });
+  });
+
+  describe('notifications', () => {
+    it('never notify anyone about an internal note', async () => {
+      const { service, notifier } = serviceFor({});
+
+      await service.addMessage(staff, TICKET_ID, {
+        isInternal: true,
+        body: 'private remark',
+      });
+
+      expect(notifier.staffReplied).not.toHaveBeenCalled();
+      expect(notifier.ticketResolved).not.toHaveBeenCalled();
+    });
+
+    it('tell the customer about a public reply', async () => {
+      const { service, notifier } = serviceFor({});
+
+      await service.addMessage(staff, TICKET_ID, {
+        isInternal: false,
+        body: 'We are on it.',
+      });
+
+      expect(notifier.staffReplied).toHaveBeenCalledWith(TICKET_ID, 'message');
+      expect(notifier.ticketResolved).not.toHaveBeenCalled();
+    });
+
+    it('send one resolution notice when a reply also resolves', async () => {
+      const { service, notifier } = serviceFor({});
+
+      await service.addMessage(staff, TICKET_ID, {
+        isInternal: false,
+        body: 'Fixed.',
+        status: TicketStatus.RESOLVED,
+      });
+
+      expect(notifier.ticketResolved).toHaveBeenCalledWith(
+        TICKET_ID,
+        expect.any(Date),
+      );
+      expect(notifier.staffReplied).not.toHaveBeenCalled();
+    });
+
+    it('tell the customer when staff resolve the ticket', async () => {
+      const { service, notifier } = serviceFor({});
+
+      await service.updateTicket(staff, TICKET_ID, {
+        status: TicketStatus.RESOLVED,
+      });
+
+      expect(notifier.ticketResolved).toHaveBeenCalledTimes(1);
+    });
+
+    it('stay silent for status changes other than resolved', async () => {
+      const { service, notifier } = serviceFor({});
+
+      await service.updateTicket(staff, TICKET_ID, {
+        status: TicketStatus.WAITING_ON_CUSTOMER,
+      });
+
+      expect(notifier.ticketResolved).not.toHaveBeenCalled();
+      expect(notifier.staffReplied).not.toHaveBeenCalled();
     });
   });
 

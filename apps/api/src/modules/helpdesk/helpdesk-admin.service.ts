@@ -34,6 +34,7 @@ import type {
   UpdateTicketDepartmentDto,
   UpdateTicketDto,
 } from './dto/helpdesk-admin.dto';
+import { HelpdeskNotificationService } from './helpdesk-notification.service';
 import {
   assertAttachableFiles,
   LIVE_ATTACHMENT_WHERE,
@@ -136,7 +137,10 @@ type QueueItem = Prisma.TicketGetPayload<{ select: typeof queueSelect }>;
  */
 @Injectable()
 export class HelpdeskAdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifier: HelpdeskNotificationService,
+  ) {}
 
   async listQueue(
     principal: AuthenticatedPrincipal,
@@ -211,14 +215,18 @@ export class HelpdeskAdminService {
     ticketId: string,
     dto: UpdateTicketDto,
   ) {
-    await this.prisma.$transaction(async (transaction) => {
+    const resolvedAt = await this.prisma.$transaction(async (transaction) => {
       const ticket = await this.findTicketForUpdate(transaction, ticketId);
       const data: Prisma.TicketUncheckedUpdateInput = {};
       const changes: Record<string, { from: string; to: string }> = {};
+      let resolution: Date | null = null;
 
       if (dto.status !== undefined && dto.status !== ticket.status) {
-        Object.assign(data, statusChangeData(ticket, dto.status, new Date()));
+        const next = statusChangeData(ticket, dto.status, new Date());
+        Object.assign(data, next);
         changes.status = { from: ticket.status, to: dto.status };
+        resolution =
+          next.status === TicketStatus.RESOLVED ? next.resolvedAt : null;
       }
 
       if (dto.priority !== undefined && dto.priority !== ticket.priority) {
@@ -239,7 +247,7 @@ export class HelpdeskAdminService {
       }
 
       if (Object.keys(changes).length === 0) {
-        return;
+        return null;
       }
 
       await transaction.ticket.update({
@@ -252,7 +260,13 @@ export class HelpdeskAdminService {
         action: AUDIT_ACTIONS.HELPDESK_TICKET_UPDATED,
         metadata: { changes },
       });
+
+      return resolution;
     });
+
+    if (resolvedAt) {
+      await this.notifier.ticketResolved(ticketId, resolvedAt);
+    }
 
     return this.getTicket(ticketId);
   }
@@ -316,7 +330,7 @@ export class HelpdeskAdminService {
       );
     }
 
-    await this.prisma.$transaction(async (transaction) => {
+    const outcome = await this.prisma.$transaction(async (transaction) => {
       const ticket = await this.findTicketForUpdate(transaction, ticketId);
       const now = new Date();
 
@@ -333,7 +347,8 @@ export class HelpdeskAdminService {
           select: { id: true },
         });
 
-        return;
+        // Internal notes notify nobody.
+        return null;
       }
 
       if (ticket.status === TicketStatus.CLOSED) {
@@ -350,8 +365,12 @@ export class HelpdeskAdminService {
         fileAssetIds: dto.attachmentIds,
       });
       const nextStatus = dto.status ?? statusAfterStaffReply(ticket.status);
+      const change =
+        nextStatus !== ticket.status
+          ? statusChangeData(ticket, nextStatus, now)
+          : null;
 
-      await transaction.ticketMessage.create({
+      const message = await transaction.ticketMessage.create({
         data: {
           ticketId: ticket.id,
           authorUserId: principal.userId,
@@ -371,13 +390,25 @@ export class HelpdeskAdminService {
         data: {
           lastMessageAt: now,
           ...(ticket.firstRespondedAt ? {} : { firstRespondedAt: now }),
-          ...(nextStatus !== ticket.status
-            ? statusChangeData(ticket, nextStatus, now)
-            : {}),
+          ...(change ?? {}),
         },
         select: { id: true },
       });
+
+      return {
+        messageId: message.id,
+        resolvedAt:
+          change?.status === TicketStatus.RESOLVED ? change.resolvedAt : null,
+      };
     });
+
+    // A reply that also resolves the ticket sends one notification, the
+    // resolution, rather than two back to back.
+    if (outcome?.resolvedAt) {
+      await this.notifier.ticketResolved(ticketId, outcome.resolvedAt);
+    } else if (outcome) {
+      await this.notifier.staffReplied(ticketId, outcome.messageId);
+    }
 
     return this.getTicket(ticketId);
   }
@@ -386,7 +417,9 @@ export class HelpdeskAdminService {
     principal: AuthenticatedPrincipal,
     dto: BatchTicketStatusDto,
   ): Promise<BatchMutationResult> {
-    return this.prisma.$transaction(async (transaction) => {
+    const resolved: Array<{ id: string; resolvedAt: Date }> = [];
+
+    const result = await this.prisma.$transaction(async (transaction) => {
       const tickets = await this.findTicketsForBatch(transaction, dto.ids);
       const now = new Date();
       const items: BatchMutationItem[] = [];
@@ -401,11 +434,16 @@ export class HelpdeskAdminService {
           continue;
         }
 
+        const change = statusChangeData(ticket, dto.status, now);
         const updated = await transaction.ticket.update({
           where: { id: ticket.id },
-          data: statusChangeData(ticket, dto.status, now),
+          data: change,
           select: { id: true, updatedAt: true },
         });
+
+        if (change.status === TicketStatus.RESOLVED && change.resolvedAt) {
+          resolved.push({ id: ticket.id, resolvedAt: change.resolvedAt });
+        }
 
         await this.audit(transaction, principal, ticket, {
           action: AUDIT_ACTIONS.HELPDESK_TICKET_UPDATED,
@@ -420,6 +458,12 @@ export class HelpdeskAdminService {
 
       return batchMutationResult(items);
     });
+
+    for (const ticket of resolved) {
+      await this.notifier.ticketResolved(ticket.id, ticket.resolvedAt);
+    }
+
+    return result;
   }
 
   async batchAssign(

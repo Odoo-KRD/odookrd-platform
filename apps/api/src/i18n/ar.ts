@@ -13,6 +13,17 @@ export const apiAr = {
     COMPANY_USER_LIMIT: 'وصلت الشركة إلى الحد الأقصى لعدد المستخدمين.',
   },
   notifications: {
+    helpdeskRepliedSubject: 'ردّ فريق الدعم على طلبك',
+    helpdeskRepliedBody: 'ردّ فريق الدعم على طلبك. افتحه لقراءة الرد.',
+    helpdeskResolvedSubject: 'تم حل طلبك',
+    helpdeskResolvedBody:
+      'وضع فريق الدعم علامة الحل على طلبك. إذا استمرت المشكلة، ردّ لإعادة فتحه.',
+    helpdeskCreatedSubject: 'طلب دعم جديد',
+    helpdeskCreatedBody: 'فتح أحد العملاء طلب دعم جديداً.',
+    helpdeskCustomerRepliedSubject: 'ردّ العميل على طلب',
+    helpdeskCustomerRepliedBody: 'ردّ أحد العملاء على طلب دعم.',
+    helpdeskTicketLabel: 'الطلب',
+    helpdeskSubjectLabel: 'الموضوع',
     invitationSubject: 'دعوة إلى منصة OdooKRD',
     invitationGreeting: 'تمت دعوتك لإنشاء حساب.',
     invitationAction: 'قبول الدعوة',

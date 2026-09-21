@@ -8,6 +8,7 @@ import { AccountScope, TicketStatus } from '../../generated/prisma/enums';
 import type { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import type { AuthorizationService } from '../authorization/authorization.service';
+import type { HelpdeskNotificationService } from './helpdesk-notification.service';
 import { HelpdeskService } from './helpdesk.service';
 
 const COMPANY_ID = '7f28dd10-86d3-4286-81ff-f2f58bb8bd21';
@@ -114,8 +115,20 @@ function serviceFor(options: {
     }),
   } as unknown as AuthorizationService;
 
+  const notifier = {
+    ticketCreated: jest.fn().mockResolvedValue(undefined),
+    customerReplied: jest.fn().mockResolvedValue(undefined),
+    staffReplied: jest.fn().mockResolvedValue(undefined),
+    ticketResolved: jest.fn().mockResolvedValue(undefined),
+  };
+
   return {
-    service: new HelpdeskService(prisma, authorization),
+    service: new HelpdeskService(
+      prisma,
+      authorization,
+      notifier as unknown as HelpdeskNotificationService,
+    ),
+    notifier,
     findFirstCalls,
     updateCalls,
     groupByCalls,
@@ -255,6 +268,14 @@ describe('HelpdeskService (customer)', () => {
     await expect(
       service.reply(companyUser, TICKET_ID, { body: 'hello' }),
     ).rejects.toThrow(ConflictException);
+  });
+
+  it('tells staff when the customer replies', async () => {
+    const { service, notifier } = serviceFor({});
+
+    await service.reply(companyUser, TICKET_ID, { body: 'more detail' });
+
+    expect(notifier.customerReplied).toHaveBeenCalledWith(TICKET_ID, 'message');
   });
 
   it('reopens a resolved ticket when the customer replies', async () => {

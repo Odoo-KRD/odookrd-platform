@@ -43,6 +43,18 @@ export interface NotificationTemplateVariablesByKey {
     comment?: string;
     companyName?: string;
   };
+  'helpdesk.ticket.replied': { reference: string; subject?: string };
+  'helpdesk.ticket.resolved': { reference: string; subject?: string };
+  'admin.helpdesk.ticket.created': {
+    reference: string;
+    subject?: string;
+    companyName?: string;
+  };
+  'admin.helpdesk.customer.replied': {
+    reference: string;
+    subject?: string;
+    companyName?: string;
+  };
 }
 
 export type NotificationTemplateKey = keyof NotificationTemplateVariablesByKey;
@@ -198,6 +210,49 @@ export class NotificationTemplateService {
             [copy.adminCommentLabel, input.comment],
             [copy.adminCompanyLabel, input.companyName],
           ]),
+        };
+      }
+
+      case 'helpdesk.ticket.replied':
+      case 'helpdesk.ticket.resolved': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['helpdesk.ticket.replied'];
+        const resolved = key === 'helpdesk.ticket.resolved';
+
+        return {
+          title: resolved
+            ? copy.helpdeskResolvedSubject
+            : copy.helpdeskRepliedSubject,
+          body: this.withDetails(
+            resolved ? copy.helpdeskResolvedBody : copy.helpdeskRepliedBody,
+            [
+              [copy.helpdeskTicketLabel, input.reference],
+              [copy.helpdeskSubjectLabel, input.subject],
+            ],
+          ),
+        };
+      }
+
+      case 'admin.helpdesk.ticket.created':
+      case 'admin.helpdesk.customer.replied': {
+        const input =
+          variables as NotificationTemplateVariablesByKey['admin.helpdesk.ticket.created'];
+        const created = key === 'admin.helpdesk.ticket.created';
+
+        return {
+          title: created
+            ? copy.helpdeskCreatedSubject
+            : copy.helpdeskCustomerRepliedSubject,
+          body: this.withDetails(
+            created
+              ? copy.helpdeskCreatedBody
+              : copy.helpdeskCustomerRepliedBody,
+            [
+              [copy.helpdeskTicketLabel, input.reference],
+              [copy.helpdeskSubjectLabel, input.subject],
+              [copy.adminCompanyLabel, input.companyName],
+            ],
+          ),
         };
       }
 

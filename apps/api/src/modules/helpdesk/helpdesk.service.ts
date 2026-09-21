@@ -24,6 +24,7 @@ import { AUDIT_ACTIONS } from '../audit/audit.actions';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { AuthorizationService } from '../authorization/authorization.service';
 import { PERMISSIONS } from '../authorization/permissions';
+import { HelpdeskNotificationService } from './helpdesk-notification.service';
 import type {
   CreateTicketDto,
   CreateTicketReplyDto,
@@ -141,6 +142,7 @@ export class HelpdeskService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly authorization: AuthorizationService,
+    private readonly notifier: HelpdeskNotificationService,
   ) {}
 
   async listDepartments() {
@@ -317,6 +319,8 @@ export class HelpdeskService {
       return ticket;
     });
 
+    await this.notifier.ticketCreated(created.id);
+
     return this.getTicket(principal, created.id);
   }
 
@@ -328,7 +332,7 @@ export class HelpdeskService {
     const scope = await this.resolveScope(principal);
     const body = normalizeMessageBody(dto.body);
 
-    await this.prisma.$transaction(async (transaction) => {
+    const messageId = await this.prisma.$transaction(async (transaction) => {
       const ticket = await transaction.ticket.findFirst({
         where: { id: ticketId, ...this.visibleTicketsWhere(scope) },
         select: { id: true, status: true },
@@ -352,7 +356,7 @@ export class HelpdeskService {
       const now = new Date();
       const nextStatus = statusAfterCustomerReply(ticket.status);
 
-      await transaction.ticketMessage.create({
+      const message = await transaction.ticketMessage.create({
         data: {
           ticketId: ticket.id,
           authorUserId: scope.userId,
@@ -377,7 +381,11 @@ export class HelpdeskService {
         },
         select: { id: true },
       });
+
+      return message.id;
     });
+
+    await this.notifier.customerReplied(ticketId, messageId);
 
     return this.getTicket(principal, ticketId);
   }

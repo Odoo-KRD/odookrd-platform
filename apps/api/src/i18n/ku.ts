@@ -13,6 +13,18 @@ export const apiKu = {
     COMPANY_USER_LIMIT: 'کۆمپانیاکە گەیشتووە بە سنووری بەکارهێنەران.',
   },
   notifications: {
+    helpdeskRepliedSubject: 'تیمی پشتگیری وەڵامی داواکارییەکەتی دایەوە',
+    helpdeskRepliedBody:
+      'تیمی پشتگیری وەڵامی داواکارییەکەتی داوەتەوە. بیکەرەوە بۆ خوێندنەوەی وەڵامەکە.',
+    helpdeskResolvedSubject: 'داواکارییەکەت چارەسەر کرا',
+    helpdeskResolvedBody:
+      'تیمی پشتگیری داواکارییەکەتی وەک چارەسەرکراو نیشان کرد. ئەگەر کێشەکە ماوە، وەڵام بدەرەوە تا دووبارە بکرێتەوە.',
+    helpdeskCreatedSubject: 'داواکاری پشتگیری نوێ',
+    helpdeskCreatedBody: 'کڕیارێک داواکارییەکی پشتگیری نوێی کردەوە.',
+    helpdeskCustomerRepliedSubject: 'کڕیار وەڵامی داواکارییەکی دایەوە',
+    helpdeskCustomerRepliedBody: 'کڕیارێک وەڵامی داواکارییەکی پشتگیری دایەوە.',
+    helpdeskTicketLabel: 'داواکاری',
+    helpdeskSubjectLabel: 'بابەت',
     invitationSubject: 'بانگهێشت بۆ پلاتفۆرمی OdooKRD',
     invitationGreeting: 'بانگهێشت کراویت بۆ دروستکردنی هەژمار.',
     invitationAction: 'بانگهێشتەکە قبووڵ بکە',

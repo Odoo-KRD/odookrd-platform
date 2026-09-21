@@ -20,6 +20,16 @@ export type ApiErrorCode =
 export interface ApiTranslations {
   errors: Record<ApiErrorCode, string>;
   notifications: {
+    helpdeskRepliedSubject: string;
+    helpdeskRepliedBody: string;
+    helpdeskResolvedSubject: string;
+    helpdeskResolvedBody: string;
+    helpdeskCreatedSubject: string;
+    helpdeskCreatedBody: string;
+    helpdeskCustomerRepliedSubject: string;
+    helpdeskCustomerRepliedBody: string;
+    helpdeskTicketLabel: string;
+    helpdeskSubjectLabel: string;
     invitationSubject: string;
     invitationGreeting: string;
     invitationAction: string;

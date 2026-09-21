@@ -13,6 +13,18 @@ export const apiEn = {
     COMPANY_USER_LIMIT: 'The company has reached its maximum number of users.',
   },
   notifications: {
+    helpdeskRepliedSubject: 'Support replied to your ticket',
+    helpdeskRepliedBody:
+      'The support team has replied to your ticket. Open it to read the reply.',
+    helpdeskResolvedSubject: 'Your ticket was resolved',
+    helpdeskResolvedBody:
+      'The support team marked your ticket as resolved. If the problem continues, reply to reopen it.',
+    helpdeskCreatedSubject: 'New support ticket',
+    helpdeskCreatedBody: 'A customer opened a new support ticket.',
+    helpdeskCustomerRepliedSubject: 'Customer replied to a ticket',
+    helpdeskCustomerRepliedBody: 'A customer replied to a support ticket.',
+    helpdeskTicketLabel: 'Ticket',
+    helpdeskSubjectLabel: 'Subject',
     invitationSubject: 'Invitation to the OdooKRD platform',
     invitationGreeting: 'You have been invited to create an account.',
     invitationAction: 'Accept invitation',
