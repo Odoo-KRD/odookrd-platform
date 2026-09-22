@@ -9,6 +9,7 @@ import type { NotificationAdministrationDictionary } from "@/lib/i18n/notificati
 
 /** Must match TESTABLE_TEMPLATES in the notifications server actions. */
 const WHATSAPP_TEST_TEMPLATES = [
+  "user.invitation",
   "helpdesk.ticket.replied",
   "helpdesk.ticket.resolved",
   "subscription.reminder",

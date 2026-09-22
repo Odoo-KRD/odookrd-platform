@@ -1,6 +1,7 @@
 import { NotificationProviderError } from '../notification-provider.error';
 import {
   normalizeNumber,
+  listTwilioContentTemplates,
   resolveContentTemplate,
   sendTwilioWhatsApp,
 } from './twilio-whatsapp.client';
@@ -172,9 +173,95 @@ describe('resolveContentTemplate', () => {
     expect(resolveContentTemplate('', 'other', 'ku', {})).toBeNull();
   });
 
+  it('uses the platform variable order over the stored map', () => {
+    const stale = JSON.stringify({
+      'subscription.reminder': {
+        variables: ['serviceName', 'daysRemaining', 'expiresOn'],
+        en: CONTENT_SID,
+      },
+    });
+
+    expect(
+      resolveContentTemplate(stale, 'subscription.reminder', 'en', {
+        serviceName: 'Odoo Hosting',
+        expiresOn: '2026-10-01',
+      }),
+    ).toEqual({
+      contentSid: CONTENT_SID,
+      contentVariables: { '1': 'Odoo Hosting', '2': '2026-10-01' },
+    });
+  });
+
   it('rejects a malformed map instead of guessing', () => {
     expect(() => resolveContentTemplate('{oops', 'x', 'ku', {})).toThrow(
       NotificationProviderError,
+    );
+  });
+});
+
+describe('listTwilioContentTemplates', () => {
+  it('keeps only odookrd templates and reads their approval status', async () => {
+    const calls = mockFetch([
+      {
+        status: 200,
+        body: {
+          contents: [
+            {
+              sid: CONTENT_SID,
+              friendly_name: 'odookrd_ticket_replied_v1_en',
+              language: 'en',
+              variables: { '1': 'TKT-1', '2': 'Subject' },
+              types: {
+                'twilio/call-to-action': {
+                  body: 'Reply',
+                  actions: [
+                    {
+                      type: 'URL',
+                      title: 'View tickets',
+                      url: 'https://my.odoo.krd/dashboard/helpdesk',
+                    },
+                  ],
+                },
+              },
+              approval_requests: { type: 'whatsapp', status: 'approved' },
+            },
+            {
+              sid: 'HXffffffffffffffffffffffffffffffff',
+              friendly_name: 'marketing_offer',
+              language: 'en',
+              variables: {},
+              types: {},
+              approval_requests: { type: 'whatsapp', status: 'approved' },
+            },
+          ],
+          meta: {
+            next_page_url: 'https://evil.example/v1/ContentAndApprovals',
+          },
+        },
+      },
+    ]);
+
+    await expect(listTwilioContentTemplates(CREDENTIALS)).resolves.toEqual([
+      {
+        sid: CONTENT_SID,
+        friendlyName: 'odookrd_ticket_replied_v1_en',
+        language: 'en',
+        variableCount: 2,
+        types: ['twilio/call-to-action'],
+        buttonUrls: ['https://my.odoo.krd/dashboard/helpdesk'],
+        approvalStatus: 'approved',
+        rejectionReason: null,
+      },
+    ]);
+    // A paging link outside Twilio's Content API is never followed.
+    expect(calls).toHaveLength(1);
+  });
+
+  it('reports rejected credentials clearly', async () => {
+    mockFetch([{ status: 401, body: { code: 20003 } }]);
+
+    await expect(listTwilioContentTemplates(CREDENTIALS)).rejects.toMatchObject(
+      { code: 'TWILIO_AUTH_FAILED' },
     );
   });
 });

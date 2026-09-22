@@ -26,6 +26,11 @@ export class NotificationAdministrationController {
     return this.administration.providerStatus(principal);
   }
 
+  @Get('whatsapp-templates')
+  whatsappTemplates(@CurrentUser() principal: AuthenticatedPrincipal) {
+    return this.administration.whatsappTemplates(principal);
+  }
+
   @Post('test-email')
   testEmail(
     @CurrentUser() principal: AuthenticatedPrincipal,

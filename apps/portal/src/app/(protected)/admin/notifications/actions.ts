@@ -74,6 +74,7 @@ export async function sendNotificationTestEmailAction(
  * step with WHATSAPP_TEST_TEMPLATES in the providers page.
  */
 const TESTABLE_TEMPLATES = new Set([
+  "user.invitation",
   "helpdesk.ticket.replied",
   "helpdesk.ticket.resolved",
   "subscription.reminder",

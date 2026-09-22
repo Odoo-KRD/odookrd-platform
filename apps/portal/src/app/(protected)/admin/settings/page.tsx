@@ -12,7 +12,7 @@ import { getAdminApiContext, hasPermission } from "@/lib/authorization";
 import { settingsNavigationDictionaries } from "@/lib/i18n/settings/navigation";
 import { getSettingsDictionary } from "@/lib/i18n/settings/server";
 
-import { updateSettingsAction } from "./actions";
+import { loadWhatsAppTemplatesAction, updateSettingsAction } from "./actions";
 
 interface SettingsPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -122,6 +122,7 @@ export default async function SettingsPage({
           navigationLabels={settingsNavigationDictionaries[locale]}
           canManage={canManage}
           hideRestrictedTrainingTabs={!isPlatform}
+          loadWhatsAppTemplates={loadWhatsAppTemplatesAction}
         />
       </Panel>
     </div>

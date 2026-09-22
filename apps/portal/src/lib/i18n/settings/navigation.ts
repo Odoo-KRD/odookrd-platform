@@ -4,7 +4,37 @@ import { sharedText } from "../shared";
 export interface SettingsNavigationDictionary {
   categoriesLabel: string;
   notificationTabsLabel: string;
-  notificationTabs: { general: string; email: string; whatsapp: string };
+  notificationTabs: {
+    general: string;
+    email: string;
+    whatsapp: string;
+    templates: string;
+  };
+  whatsappTemplates: {
+    title: string;
+    description: string;
+    twilioOnly: string;
+    refresh: string;
+    refreshing: string;
+    autoMatch: string;
+    autoMatchHelp: string;
+    /** {count} is replaced with the number of templates. */
+    templatesFound: string;
+    noTemplates: string;
+    loadFailed: string;
+    configurationMissing: string;
+    notMapped: string;
+    notFound: string;
+    variables: string;
+    /** {count}: variables the notification sends; {actual}: the template's. */
+    expectsVariables: string;
+    notApproved: string;
+    invitationButton: string;
+    unsavedHint: string;
+    languages: { ku: string; ar: string; en: string };
+    statuses: Record<string, string>;
+    events: Record<string, { label: string; description: string }>;
+  };
   trainingTabsLabel: string;
   trainingTabs: {
     general: string;
@@ -58,7 +88,69 @@ export const settingsNavigationDictionaries: Record<
   ku: {
     categoriesLabel: "بەشەکانی ڕێکخستن",
     notificationTabsLabel: "ڕێکخستنەکانی ئاگادارکردنەوە",
-    notificationTabs: { general: "گشتی", email: "ئیمەیڵ", whatsapp: "واتسئاپ" },
+    notificationTabs: {
+      general: "گشتی",
+      email: "ئیمەیڵ",
+      whatsapp: "واتسئاپ",
+      templates: "قاڵبەکانی واتسئاپ",
+    },
+    whatsappTemplates: {
+      title: "نەخشەی قاڵبەکانی واتسئاپ",
+      description:
+        "بۆ هەر ئاگادارکردنەوەیەک و هەر زمانێک، قاڵبی پەسەندکراوی Twilio هەڵبژێرە. تەنها ئەو قاڵبانە پیشان دەدرێن کە ناوەکەیان بە odookrd دەست پێدەکات. ئاگادارکردنەوەیەک کە قاڵبی نەبێت وەک نامەی ئاسایی دەنێردرێت، کە واتسئاپ تەنها لە ماوەی ٢٤ کاتژمێر دوای دوایین نامەی کڕیار دەیگەیەنێت.",
+      twilioOnly:
+        "نەخشەی قاڵبەکان تەنها بۆ Twilio کار دەکات. سەرەتا Twilio وەک دابینکەری واتسئاپ هەڵبژێرە و پاشەکەوتی بکە.",
+      refresh: "نوێکردنەوە لە Twilio",
+      refreshing: "بارکردن…",
+      autoMatch: "دۆزینەوەی خۆکار بەپێی ناو",
+      autoMatchHelp:
+        "زمانە بەتاڵەکان پڕ دەکاتەوە لە قاڵبەکانی بە ناوی odookrd_<event>_v<N>_<language>، و بەرزترین وەشانی پەسەندکراو هەڵدەبژێرێت.",
+      templatesFound: "{count} قاڵبی odookrd لە Twilio دۆزرایەوە",
+      noTemplates: "هیچ قاڵبێک کە بە odookrd دەست پێبکات لە Twilio نەدۆزرایەوە.",
+      loadFailed: "قاڵبەکانی Twilio بار نەکران",
+      configurationMissing:
+        "سەرەتا Account SID و Auth Token ی Twilio لە بەشی واتسئاپ پاشەکەوت بکە.",
+      notMapped: "دیاری نەکراوە (نامەی ئاسایی)",
+      notFound: "لە Twilio نەدۆزرایەوە",
+      variables: "گۆڕاوەکان",
+      expectsVariables:
+        "ئەم ئاگادارکردنەوەیە {count} گۆڕاو دەنێرێت؛ قاڵبی هەڵبژێردراو {actual} گۆڕاوی هەیە.",
+      notApproved: "قاڵبی هەڵبژێردراو هێشتا بۆ واتسئاپ پەسەند نەکراوە.",
+      invitationButton:
+        "لینکی دوگمەی ئەم قاڵبە دەبێت بە /invitation/accept?token={{3}} کۆتایی بێت، ئەگینا لینکی چالاککردن کار ناکات.",
+      unsavedHint: "گۆڕانکارییەکان دوای پاشەکەوتکردن جێبەجێ دەکرێن.",
+      languages: { ku: "کوردی", ar: "عەرەبی", en: "ئینگلیزی" },
+      statuses: {
+        approved: "پەسەندکراو",
+        pending: "چاوەڕوان",
+        received: "وەرگیراو",
+        rejected: "ڕەتکراوە",
+        unsubmitted: "نەنێردراو",
+        paused: "ڕاگیراو",
+        disabled: "ناچالاک",
+      },
+      events: {
+        "user.invitation": {
+          label: "بانگهێشت",
+          description:
+            "کاتێک بەکارهێنەرێک بانگهێشت دەکرێت یان بانگهێشتەکە دووبارە دەنێردرێتەوە. لینکی دوگمەکە دەبێت https://my.odoo.krd/invitation/accept?token={{3}} بێت.",
+        },
+        "helpdesk.ticket.replied": {
+          label: "وەڵامدانەوەی داواکاری",
+          description:
+            "کاتێک پشتگیری وەڵامی داواکاری کڕیار دەداتەوە، بۆ کڕیار دەنێردرێت.",
+        },
+        "helpdesk.ticket.resolved": {
+          label: "چارەسەرکردنی داواکاری",
+          description:
+            "کاتێک داواکاری کڕیار وەک چارەسەرکراو نیشان دەکرێت، بۆ کڕیار دەنێردرێت.",
+        },
+        "subscription.reminder": {
+          label: "بیرخستنەوەی بەشداریکردن",
+          description: "پێش و دوای بەرواری کۆتایی بەشداریکردن دەنێردرێت.",
+        },
+      },
+    },
     trainingTabsLabel: "ڕێکخستنەکانی فێرکاری ئۆنلاین",
     trainingTabs: {
       general: "گشتی",
@@ -340,6 +432,62 @@ export const settingsNavigationDictionaries: Record<
       general: "عام",
       email: "البريد الإلكتروني",
       whatsapp: "واتساب",
+      templates: "قوالب واتساب",
+    },
+    whatsappTemplates: {
+      title: "ربط قوالب واتساب",
+      description:
+        "اختر قالب Twilio المعتمد الذي يستخدمه كل إشعار لكل لغة. تظهر فقط القوالب التي يبدأ اسمها بـ odookrd. الإشعار بدون قالب يُرسل كنص عادي، ولا يوصله واتساب إلا خلال 24 ساعة من آخر رسالة من العميل.",
+      twilioOnly:
+        "ربط القوالب خاص بـ Twilio. اختر Twilio كمزوّد واتساب واحفظ الإعدادات أولاً.",
+      refresh: "تحديث من Twilio",
+      refreshing: "جارٍ التحميل…",
+      autoMatch: "مطابقة تلقائية حسب الاسم",
+      autoMatchHelp:
+        "يملأ اللغات الفارغة من القوالب المسماة odookrd_<event>_v<N>_<language>، مع تفضيل أعلى إصدار معتمد.",
+      templatesFound: "تم العثور على {count} من قوالب odookrd في Twilio",
+      noTemplates: "لم يُعثر في Twilio على قوالب يبدأ اسمها بـ odookrd.",
+      loadFailed: "تعذّر تحميل قوالب Twilio",
+      configurationMissing:
+        "احفظ أولاً Account SID و Auth Token الخاصين بـ Twilio في تبويب واتساب.",
+      notMapped: "غير مربوط (نص عادي)",
+      notFound: "غير موجود في Twilio",
+      variables: "المتغيرات",
+      expectsVariables:
+        "يرسل هذا الإشعار {count} من المتغيرات؛ القالب المختار يحتوي على {actual}.",
+      notApproved: "القالب المختار لم يُعتمد لواتساب بعد.",
+      invitationButton:
+        "يجب أن ينتهي رابط زر هذا القالب بـ /invitation/accept?token={{3}}، وإلا فلن يعمل رابط التفعيل.",
+      unsavedHint: "تُطبَّق التغييرات بعد الحفظ.",
+      languages: { ku: "الكردية", ar: "العربية", en: "الإنجليزية" },
+      statuses: {
+        approved: "معتمد",
+        pending: "قيد المراجعة",
+        received: "مستلم",
+        rejected: "مرفوض",
+        unsubmitted: "غير مُرسل",
+        paused: "موقوف",
+        disabled: "معطّل",
+      },
+      events: {
+        "user.invitation": {
+          label: "الدعوة",
+          description:
+            "يُرسل عند دعوة مستخدم أو إعادة إرسال الدعوة. يجب أن يكون رابط الزر https://my.odoo.krd/invitation/accept?token={{3}}.",
+        },
+        "helpdesk.ticket.replied": {
+          label: "الرد على الطلب",
+          description: "يُرسل إلى العميل عندما يرد فريق الدعم على طلبه.",
+        },
+        "helpdesk.ticket.resolved": {
+          label: "حل الطلب",
+          description: "يُرسل إلى العميل عند وضع علامة الحل على طلبه.",
+        },
+        "subscription.reminder": {
+          label: "تذكير الاشتراك",
+          description: "يُرسل قبل تاريخ انتهاء الاشتراك وبعده.",
+        },
+      },
     },
     trainingTabsLabel: "إعدادات التعلّم الإلكتروني",
     trainingTabs: {
@@ -621,6 +769,63 @@ export const settingsNavigationDictionaries: Record<
       general: "General",
       email: "Email",
       whatsapp: "WhatsApp",
+      templates: "WhatsApp Templates",
+    },
+    whatsappTemplates: {
+      title: "WhatsApp template mapping",
+      description:
+        "Choose the approved Twilio template each notification uses, per language. Only templates whose name starts with odookrd are listed. A notification without a template is sent as plain text, which WhatsApp only delivers within 24 hours of the customer's last message.",
+      twilioOnly:
+        "Template mapping applies to Twilio. Select Twilio as the WhatsApp provider and save first.",
+      refresh: "Refresh from Twilio",
+      refreshing: "Loading…",
+      autoMatch: "Auto-match by name",
+      autoMatchHelp:
+        "Fills empty languages from templates named odookrd_<event>_v<N>_<language>, preferring the highest approved version.",
+      templatesFound: "{count} odookrd templates found in Twilio",
+      noTemplates: "No templates starting with odookrd were found in Twilio.",
+      loadFailed: "Twilio templates could not be loaded",
+      configurationMissing:
+        "Save the Twilio Account SID and Auth Token in the WhatsApp tab first.",
+      notMapped: "Not mapped (plain text)",
+      notFound: "not found in Twilio",
+      variables: "Variables",
+      expectsVariables:
+        "This notification sends {count} variables; the selected template has {actual}.",
+      notApproved: "The selected template is not approved for WhatsApp yet.",
+      invitationButton:
+        "This template's button URL must end with /invitation/accept?token={{3}}, or the activation link will not work.",
+      unsavedHint: "Changes apply after you save.",
+      languages: { ku: "Kurdish", ar: "Arabic", en: "English" },
+      statuses: {
+        approved: "Approved",
+        pending: "Pending",
+        received: "Received",
+        rejected: "Rejected",
+        unsubmitted: "Not submitted",
+        paused: "Paused",
+        disabled: "Disabled",
+      },
+      events: {
+        "user.invitation": {
+          label: "Invitation",
+          description:
+            "Sent when a user is invited or an invitation is resent. The button URL must be https://my.odoo.krd/invitation/accept?token={{3}}.",
+        },
+        "helpdesk.ticket.replied": {
+          label: "Ticket replied",
+          description: "Sent to the customer when support replies to their ticket.",
+        },
+        "helpdesk.ticket.resolved": {
+          label: "Ticket resolved",
+          description:
+            "Sent to the customer when their ticket is marked as resolved.",
+        },
+        "subscription.reminder": {
+          label: "Subscription reminder",
+          description: "Sent before and after a subscription's end date.",
+        },
+      },
     },
     trainingTabsLabel: "E-Learning settings",
     trainingTabs: {

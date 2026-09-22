@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { Locale } from "@odookrd/types";
 import type { InvitationDictionary } from "@/lib/i18n/types";
 import { activationCopy } from "@/lib/i18n/customer/activation";
@@ -16,8 +16,17 @@ function subscribeToHash(callback: () => void): () => void {
   return () => window.removeEventListener("hashchange", callback);
 }
 
+/**
+ * The token arrives in the fragment (email links) or, from a WhatsApp
+ * template button, in the query string, since WhatsApp buttons can only
+ * append a value to a fixed URL.
+ */
 function invitationToken(): string {
-  return new URLSearchParams(window.location.hash.slice(1)).get("token") ?? "";
+  return (
+    new URLSearchParams(window.location.hash.slice(1)).get("token") ??
+    new URLSearchParams(window.location.search).get("token") ??
+    ""
+  );
 }
 
 function serverInvitationToken(): string {
@@ -37,6 +46,21 @@ export function AcceptInvitationForm({
   );
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Move a query-string token into the fragment so it is not kept in the
+    // address bar, history or any later Referer header.
+    const query = new URLSearchParams(window.location.search);
+    const queryToken = query.get("token");
+    if (!queryToken) return;
+    query.delete("token");
+    const search = query.toString();
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${search ? `?${search}` : ""}#token=${encodeURIComponent(queryToken)}`,
+    );
+  }, []);
 
   async function submit(
     event: React.FormEvent<HTMLFormElement>,

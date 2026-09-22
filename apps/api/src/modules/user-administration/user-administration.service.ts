@@ -372,11 +372,20 @@ export class UserAdministrationService {
         target.whatsappNumber
       ) {
         const whatsappNumber = target.whatsappNumber;
+        const variables = await this.invitationTemplateVariables(
+          target,
+          token,
+          expiresAt,
+          locale,
+        );
+        // With Twilio and an approved user.invitation template this goes out
+        // as that template; otherwise as the plain text, as before.
         await this.attemptDelivery(delivery.id, async () =>
           this.whatsappProvider.send(
             target.companyId,
             whatsappNumber,
             rendered.whatsappBody,
+            { templateKey: 'user.invitation', locale, variables },
           ),
         );
       }
@@ -409,6 +418,79 @@ export class UserAdministrationService {
     });
 
     return { expiresAt, dispatch: finalDispatch };
+  }
+
+  /**
+   * Values for the user.invitation WhatsApp template: the company name in the
+   * recipient's language, the expiry in the company's time zone, and the raw
+   * token, which the template's button appends to
+   * https://my.odoo.krd/invitation/accept?token=
+   */
+  private async invitationTemplateVariables(
+    target: TargetUser,
+    token: string,
+    expiresAt: Date,
+    locale: ApiLocale,
+  ): Promise<Record<string, string>> {
+    const [company, siteTitle, timezoneValue] = await Promise.all([
+      target.companyId
+        ? this.prisma.company.findUnique({
+            where: { id: target.companyId },
+            select: { name: true, nameTranslations: true },
+          })
+        : Promise.resolve(null),
+      this.settings.resolveValue('general.site_title', null),
+      this.settings.resolveValue('general.timezone', target.companyId),
+    ]);
+
+    const translations =
+      company &&
+      typeof company.nameTranslations === 'object' &&
+      company.nameTranslations !== null &&
+      !Array.isArray(company.nameTranslations)
+        ? (company.nameTranslations as Record<string, unknown>)
+        : {};
+    const translated = translations[locale];
+    const companyName =
+      typeof translated === 'string' && translated.trim()
+        ? translated.trim()
+        : (company?.name ??
+          (typeof siteTitle === 'string' && siteTitle.trim()
+            ? siteTitle.trim()
+            : 'OdooKRD'));
+
+    return {
+      companyName,
+      expiresAt: this.formatInvitationExpiry(
+        expiresAt,
+        typeof timezoneValue === 'string' ? timezoneValue : '',
+      ),
+      token,
+    };
+  }
+
+  /** "YYYY-MM-DD HH:mm" in the given zone, falling back to Asia/Baghdad. */
+  private formatInvitationExpiry(expiresAt: Date, timeZone: string): string {
+    const format = (zone: string) => {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: zone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      }).formatToParts(expiresAt);
+      const part = (type: Intl.DateTimeFormatPartTypes) =>
+        parts.find((entry) => entry.type === type)?.value ?? '';
+      return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')}`;
+    };
+
+    try {
+      return format(timeZone.trim() || 'Asia/Baghdad');
+    } catch {
+      return format('Asia/Baghdad');
+    }
   }
 
   private async attemptDelivery(

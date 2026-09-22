@@ -301,3 +301,48 @@ export async function updateSettingsAction(
   revalidatePath("/", "layout");
   return { message: null, success: true };
 }
+
+export interface WhatsAppTemplateOption {
+  sid: string;
+  friendlyName: string;
+  language: string | null;
+  variableCount: number;
+  types: string[];
+  buttonUrls: string[];
+  approvalStatus: string | null;
+  rejectionReason: string | null;
+}
+
+export interface WhatsAppTemplateCatalog {
+  provider: "twilio" | "meta";
+  events: Array<{ key: string; slug: string; variables: string[] }>;
+  templates: WhatsAppTemplateOption[];
+  /** Provider error code, or null when the list loaded. */
+  error: string | null;
+  fetchedAt: string;
+}
+
+export type WhatsAppTemplateCatalogResult =
+  | { ok: true; catalog: WhatsAppTemplateCatalog }
+  | { ok: false; message: string };
+
+/** The account's odookrd* Twilio templates, for the template mapping tab. */
+export async function loadWhatsAppTemplatesAction(): Promise<WhatsAppTemplateCatalogResult> {
+  const { session, token } = await getAdminApiContext(
+    PERMISSIONS.SETTINGS_READ,
+  );
+
+  if (session.user.accountScope !== "PLATFORM") {
+    return { ok: false, message: "Platform scope is required." };
+  }
+
+  try {
+    const catalog = await apiRequest<WhatsAppTemplateCatalog>(
+      "/notification-administration/whatsapp-templates",
+      { token, cache: "no-store" },
+    );
+    return { ok: true, catalog };
+  } catch (error: unknown) {
+    return { ok: false, message: failed(error).message ?? "" };
+  }
+}

@@ -20,6 +20,11 @@ import { NotificationAdministrationTemplateService } from './notification-admini
 import { NotificationProviderError } from './notification-provider.error';
 import { WhatsAppProviderService } from './providers/whatsapp-provider.service';
 import { EmailProviderService } from './providers/email-provider.service';
+import {
+  listTwilioContentTemplates,
+  type TwilioContentTemplate,
+} from './providers/twilio-whatsapp.client';
+import { WHATSAPP_TEMPLATE_EVENTS } from './providers/whatsapp-template-catalog';
 
 interface DeliveryLogRow {
   id: string;
@@ -59,7 +64,8 @@ const WHATSAPP_TEST_TEXT = {
 
 /**
  * Sample values for testing an approved template, one per variable name used
- * by the helpdesk and subscription-reminder notifications.
+ * by the invitation, helpdesk and subscription-reminder notifications. The
+ * invitation token is not a real one, so its button opens an invalid link.
  */
 const WHATSAPP_TEST_VARIABLES: Record<string, string> = {
   reference: 'TKT-2026-00001',
@@ -68,6 +74,8 @@ const WHATSAPP_TEST_VARIABLES: Record<string, string> = {
   serviceName: 'Odoo',
   milestone: '7',
   expiresOn: '2026-12-31',
+  expiresAt: '2026-12-31 18:00',
+  token: 'test-invitation-token',
   daysRemaining: '7',
 };
 
@@ -450,6 +458,57 @@ export class NotificationAdministrationService {
       providerMessageId: result.providerMessageId,
       failureCode: result.failureCode,
       sentAt: result.sentAt,
+    };
+  }
+
+  /**
+   * The platform's template-capable notification types and the account's
+   * odookrd* Twilio Content Templates, for the template mapping tab. A
+   * Twilio failure is returned as an error code rather than thrown, so the
+   * tab can still show the saved mapping.
+   */
+  async whatsappTemplates(principal: AuthenticatedPrincipal) {
+    this.assertPlatform(principal);
+
+    const [provider, accountSidValue, authToken] = await Promise.all([
+      this.settings.resolveValue('notifications.whatsapp.provider', null),
+      this.settings.resolveValue(
+        'notifications.whatsapp.twilio.account_sid',
+        null,
+      ),
+      this.settings.resolveSecret(
+        'notifications.whatsapp.twilio.auth_token',
+        null,
+      ),
+    ]);
+
+    const accountSid = this.stringValue(accountSidValue);
+    let templates: TwilioContentTemplate[] = [];
+    let error: string | null = null;
+
+    if (!accountSid || !authToken) {
+      error = 'WHATSAPP_CONFIGURATION_MISSING';
+    } else {
+      try {
+        templates = await listTwilioContentTemplates({ accountSid, authToken });
+      } catch (caught: unknown) {
+        error =
+          caught instanceof NotificationProviderError
+            ? this.safeFailureCode(caught.code)
+            : 'TWILIO_CONTENT_FAILED';
+      }
+    }
+
+    return {
+      provider: this.stringValue(provider) === 'twilio' ? 'twilio' : 'meta',
+      events: WHATSAPP_TEMPLATE_EVENTS.map((event) => ({
+        key: event.key,
+        slug: event.slug,
+        variables: [...event.variables],
+      })),
+      templates,
+      error,
+      fetchedAt: new Date().toISOString(),
     };
   }
 

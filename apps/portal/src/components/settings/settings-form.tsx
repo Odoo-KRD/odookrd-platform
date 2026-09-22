@@ -15,10 +15,18 @@ import {
   type ReactNode,
 } from "react";
 
-import type { SettingsFormState } from "@/app/(protected)/admin/settings/actions";
+import type {
+  SettingsFormState,
+  WhatsAppTemplateCatalogResult,
+} from "@/app/(protected)/admin/settings/actions";
 import type { SettingsDictionary } from "@/lib/i18n/settings";
 import type { SettingsNavigationDictionary } from "@/lib/i18n/settings/navigation";
 import { useRouter } from "next/navigation";
+
+import {
+  WHATSAPP_TEMPLATE_MAP_KEY,
+  WhatsAppTemplateMapping,
+} from "./whatsapp-template-mapping";
 
 type SettingsAction = (
   state: SettingsFormState,
@@ -34,6 +42,7 @@ interface SettingsFormProps {
   navigationLabels: SettingsNavigationDictionary;
   canManage: boolean;
   hideRestrictedTrainingTabs?: boolean;
+  loadWhatsAppTemplates: () => Promise<WhatsAppTemplateCatalogResult>;
 }
 
 const categories: readonly SettingCategory[] = [
@@ -45,7 +54,30 @@ const categories: readonly SettingCategory[] = [
   "notifications",
 ];
 
-type NotificationTab = "general" | "email" | "whatsapp";
+type NotificationTab = "general" | "email" | "whatsapp" | "templates";
+type WhatsAppProvider = "meta" | "twilio";
+
+const WHATSAPP_PROVIDER_KEY = "notifications.whatsapp.provider";
+
+/** Settings only used by the Meta Cloud API provider. */
+const metaWhatsAppKeys = new Set([
+  "notifications.whatsapp.api_url",
+  "notifications.whatsapp.phone_number_id",
+  "notifications.whatsapp.business_account_id",
+  "notifications.whatsapp.access_token",
+  "notifications.whatsapp.webhook_verify_token",
+]);
+
+/** Whether a WhatsApp setting belongs to the other provider. */
+function hiddenForWhatsAppProvider(
+  key: string,
+  provider: WhatsAppProvider,
+): boolean {
+  if (key.startsWith("notifications.whatsapp.twilio.")) {
+    return provider !== "twilio";
+  }
+  return metaWhatsAppKeys.has(key) && provider !== "meta";
+}
 type TrainingTab =
   "general" | "video" | "progress" | "quizzes" | "certificates";
 type FileTab = "general" | "limits" | "types" | "aws";
@@ -206,6 +238,7 @@ function inputType(setting: ManagedSetting) {
 function notificationTabFor(setting: ManagedSetting): NotificationTab | null {
   if (setting.category !== "notifications") return null;
   if (setting.key.startsWith("notifications.email.")) return "email";
+  if (setting.key === WHATSAPP_TEMPLATE_MAP_KEY) return "templates";
   if (setting.key.startsWith("notifications.whatsapp.")) return "whatsapp";
   return "general";
 }
@@ -237,6 +270,7 @@ export function SettingsForm({
   navigationLabels,
   canManage,
   hideRestrictedTrainingTabs = false,
+  loadWhatsAppTemplates,
 }: SettingsFormProps) {
   const [category, setCategory] = useState<SettingCategory>("general");
   const [notificationTab, setNotificationTab] =
@@ -251,6 +285,14 @@ export function SettingsForm({
   const [credentialSource, setCredentialSource] = useState<
     "default_chain" | "stored"
   >(initialCredentialSource);
+  // Follows the provider select as it changes, before saving, so only that
+  // provider's settings are shown.
+  const [whatsappProvider, setWhatsAppProvider] = useState<WhatsAppProvider>(
+    settings.find((setting) => setting.key === WHATSAPP_PROVIDER_KEY)
+      ?.value === "twilio"
+      ? "twilio"
+      : "meta",
+  );
   const [s3TestState, setS3TestState] = useState<S3TestState>("idle");
   const [s3TestDetails, setS3TestDetails] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(action, {
@@ -311,7 +353,11 @@ export function SettingsForm({
     const filtered = settings.filter((setting) => {
       if (setting.category !== category) return false;
       if (category === "notifications") {
-        return notificationTabFor(setting) === notificationTab;
+        return (
+          notificationTabFor(setting) === notificationTab &&
+          (notificationTab !== "whatsapp" ||
+            !hiddenForWhatsAppProvider(setting.key, whatsappProvider))
+        );
       }
       if (category === "trainings") {
         return trainingTabFor(setting) === trainingTab;
@@ -351,6 +397,7 @@ export function SettingsForm({
     notificationTab,
     settings,
     trainingTab,
+    whatsappProvider,
   ]);
 
   useEffect(() => {
@@ -412,6 +459,11 @@ export function SettingsForm({
       return;
     }
 
+    if (target.name === `setting.${WHATSAPP_PROVIDER_KEY}`) {
+      setWhatsAppProvider(target.value === "twilio" ? "twilio" : "meta");
+      return;
+    }
+
     const prefix = "setting.trainings.player.captions.";
     if (!target.name.startsWith(prefix)) return;
 
@@ -435,12 +487,18 @@ export function SettingsForm({
 
   const horizontalTabs =
     category === "notifications"
-      ? Object.entries(navigationLabels.notificationTabs).map(
-          ([key, label]) => ({
+      ? Object.entries(navigationLabels.notificationTabs)
+          .filter(
+            ([key]) =>
+              key !== "templates" ||
+              settings.some(
+                (setting) => setting.key === WHATSAPP_TEMPLATE_MAP_KEY,
+              ),
+          )
+          .map(([key, label]) => ({
             key,
             label,
-          }),
-        )
+          }))
       : category === "trainings"
         ? Object.entries(navigationLabels.trainingTabs)
             .filter(
@@ -680,25 +738,15 @@ export function SettingsForm({
               ? labels.booleanOptions.enabled
               : labels.booleanOptions.disabled}
           </label>
-        ) : setting.key ===
-          "notifications.whatsapp.twilio.content_templates" ? (
-          // JSON map, too long for one line; kept LTR and monospaced.
-          <textarea
-            id={`setting-${setting.key}`}
-            name={`setting.${setting.key}`}
-            dir="ltr"
-            rows={10}
-            spellCheck={false}
-            defaultValue={String(setting.value ?? "")}
-            disabled={!editable}
-            placeholder={'{\n  "helpdesk.ticket.replied": {\n    "variables": ["reference", "subject"],\n    "ku": "HX…", "ar": "HX…", "en": "HX…"\n  }\n}'}
-            className="mt-4 w-full max-w-2xl rounded-md border border-line bg-white px-3 py-2 font-mono text-xs leading-5 text-content disabled:bg-slate-50 disabled:text-muted"
-          />
         ) : options ? (
           <select
             id={`setting-${setting.key}`}
             name={`setting.${setting.key}`}
-            defaultValue={String(setting.value ?? "")}
+            defaultValue={
+              setting.key === WHATSAPP_PROVIDER_KEY
+                ? whatsappProvider
+                : String(setting.value ?? "")
+            }
             disabled={!editable}
             className="mt-4 h-11 w-full max-w-2xl rounded-md border border-line bg-white px-3 text-sm text-content disabled:bg-slate-50 disabled:text-muted"
           >
@@ -1082,6 +1130,17 @@ export function SettingsForm({
                 </div>
               </section>
             </>
+          ) : category === "notifications" && notificationTab === "templates" ? (
+            visibleSettings.map((setting) => (
+              <WhatsAppTemplateMapping
+                key={setting.key}
+                setting={setting}
+                editable={canManage && setting.editable}
+                provider={whatsappProvider}
+                labels={navigationLabels.whatsappTemplates}
+                loadTemplates={loadWhatsAppTemplates}
+              />
+            ))
           ) : category === "files" && fileTab === "aws" ? (
             <>
               {awsConfigurationSettings.map((setting) =>

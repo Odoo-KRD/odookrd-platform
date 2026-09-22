@@ -1,6 +1,11 @@
 import { NotificationProviderError } from '../notification-provider.error';
+import {
+  WHATSAPP_TEMPLATE_NAME_PREFIX,
+  catalogVariables,
+} from './whatsapp-template-catalog';
 
 const TWILIO_API = 'https://api.twilio.com/2010-04-01';
+const TWILIO_CONTENT_API = 'https://content.twilio.com/v1';
 
 /** Twilio error codes that are about the recipient, not the sender. */
 const DESTINATION_ERRORS = new Set([21211, 21614, 63003]);
@@ -229,7 +234,11 @@ export function resolveContentTemplate(
     return null;
   }
 
-  const names = Array.isArray(entry.variables) ? entry.variables : [];
+  // The platform's own order wins over the stored map, so an old or
+  // hand-edited map cannot shift values into the wrong {{n}}.
+  const names =
+    catalogVariables(templateKey) ??
+    (Array.isArray(entry.variables) ? entry.variables : []);
   const contentVariables: Record<string, string> = {};
 
   names.forEach((name, index) => {
@@ -239,4 +248,168 @@ export function resolveContentTemplate(
   });
 
   return { contentSid, contentVariables };
+}
+
+/** One Twilio Content Template, as offered in the template mapping tab. */
+export interface TwilioContentTemplate {
+  sid: string;
+  friendlyName: string;
+  language: string | null;
+  /** Number of {{n}} variables across the body and buttons. */
+  variableCount: number;
+  /** Content types, for example twilio/call-to-action. */
+  types: string[];
+  /** URLs of the template's "Visit website" buttons, {{n}} included. */
+  buttonUrls: string[];
+  /** WhatsApp approval status (approved, pending, rejected, …) or null. */
+  approvalStatus: string | null;
+  rejectionReason: string | null;
+}
+
+const CONTENT_PAGE_LIMIT = 10;
+
+/**
+ * Lists the account's Content Templates whose name starts with "odookrd",
+ * with their WhatsApp approval status, following Twilio's paging.
+ */
+export async function listTwilioContentTemplates(
+  credentials: TwilioCredentials,
+): Promise<TwilioContentTemplate[]> {
+  const authorization = Buffer.from(
+    `${credentials.accountSid}:${credentials.authToken}`,
+  ).toString('base64');
+  const templates: TwilioContentTemplate[] = [];
+  let url: string | null =
+    `${TWILIO_CONTENT_API}/ContentAndApprovals?PageSize=100`;
+
+  for (let page = 0; url && page < CONTENT_PAGE_LIMIT; page += 1) {
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        headers: {
+          Authorization: `Basic ${authorization}`,
+          Accept: 'application/json',
+        },
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch {
+      throw new NotificationProviderError('TWILIO_CONTENT_UNREACHABLE', true);
+    }
+
+    const payload: unknown = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const code = (payload as TwilioErrorPayload | null)?.code;
+      throw new NotificationProviderError(
+        response.status === 401
+          ? 'TWILIO_AUTH_FAILED'
+          : typeof code === 'number'
+            ? `TWILIO_${String(code)}`
+            : `WHATSAPP_HTTP_${String(response.status)}`,
+        response.status === 429 || response.status >= 500,
+      );
+    }
+
+    const body = (payload ?? {}) as {
+      contents?: unknown;
+      meta?: { next_page_url?: unknown };
+    };
+
+    if (Array.isArray(body.contents)) {
+      for (const item of body.contents) {
+        const template = contentTemplate(item);
+        if (
+          template &&
+          template.friendlyName
+            .toLowerCase()
+            .startsWith(WHATSAPP_TEMPLATE_NAME_PREFIX)
+        ) {
+          templates.push(template);
+        }
+      }
+    }
+
+    const next = body.meta?.next_page_url;
+    // Only ever follow paging links back to Twilio's own Content API.
+    url =
+      typeof next === 'string' && next.startsWith(`${TWILIO_CONTENT_API}/`)
+        ? next
+        : null;
+  }
+
+  return templates.sort((left, right) =>
+    left.friendlyName.localeCompare(right.friendlyName),
+  );
+}
+
+function contentTemplate(item: unknown): TwilioContentTemplate | null {
+  if (typeof item !== 'object' || item === null) {
+    return null;
+  }
+
+  const record = item as Record<string, unknown>;
+  const sid = record.sid;
+  const friendlyName = record.friendly_name;
+
+  if (
+    typeof sid !== 'string' ||
+    !/^HX[0-9a-f]{32}$/iu.test(sid) ||
+    typeof friendlyName !== 'string'
+  ) {
+    return null;
+  }
+
+  const variables = record.variables;
+  const types = record.types;
+  // Returned as one object for WhatsApp; tolerate a list as well.
+  const approvals: unknown[] = Array.isArray(record.approval_requests)
+    ? record.approval_requests
+    : [record.approval_requests];
+  const whatsapp = approvals.find(
+    (approval): approval is Record<string, unknown> =>
+      typeof approval === 'object' &&
+      approval !== null &&
+      ((approval as Record<string, unknown>).type === undefined ||
+        (approval as Record<string, unknown>).type === 'whatsapp'),
+  );
+  const buttonUrls: string[] = [];
+  if (typeof types === 'object' && types !== null) {
+    for (const content of Object.values(types as Record<string, unknown>)) {
+      const actions =
+        typeof content === 'object' && content !== null
+          ? (content as { actions?: unknown }).actions
+          : undefined;
+      if (!Array.isArray(actions)) continue;
+      for (const action of actions) {
+        const url = (action as { url?: unknown } | null)?.url;
+        if (typeof url === 'string' && url.length > 0) {
+          buttonUrls.push(url.slice(0, 500));
+        }
+      }
+    }
+  }
+  const status = whatsapp?.status;
+  const rejection = whatsapp?.rejection_reason;
+
+  return {
+    sid,
+    friendlyName: friendlyName.slice(0, 200),
+    language:
+      typeof record.language === 'string' ? record.language.slice(0, 20) : null,
+    variableCount:
+      typeof variables === 'object' && variables !== null
+        ? Object.keys(variables).length
+        : 0,
+    types:
+      typeof types === 'object' && types !== null ? Object.keys(types) : [],
+    buttonUrls,
+    approvalStatus:
+      typeof status === 'string' && status.length > 0
+        ? status.toLowerCase().slice(0, 40)
+        : null,
+    rejectionReason:
+      typeof rejection === 'string' && rejection.length > 0
+        ? rejection.slice(0, 300)
+        : null,
+  };
 }
