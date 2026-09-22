@@ -21,6 +21,10 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import type { ApiLocale } from '../../i18n/types';
 import type { AuthenticatedPrincipal } from '../auth/interfaces/authenticated-principal.interface';
 import { NotificationProviderError } from '../notifications/notification-provider.error';
+import {
+  WHATSAPP_ENABLED_TYPES_KEY,
+  whatsappTypeEnabled,
+} from '../notifications/providers/whatsapp-template-catalog';
 import { EmailProviderService } from '../notifications/providers/email-provider.service';
 import { WhatsAppProviderService } from '../notifications/providers/whatsapp-provider.service';
 import { SettingsService } from '../settings/settings.service';
@@ -303,10 +307,17 @@ export class UserAdministrationService {
     expiresAt: Date,
     locale: ApiLocale,
   ) {
-    const [emailEnabled, whatsappEnabled] = await Promise.all([
-      this.settingBoolean('notifications.email.enabled', target.companyId),
-      this.settingBoolean('notifications.whatsapp.enabled', target.companyId),
-    ]);
+    const [emailEnabled, whatsappChannelEnabled, enabledTypes] =
+      await Promise.all([
+        this.settingBoolean('notifications.email.enabled', target.companyId),
+        this.settingBoolean('notifications.whatsapp.enabled', target.companyId),
+        this.settings.resolveValue(WHATSAPP_ENABLED_TYPES_KEY, null),
+      ]);
+    const whatsappTypeAllowed = whatsappTypeEnabled(
+      'user.invitation',
+      enabledTypes,
+    );
+    const whatsappEnabled = whatsappChannelEnabled && whatsappTypeAllowed;
 
     const dispatch = await this.prisma.userInvitationDispatch.create({
       data: {
@@ -333,9 +344,11 @@ export class UserAdministrationService {
               : {
                   channel: NotificationChannel.WHATSAPP,
                   status: NotificationDeliveryStatus.SKIPPED,
-                  failureCode: whatsappEnabled
-                    ? 'DESTINATION_MISSING'
-                    : 'CHANNEL_DISABLED',
+                  failureCode: !whatsappChannelEnabled
+                    ? 'CHANNEL_DISABLED'
+                    : !whatsappTypeAllowed
+                      ? 'TYPE_DISABLED'
+                      : 'DESTINATION_MISSING',
                 },
           ],
         },

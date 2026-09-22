@@ -118,7 +118,12 @@ export class HelpdeskNotificationService {
         templateKey,
         variables: { reference: ticket.reference, subject: ticket.subject },
         recipients: [{ userId: customer.id, locale: DEFAULT_LOCALE }],
-        channels: [NotificationChannel.IN_APP, NotificationChannel.EMAIL],
+        // WhatsApp only goes out when switched on for this type.
+        channels: [
+          NotificationChannel.IN_APP,
+          NotificationChannel.EMAIL,
+          NotificationChannel.WHATSAPP,
+        ],
         actionUrl: `/dashboard/helpdesk/${ticket.id}`,
         dispatchImmediately: true,
       });
@@ -157,7 +162,7 @@ export class HelpdeskNotificationService {
         templateKey,
         variables,
         recipients,
-        channels: [NotificationChannel.IN_APP],
+        channels: [NotificationChannel.IN_APP, NotificationChannel.WHATSAPP],
         actionUrl: `/admin/helpdesk/${ticket.id}`,
         allowPlatformRecipients: true,
         dispatchImmediately: true,

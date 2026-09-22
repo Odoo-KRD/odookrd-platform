@@ -24,6 +24,7 @@ import type { SettingsNavigationDictionary } from "@/lib/i18n/settings/navigatio
 import { useRouter } from "next/navigation";
 
 import {
+  WHATSAPP_ENABLED_TYPES_KEY,
   WHATSAPP_TEMPLATE_MAP_KEY,
   WhatsAppTemplateMapping,
 } from "./whatsapp-template-mapping";
@@ -238,7 +239,12 @@ function inputType(setting: ManagedSetting) {
 function notificationTabFor(setting: ManagedSetting): NotificationTab | null {
   if (setting.category !== "notifications") return null;
   if (setting.key.startsWith("notifications.email.")) return "email";
-  if (setting.key === WHATSAPP_TEMPLATE_MAP_KEY) return "templates";
+  if (
+    setting.key === WHATSAPP_TEMPLATE_MAP_KEY ||
+    setting.key === WHATSAPP_ENABLED_TYPES_KEY
+  ) {
+    return "templates";
+  }
   if (setting.key.startsWith("notifications.whatsapp.")) return "whatsapp";
   return "general";
 }
@@ -1131,16 +1137,18 @@ export function SettingsForm({
               </section>
             </>
           ) : category === "notifications" && notificationTab === "templates" ? (
-            visibleSettings.map((setting) => (
-              <WhatsAppTemplateMapping
-                key={setting.key}
-                setting={setting}
-                editable={canManage && setting.editable}
-                provider={whatsappProvider}
-                labels={navigationLabels.whatsappTemplates}
-                loadTemplates={loadWhatsAppTemplates}
-              />
-            ))
+            <WhatsAppTemplateMapping
+              mapSetting={visibleSettings.find(
+                (setting) => setting.key === WHATSAPP_TEMPLATE_MAP_KEY,
+              )}
+              enabledTypesSetting={visibleSettings.find(
+                (setting) => setting.key === WHATSAPP_ENABLED_TYPES_KEY,
+              )}
+              canManage={canManage}
+              provider={whatsappProvider}
+              labels={navigationLabels.whatsappTemplates}
+              loadTemplates={loadWhatsAppTemplates}
+            />
           ) : category === "files" && fileTab === "aws" ? (
             <>
               {awsConfigurationSettings.map((setting) =>

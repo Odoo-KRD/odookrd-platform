@@ -77,6 +77,13 @@ const WHATSAPP_TEST_VARIABLES: Record<string, string> = {
   expiresAt: '2026-12-31 18:00',
   token: 'test-invitation-token',
   daysRemaining: '7',
+  title: 'Test',
+  body: 'This is a test message from OdooKRD.',
+  userName: 'Test User',
+  learnerName: 'Test User',
+  courseTitle: 'Odoo Basics',
+  articleTitle: 'Getting started',
+  comment: 'Test',
 };
 
 @Injectable()
@@ -504,6 +511,8 @@ export class NotificationAdministrationService {
       events: WHATSAPP_TEMPLATE_EVENTS.map((event) => ({
         key: event.key,
         slug: event.slug,
+        audience: event.audience,
+        gated: event.gated,
         variables: [...event.variables],
       })),
       templates,

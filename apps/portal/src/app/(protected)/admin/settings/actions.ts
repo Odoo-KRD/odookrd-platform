@@ -46,6 +46,7 @@ const SETTING_KEYS_BY_CATEGORY: Record<SettingCategory, readonly string[]> = {
     "notifications.whatsapp.twilio.primary_sender",
     "notifications.whatsapp.twilio.fallback_sender",
     "notifications.whatsapp.twilio.content_templates",
+    "notifications.whatsapp.enabled_types",
     "notifications.whatsapp.api_url",
     "notifications.whatsapp.phone_number_id",
     "notifications.whatsapp.business_account_id",
@@ -315,7 +316,13 @@ export interface WhatsAppTemplateOption {
 
 export interface WhatsAppTemplateCatalog {
   provider: "twilio" | "meta";
-  events: Array<{ key: string; slug: string; variables: string[] }>;
+  events: Array<{
+    key: string;
+    slug: string;
+    audience: "customer" | "staff";
+    gated: boolean;
+    variables: string[];
+  }>;
   templates: WhatsAppTemplateOption[];
   /** Provider error code, or null when the list loaded. */
   error: string | null;

@@ -74,7 +74,11 @@ describe('HelpdeskNotificationService', () => {
     await service.ticketCreated(TICKET.id);
 
     expect(published[0].recipients.map((r) => r.userId)).toEqual(['s1', 's2']);
-    expect(published[0].channels).toEqual([NotificationChannel.IN_APP]);
+    // WhatsApp is requested but only sent when switched on for the type.
+    expect(published[0].channels).toEqual([
+      NotificationChannel.IN_APP,
+      NotificationChannel.WHATSAPP,
+    ]);
     expect(published[0].actionUrl).toBe('/admin/helpdesk/ticket-1');
   });
 
@@ -117,6 +121,7 @@ describe('HelpdeskNotificationService', () => {
     expect(published[0].channels).toEqual([
       NotificationChannel.IN_APP,
       NotificationChannel.EMAIL,
+      NotificationChannel.WHATSAPP,
     ]);
     expect(published[0].actionUrl).toBe('/dashboard/helpdesk/ticket-1');
   });

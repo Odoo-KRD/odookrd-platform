@@ -192,6 +192,25 @@ describe('resolveContentTemplate', () => {
     });
   });
 
+  it('folds free text onto one line for WhatsApp', () => {
+    const broadcast = JSON.stringify({
+      'admin.broadcast': { en: CONTENT_SID },
+    });
+
+    expect(
+      resolveContentTemplate(broadcast, 'admin.broadcast', 'en', {
+        title: 'Maintenance',
+        body: 'Tonight 22:00.\n\n\tPlease   save your work.',
+      }),
+    ).toEqual({
+      contentSid: CONTENT_SID,
+      contentVariables: {
+        '1': 'Maintenance',
+        '2': 'Tonight 22:00. Please save your work.',
+      },
+    });
+  });
+
   it('rejects a malformed map instead of guessing', () => {
     expect(() => resolveContentTemplate('{oops', 'x', 'ku', {})).toThrow(
       NotificationProviderError,

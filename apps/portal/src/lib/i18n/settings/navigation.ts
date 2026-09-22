@@ -31,6 +31,17 @@ export interface SettingsNavigationDictionary {
     notApproved: string;
     invitationButton: string;
     unsavedHint: string;
+    sendByWhatsapp: string;
+    whatsappOn: string;
+    whatsappOff: string;
+    broadcastControlled: string;
+    enabledWithoutTemplate: string;
+    fallbackLanguage: string;
+    noFallback: string;
+    audiences: Record<
+      "customer" | "staff",
+      { title: string; description: string }
+    >;
     languages: { ku: string; ar: string; en: string };
     statuses: Record<string, string>;
     events: Record<string, { label: string; description: string }>;
@@ -119,6 +130,23 @@ export const settingsNavigationDictionaries: Record<
       invitationButton:
         "لینکی دوگمەی ئەم قاڵبە دەبێت بە /invitation/accept?token={{3}} کۆتایی بێت، ئەگینا لینکی چالاککردن کار ناکات.",
       unsavedHint: "گۆڕانکارییەکان دوای پاشەکەوتکردن جێبەجێ دەکرێن.",
+      sendByWhatsapp: "ناردن بە واتسئاپ",
+      whatsappOn: "واتسئاپ چالاکە",
+      whatsappOff: "واتسئاپ ناچالاکە",
+      broadcastControlled: "کەناڵەکانی ڕاگەیاندن لە کاتی ناردنی هەر ڕاگەیاندنێک هەڵدەبژێردرێن.",
+      enabledWithoutTemplate: "واتسئاپ چالاکە بەڵام هیچ قاڵبێک دیاری نەکراوە: نامەکە وەک نامەی ئاسایی دەنێردرێت و زۆربەی کات ناگات.",
+      fallbackLanguage: "زمانەکانی تر (یەدەگ)",
+      noFallback: "بێ یەدەگ",
+      audiences: {
+        customer: {
+          title: "ئاگادارکردنەوەکانی کڕیار",
+          description: "بۆ بەکارهێنەرانی کۆمپانیاکان دەنێردرێن، بۆ ئەو ژمارەی واتسئاپەی لە هەژمارەکەیاندا تۆمارکراوە.",
+        },
+        staff: {
+          title: "ئاگادارکردنەوەکانی ستاف",
+          description: "بۆ بەڕێوەبەرانی پلاتفۆرم دەنێردرێن. هەر بەڕێوەبەرێک پێویستی بە ژمارەی واتسئاپ هەیە لە پرۆفایلەکەیدا.",
+        },
+      },
       languages: { ku: "کوردی", ar: "عەرەبی", en: "ئینگلیزی" },
       statuses: {
         approved: "پەسەندکراو",
@@ -148,6 +176,38 @@ export const settingsNavigationDictionaries: Record<
         "subscription.reminder": {
           label: "بیرخستنەوەی بەشداریکردن",
           description: "پێش و دوای بەرواری کۆتایی بەشداریکردن دەنێردرێت.",
+        },
+        "admin.broadcast": {
+          label: "ڕاگەیاندن",
+          description: "ڕاگەیاندنێک کە بەڕێوەبەر بۆ کۆمپانیاکان دەینێرێت.",
+        },
+        "admin.helpdesk.ticket.created": {
+          label: "داواکاری نوێ",
+          description: "کاتێک کڕیارێک داواکارییەکی پشتگیری نوێ دەکاتەوە.",
+        },
+        "admin.helpdesk.customer.replied": {
+          label: "وەڵامی کڕیار",
+          description: "کاتێک کڕیارێک وەڵامی داواکارییەک دەداتەوە.",
+        },
+        "admin.renewal.requested": {
+          label: "داواکاری نوێکردنەوە",
+          description: "کاتێک کۆمپانیایەک داوای نوێکردنەوەی خزمەتگوزارییەک دەکات.",
+        },
+        "admin.invitation.accepted": {
+          label: "بانگهێشت وەرگیرا",
+          description: "کاتێک بەکارهێنەرێک بانگهێشتەکەی وەردەگرێت و هەژمارەکەی چالاک دەکات.",
+        },
+        "admin.course.completed": {
+          label: "خول تەواو کرا",
+          description: "کاتێک فێرخوازێک خولێک تەواو دەکات.",
+        },
+        "admin.certificate.issued": {
+          label: "بڕوانامە دەرچوو",
+          description: "کاتێک بڕوانامەیەک بۆ فێرخوازێک دەردەچێت.",
+        },
+        "admin.knowledge.feedback": {
+          label: "ڕای بابەتی زانیاری",
+          description: "کاتێک ڕایەک لەسەر بابەتێکی بنکەی زانیاری دەنێردرێت.",
         },
       },
     },
@@ -459,6 +519,23 @@ export const settingsNavigationDictionaries: Record<
       invitationButton:
         "يجب أن ينتهي رابط زر هذا القالب بـ /invitation/accept?token={{3}}، وإلا فلن يعمل رابط التفعيل.",
       unsavedHint: "تُطبَّق التغييرات بعد الحفظ.",
+      sendByWhatsapp: "الإرسال عبر واتساب",
+      whatsappOn: "واتساب مفعّل",
+      whatsappOff: "واتساب معطّل",
+      broadcastControlled: "تُختار قنوات الإعلانات عند إرسال كل إعلان.",
+      enabledWithoutTemplate: "واتساب مفعّل ولكن لم يُربط أي قالب: ستُرسل الرسالة كنص عادي ولن تصل غالباً.",
+      fallbackLanguage: "اللغات الأخرى (احتياطي)",
+      noFallback: "بدون احتياطي",
+      audiences: {
+        customer: {
+          title: "إشعارات العملاء",
+          description: "تُرسل إلى مستخدمي الشركات على رقم واتساب المحفوظ في حساباتهم.",
+        },
+        staff: {
+          title: "إشعارات الفريق",
+          description: "تُرسل إلى مسؤولي المنصة. يحتاج كل مسؤول إلى رقم واتساب في ملفه الشخصي.",
+        },
+      },
       languages: { ku: "الكردية", ar: "العربية", en: "الإنجليزية" },
       statuses: {
         approved: "معتمد",
@@ -486,6 +563,38 @@ export const settingsNavigationDictionaries: Record<
         "subscription.reminder": {
           label: "تذكير الاشتراك",
           description: "يُرسل قبل تاريخ انتهاء الاشتراك وبعده.",
+        },
+        "admin.broadcast": {
+          label: "إعلان",
+          description: "إعلان يرسله المسؤول إلى الشركات.",
+        },
+        "admin.helpdesk.ticket.created": {
+          label: "طلب جديد",
+          description: "عندما يفتح عميل طلب دعم جديداً.",
+        },
+        "admin.helpdesk.customer.replied": {
+          label: "رد العميل",
+          description: "عندما يرد عميل على طلب.",
+        },
+        "admin.renewal.requested": {
+          label: "طلب تجديد",
+          description: "عندما تطلب شركة تجديد خدمة.",
+        },
+        "admin.invitation.accepted": {
+          label: "قبول الدعوة",
+          description: "عندما يقبل مستخدم دعوته ويفعّل حسابه.",
+        },
+        "admin.course.completed": {
+          label: "إكمال دورة",
+          description: "عندما يُكمل متعلّم دورة.",
+        },
+        "admin.certificate.issued": {
+          label: "إصدار شهادة",
+          description: "عند إصدار شهادة لمتعلّم.",
+        },
+        "admin.knowledge.feedback": {
+          label: "ملاحظات مقال",
+          description: "عند إرسال ملاحظات على مقال في قاعدة المعرفة.",
         },
       },
     },
@@ -796,6 +905,23 @@ export const settingsNavigationDictionaries: Record<
       invitationButton:
         "This template's button URL must end with /invitation/accept?token={{3}}, or the activation link will not work.",
       unsavedHint: "Changes apply after you save.",
+      sendByWhatsapp: "Send by WhatsApp",
+      whatsappOn: "WhatsApp on",
+      whatsappOff: "WhatsApp off",
+      broadcastControlled: "Broadcast channels are chosen each time a broadcast is sent.",
+      enabledWithoutTemplate: "WhatsApp is on but no template is mapped: messages go as plain text and are usually not delivered.",
+      fallbackLanguage: "Other languages (fallback)",
+      noFallback: "No fallback",
+      audiences: {
+        customer: {
+          title: "Customer notifications",
+          description: "Sent to company users, to the WhatsApp number saved on their account.",
+        },
+        staff: {
+          title: "Staff notifications",
+          description: "Sent to platform admins. Each admin needs a WhatsApp number on their profile.",
+        },
+      },
       languages: { ku: "Kurdish", ar: "Arabic", en: "English" },
       statuses: {
         approved: "Approved",
@@ -824,6 +950,38 @@ export const settingsNavigationDictionaries: Record<
         "subscription.reminder": {
           label: "Subscription reminder",
           description: "Sent before and after a subscription's end date.",
+        },
+        "admin.broadcast": {
+          label: "Broadcast",
+          description: "An announcement an admin sends to companies.",
+        },
+        "admin.helpdesk.ticket.created": {
+          label: "New ticket",
+          description: "When a customer opens a new support ticket.",
+        },
+        "admin.helpdesk.customer.replied": {
+          label: "Customer replied",
+          description: "When a customer replies to a ticket.",
+        },
+        "admin.renewal.requested": {
+          label: "Renewal requested",
+          description: "When a company requests a service renewal.",
+        },
+        "admin.invitation.accepted": {
+          label: "Invitation accepted",
+          description: "When a user accepts their invitation and activates their account.",
+        },
+        "admin.course.completed": {
+          label: "Course completed",
+          description: "When a learner completes a course.",
+        },
+        "admin.certificate.issued": {
+          label: "Certificate issued",
+          description: "When a certificate is issued to a learner.",
+        },
+        "admin.knowledge.feedback": {
+          label: "Article feedback",
+          description: "When feedback is sent on a knowledge base article.",
         },
       },
     },

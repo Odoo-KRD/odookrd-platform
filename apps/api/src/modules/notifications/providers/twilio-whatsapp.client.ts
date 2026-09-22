@@ -244,10 +244,25 @@ export function resolveContentTemplate(
   names.forEach((name, index) => {
     // WhatsApp rejects empty template parameters, so a missing value is
     // sent as a dash rather than an empty string.
-    contentVariables[String(index + 1)] = values[name]?.trim() || '-';
+    contentVariables[String(index + 1)] =
+      templateParameter(values[name]) || '-';
   });
 
   return { contentSid, contentVariables };
+}
+
+/**
+ * WhatsApp rejects template parameters with new lines, tabs or more than
+ * four spaces in a row, and long ones. Free text (a broadcast body, a
+ * feedback comment) is folded onto one line and shortened.
+ */
+export function templateParameter(value: string | undefined): string {
+  if (!value) return '';
+  const single = value
+    .replace(/[\r\n\t]+/gu, ' ')
+    .replace(/ {2,}/gu, ' ')
+    .trim();
+  return single.length > 900 ? `${single.slice(0, 899)}…` : single;
 }
 
 /** One Twilio Content Template, as offered in the template mapping tab. */

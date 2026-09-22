@@ -19,6 +19,10 @@ import { SettingsService } from '../settings/settings.service';
 import type { ListNotificationsDto } from './dto/list-notifications.dto';
 import { NotificationDispatcherService } from './notification-dispatcher.service';
 import {
+  WHATSAPP_ENABLED_TYPES_KEY,
+  whatsappTypeEnabled,
+} from './providers/whatsapp-template-catalog';
+import {
   NotificationTemplateService,
   type NotificationTemplateKey,
   type NotificationTemplateVariablesByKey,
@@ -278,7 +282,7 @@ export class NotificationsService {
               },
             ],
       },
-      select: { id: true, email: true },
+      select: { id: true, email: true, whatsappNumber: true },
     });
 
     if (users.length !== recipientIds.length) {
@@ -289,11 +293,17 @@ export class NotificationsService {
 
     const usersById = new Map(users.map((user) => [user.id, user]));
     const channels = this.normalizeChannels(input.channels);
-    const [inAppEnabled, emailEnabled, whatsappEnabled] = await Promise.all([
-      this.settingBoolean('notifications.in_app.enabled', input.companyId),
-      this.settingBoolean('notifications.email.enabled', input.companyId),
-      this.settingBoolean('notifications.whatsapp.enabled', input.companyId),
-    ]);
+    const [inAppEnabled, emailEnabled, whatsappEnabled, enabledTypes] =
+      await Promise.all([
+        this.settingBoolean('notifications.in_app.enabled', input.companyId),
+        this.settingBoolean('notifications.email.enabled', input.companyId),
+        this.settingBoolean('notifications.whatsapp.enabled', input.companyId),
+        this.settings.resolveValue(WHATSAPP_ENABLED_TYPES_KEY, null),
+      ]);
+    const whatsappTypeAllowed = whatsappTypeEnabled(
+      input.templateKey,
+      enabledTypes,
+    );
     const now = new Date();
     const actionUrl = this.normalizeActionUrl(input.actionUrl);
 
@@ -334,8 +344,15 @@ export class NotificationsService {
                       this.deliveryCreateData(
                         channel,
                         user.email,
-                        recipient.whatsappAddress ?? null,
-                        { inAppEnabled, emailEnabled, whatsappEnabled },
+                        // A caller-supplied number wins; otherwise the
+                        // number saved on the user.
+                        recipient.whatsappAddress ?? user.whatsappNumber,
+                        {
+                          inAppEnabled,
+                          emailEnabled,
+                          whatsappEnabled,
+                          whatsappTypeAllowed,
+                        },
                         now,
                       ),
                     ),
@@ -450,6 +467,7 @@ export class NotificationsService {
       inAppEnabled: boolean;
       emailEnabled: boolean;
       whatsappEnabled: boolean;
+      whatsappTypeAllowed: boolean;
     },
     now: Date,
   ): Prisma.NotificationDeliveryCreateWithoutRecipientInput {
@@ -491,6 +509,15 @@ export class NotificationsService {
         status: NotificationDeliveryStatus.SKIPPED,
         failureCode: 'CHANNEL_DISABLED',
         failureMessage: 'This notification channel is disabled.',
+      };
+    }
+
+    if (!enabled.whatsappTypeAllowed) {
+      return {
+        channel,
+        status: NotificationDeliveryStatus.SKIPPED,
+        failureCode: 'TYPE_DISABLED',
+        failureMessage: 'WhatsApp is switched off for this notification type.',
       };
     }
 

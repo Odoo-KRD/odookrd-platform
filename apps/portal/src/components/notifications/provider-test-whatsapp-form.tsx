@@ -13,6 +13,14 @@ const WHATSAPP_TEST_TEMPLATES = [
   "helpdesk.ticket.replied",
   "helpdesk.ticket.resolved",
   "subscription.reminder",
+  "admin.broadcast",
+  "admin.helpdesk.ticket.created",
+  "admin.helpdesk.customer.replied",
+  "admin.renewal.requested",
+  "admin.invitation.accepted",
+  "admin.course.completed",
+  "admin.certificate.issued",
+  "admin.knowledge.feedback",
 ] as const;
 
 const fieldClass =

@@ -157,7 +157,8 @@ export class AdminEventNotificationService {
         templateKey: input.templateKey,
         variables: input.variables,
         recipients: admins,
-        channels: [NotificationChannel.IN_APP],
+        // WhatsApp only goes out when switched on for this type.
+        channels: [NotificationChannel.IN_APP, NotificationChannel.WHATSAPP],
         actionUrl: input.actionUrl ?? null,
         allowPlatformRecipients: true,
         dispatchImmediately: true,

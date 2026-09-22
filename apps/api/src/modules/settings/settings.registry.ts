@@ -311,6 +311,19 @@ export const SETTINGS_REGISTRY: readonly SettingDefinition[] = [
     maxLength: 8000,
   },
   {
+    // Comma-separated notification types sent by WhatsApp (for example
+    // user.invitation,helpdesk.ticket.replied). Empty: none. Edited in the
+    // WhatsApp Templates tab.
+    key: 'notifications.whatsapp.enabled_types',
+    category: 'notifications',
+    valueType: 'STRING',
+    defaultValue: '',
+    companyVisible: false,
+    companyOverridable: false,
+    companyWritable: false,
+    maxLength: 2000,
+  },
+  {
     key: 'notifications.whatsapp.api_url',
     category: 'notifications',
     valueType: 'STRING',
