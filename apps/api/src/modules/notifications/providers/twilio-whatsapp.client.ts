@@ -175,10 +175,27 @@ async function sendFrom(
   return typeof sid === 'string' && sid.length <= 255 ? sid : null;
 }
 
-/** Digits only; a WhatsApp number is 8 to 15 digits in E.164. */
+/**
+ * Digits only; a WhatsApp number is 8 to 15 digits in E.164.
+ *
+ * Numbers typed or pasted into the right-to-left admin screens can carry
+ * invisible direction marks (U+200E, U+200F, U+202A–U+202E, U+2066–U+2069)
+ * or Arabic-Indic digits (٠–٩, ۰–۹) from a Kurdish or Arabic keyboard. Those
+ * are cleaned here so they never make a correct-looking number "invalid".
+ */
 export function normalizeNumber(value: string): string | null {
-  const digits = value.replace(/^whatsapp:/u, '').replace(/[\s()+-]/gu, '');
-  return /^\d{8,15}$/u.test(digits) ? digits : null;
+  const digits = value
+    .replace(/\p{Cf}/gu, '')
+    .replace(/[\u0660-\u0669]/gu, (digit) =>
+      String(digit.charCodeAt(0) - 0x0660),
+    )
+    .replace(/[\u06f0-\u06f9]/gu, (digit) =>
+      String(digit.charCodeAt(0) - 0x06f0),
+    )
+    .trim()
+    .replace(/^whatsapp:/iu, '')
+    .replace(/[\s()+\-.]/gu, '');
+  return /^[0-9]{8,15}$/u.test(digits) ? digits : null;
 }
 
 export interface ContentTemplateEntry {

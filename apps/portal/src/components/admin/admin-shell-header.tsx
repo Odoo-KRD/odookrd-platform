@@ -25,6 +25,10 @@ interface AdminShellHeaderProps {
   canNotifications: boolean;
   canSettings: boolean;
   canCustomerPortal: boolean;
+  /** Platform accounts edit their own profile inside the administration. */
+  canAdminProfile?: boolean;
+  hasAvatar?: boolean;
+  avatarFileAssetId?: string | null;
   settingsLabel: string;
   customerPortalLabel: string;
 }
@@ -46,10 +50,21 @@ export function AdminShellHeader({
   canNotifications,
   canSettings,
   canCustomerPortal,
+  canAdminProfile = false,
+  hasAvatar = false,
+  avatarFileAssetId = null,
   settingsLabel,
   customerPortalLabel,
 }: AdminShellHeaderProps) {
   const accountLinks: ShellHeaderAccountLink[] = [];
+
+  if (canAdminProfile) {
+    accountLinks.push({
+      href: "/admin/profile",
+      label: labels.editProfile,
+      emphasis: true,
+    });
+  }
 
   if (canCustomerPortal) {
     accountLinks.push({
@@ -86,6 +101,8 @@ export function AdminShellHeader({
       notificationsHref="/admin/notifications/inbox"
       accountLinks={accountLinks}
       canNotifications={canNotifications}
+      hasAvatar={hasAvatar}
+      avatarFileAssetId={avatarFileAssetId}
     />
   );
 }

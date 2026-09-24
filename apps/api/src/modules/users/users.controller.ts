@@ -23,6 +23,7 @@ import { BatchUserStatusDto } from './dto/batch-user-status.dto';
 import { BatchDeleteUsersDto } from './dto/batch-delete-users.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ReplaceUserRolesDto } from './dto/replace-user-roles.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { UsersService } from './users.service';
 
@@ -65,6 +66,16 @@ export class UsersController {
     @Body() dto: BatchUserStatusDto,
   ) {
     return this.usersService.updateStatuses(principal, dto);
+  }
+
+  @Patch(':id/profile')
+  @RequirePermissions(PERMISSIONS.USERS_MANAGE)
+  updateProfile(
+    @CurrentUser() principal: AuthenticatedPrincipal,
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Body() dto: UpdateUserProfileDto,
+  ) {
+    return this.usersService.updateProfile(principal, userId, dto);
   }
 
   @Patch(':id/status')

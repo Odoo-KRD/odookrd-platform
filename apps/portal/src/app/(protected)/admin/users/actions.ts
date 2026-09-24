@@ -328,3 +328,72 @@ export async function deleteUserRowAction(
     return { ok: false, message: failure(error).message ?? "Delete failed." };
   }
 }
+
+const E164_PATTERN = /^\+[1-9]\d{7,14}$/;
+
+function optionalField(formData: FormData, name: string, max: number) {
+  const value = formData.get(name);
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length > max) return false;
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+/** An administrator's edit of a user's details. */
+export async function updateUserProfileAction(
+  userId: string,
+  _previousState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { token } = await getAdminApiContext(PERMISSIONS.USERS_MANAGE);
+
+  if (!uuidPattern.test(userId)) {
+    return { message: "The user could not be found." };
+  }
+
+  const email = formData.get("email");
+  if (
+    typeof email !== "string" ||
+    email.trim().length < 3 ||
+    email.trim().length > 320 ||
+    !email.includes("@")
+  ) {
+    return { message: "invalid_email" };
+  }
+
+  const displayName = optionalField(formData, "displayName", 160);
+  const whatsappNumber = optionalField(formData, "whatsappNumber", 16);
+  const certificateName = optionalField(formData, "certificateName", 250);
+
+  if (displayName === false || certificateName === false) {
+    return { message: "The details are too long." };
+  }
+  if (
+    whatsappNumber === false ||
+    (typeof whatsappNumber === "string" && !E164_PATTERN.test(whatsappNumber))
+  ) {
+    return { message: "invalid_whatsapp" };
+  }
+
+  try {
+    await apiRequest<ManagedUser>(
+      `/users/${encodeURIComponent(userId)}/profile`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({
+          email: email.trim(),
+          displayName,
+          whatsappNumber,
+          certificateName,
+        }),
+      },
+    );
+  } catch (error: unknown) {
+    return failure(error);
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
+  return { message: null, success: true };
+}

@@ -161,11 +161,11 @@ export class WorkspaceService {
   }
 
   async profile(principal: AuthenticatedPrincipal) {
-    const companyId = this.requireCompany(principal);
+    const { where } = this.profileScope(principal);
 
     const [user, session] = await Promise.all([
       this.prisma.user.findFirst({
-        where: { id: principal.userId, companyId },
+        where,
         select: {
           id: true,
           email: true,
@@ -192,7 +192,11 @@ export class WorkspaceService {
       }),
     ]);
 
-    if (!user || !user.company) {
+    // Company accounts always belong to a company; platform accounts never do.
+    if (
+      !user ||
+      (principal.accountScope === AccountScope.COMPANY && !user.company)
+    ) {
       throw new NotFoundException('Account profile was not found.');
     }
 
@@ -219,7 +223,7 @@ export class WorkspaceService {
     principal: AuthenticatedPrincipal,
     body: UpdateWorkspaceProfileDto,
   ) {
-    const companyId = this.requireCompany(principal);
+    const { where, companyId } = this.profileScope(principal);
     const data: Prisma.UserUpdateManyMutationInput = {};
     const changedFields: string[] = [];
 
@@ -244,11 +248,7 @@ export class WorkspaceService {
 
     await this.prisma.$transaction(async (transaction) => {
       const result = await transaction.user.updateMany({
-        where: {
-          id: principal.userId,
-          companyId,
-          accountScope: AccountScope.COMPANY,
-        },
+        where,
         data,
       });
 
@@ -276,17 +276,13 @@ export class WorkspaceService {
     principal: AuthenticatedPrincipal,
     file: UploadedFilePayload | undefined,
   ) {
-    const companyId = this.requireCompany(principal);
+    const { where, companyId } = this.profileScope(principal);
     if (!file?.buffer?.length) {
       throw new BadRequestException('An avatar image is required.');
     }
 
     const current = await this.prisma.user.findFirst({
-      where: {
-        id: principal.userId,
-        companyId,
-        accountScope: AccountScope.COMPANY,
-      },
+      where,
       select: { avatarFileAssetId: true },
     });
     if (!current) {
@@ -296,18 +292,15 @@ export class WorkspaceService {
     const normalizedFile = await this.normalizeAvatar(file);
     const uploaded = await this.files.upload(
       principal,
-      { kind: FileAssetKind.IMAGE, companyId },
+      // Platform accounts store their avatar at platform level.
+      { kind: FileAssetKind.IMAGE, companyId: companyId ?? undefined },
       normalizedFile,
     );
 
     try {
       await this.prisma.$transaction(async (transaction) => {
         const result = await transaction.user.updateMany({
-          where: {
-            id: principal.userId,
-            companyId,
-            accountScope: AccountScope.COMPANY,
-          },
+          where,
           data: { avatarFileAssetId: uploaded.id },
         });
 
@@ -359,13 +352,9 @@ export class WorkspaceService {
   }
 
   async deleteAvatar(principal: AuthenticatedPrincipal) {
-    const companyId = this.requireCompany(principal);
+    const { where, companyId } = this.profileScope(principal);
     const current = await this.prisma.user.findFirst({
-      where: {
-        id: principal.userId,
-        companyId,
-        accountScope: AccountScope.COMPANY,
-      },
+      where,
       select: { avatarFileAssetId: true },
     });
 
@@ -379,11 +368,7 @@ export class WorkspaceService {
 
     await this.prisma.$transaction(async (transaction) => {
       const result = await transaction.user.updateMany({
-        where: {
-          id: principal.userId,
-          companyId,
-          accountScope: AccountScope.COMPANY,
-        },
+        where,
         data: { avatarFileAssetId: null },
       });
 
@@ -421,13 +406,9 @@ export class WorkspaceService {
   }
 
   async getAvatar(principal: AuthenticatedPrincipal) {
-    const companyId = this.requireCompany(principal);
+    const { where } = this.profileScope(principal);
     const user = await this.prisma.user.findFirst({
-      where: {
-        id: principal.userId,
-        companyId,
-        accountScope: AccountScope.COMPANY,
-      },
+      where,
       select: { avatarFileAssetId: true },
     });
 
@@ -503,6 +484,36 @@ export class WorkspaceService {
     if (value === null) return null;
     const normalized = value.normalize('NFKC').trim();
     return normalized.length > 0 ? normalized : null;
+  }
+
+  /**
+   * Where a user's own profile lives: company accounts inside their company,
+   * platform accounts at platform level (no company).
+   */
+  private profileScope(principal: AuthenticatedPrincipal): {
+    where: Prisma.UserWhereInput;
+    companyId: string | null;
+  } {
+    if (principal.accountScope === AccountScope.PLATFORM) {
+      return {
+        where: {
+          id: principal.userId,
+          companyId: null,
+          accountScope: AccountScope.PLATFORM,
+        },
+        companyId: null,
+      };
+    }
+
+    const companyId = this.requireCompany(principal);
+    return {
+      where: {
+        id: principal.userId,
+        companyId,
+        accountScope: AccountScope.COMPANY,
+      },
+      companyId,
+    };
   }
 
   private requireCompany(principal: AuthenticatedPrincipal): string {

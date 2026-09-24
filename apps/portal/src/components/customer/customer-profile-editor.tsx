@@ -1,6 +1,6 @@
 "use client";
 
-import type { CustomerAccountProfile, Locale } from "@odookrd/types";
+import type { AccountProfile, Locale } from "@odookrd/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -8,8 +8,9 @@ import { ImageUploader } from "@/components/files/image-uploader";
 import { LanguageSelect } from "@/components/preferences/language-select";
 import type { CustomerDashboardV2Dictionary } from "@/lib/i18n/customer/dashboard";
 
+/** Edits the signed-in user's own profile; used by customers and platform admins. */
 interface CustomerProfileEditorProps {
-  initialProfile: CustomerAccountProfile;
+  initialProfile: AccountProfile;
   locale: Locale;
   languageLabel: string;
   labels: CustomerDashboardV2Dictionary["profile"];
@@ -47,7 +48,7 @@ export function CustomerProfileEditor({
         )}`
       : null;
 
-  async function verifyAvatar(updated: CustomerAccountProfile): Promise<void> {
+  async function verifyAvatar(updated: AccountProfile): Promise<void> {
     if (!updated.hasAvatar || !updated.avatarFileAssetId) return;
 
     const response = await fetch(
@@ -95,7 +96,7 @@ export function CustomerProfileEditor({
         throw new Error("profile_save_failed");
       }
 
-      let updated = (await profileResponse.json()) as CustomerAccountProfile;
+      let updated = (await profileResponse.json()) as AccountProfile;
 
       if (selectedAvatar) {
         const data = new FormData();
@@ -110,7 +111,7 @@ export function CustomerProfileEditor({
           throw new Error("avatar_upload_failed");
         }
 
-        updated = (await avatarResponse.json()) as CustomerAccountProfile;
+        updated = (await avatarResponse.json()) as AccountProfile;
 
         await verifyAvatar(updated);
       } else if (removeAvatarRequested && profile.hasAvatar) {
@@ -122,7 +123,7 @@ export function CustomerProfileEditor({
           throw new Error("avatar_delete_failed");
         }
 
-        updated = (await avatarResponse.json()) as CustomerAccountProfile;
+        updated = (await avatarResponse.json()) as AccountProfile;
       }
 
       setSelectedAvatar(null);

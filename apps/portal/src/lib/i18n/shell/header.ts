@@ -21,6 +21,7 @@ export interface ShellHeaderLabels {
   closeMessage: string;
   openRelatedPage: string;
   accountMenu: string;
+  editProfile: string;
   logout: string;
   loggingOut: string;
 }

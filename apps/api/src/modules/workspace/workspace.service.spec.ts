@@ -156,6 +156,54 @@ describe('WorkspaceService customer isolation', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
+  it('lets a platform account read and edit its own platform-level profile', async () => {
+    const { database, audit, workspace } = createWorkspace();
+    const platformPrincipal: AuthenticatedPrincipal = {
+      ...principal,
+      accountScope: AccountScope.PLATFORM,
+      companyId: null,
+    };
+    database.user.findFirst.mockResolvedValue({
+      ...(await database.user.findFirst()),
+      companyId: null,
+      company: null,
+      userRoles: [{ role: { key: 'platform_admin' } }],
+    });
+    database.user.findFirst.mockClear();
+
+    const profile = await workspace.profile(platformPrincipal);
+
+    expect(database.user.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          id: USER_ID,
+          companyId: null,
+          accountScope: AccountScope.PLATFORM,
+        },
+      }),
+    );
+    expect(profile.company).toBeNull();
+    expect(profile.roles).toEqual(['platform_admin']);
+
+    await workspace.updateProfile(platformPrincipal, {
+      displayName: 'Platform Admin',
+    });
+
+    expect(database.user.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          id: USER_ID,
+          companyId: null,
+          accountScope: AccountScope.PLATFORM,
+        },
+      }),
+    );
+    expect(audit.write).toHaveBeenCalledWith(
+      expect.objectContaining({ companyId: null, targetId: USER_ID }),
+      expect.anything(),
+    );
+  });
+
   it('scopes service counts, team members, and activity to the session company', async () => {
     const { database, workspace } = createWorkspace();
     const result = await workspace.overview(principal);
@@ -221,7 +269,11 @@ describe('WorkspaceService customer isolation', () => {
 
     expect(database.user.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: USER_ID, companyId: COMPANY_ID },
+        where: {
+          id: USER_ID,
+          companyId: COMPANY_ID,
+          accountScope: AccountScope.COMPANY,
+        },
       }),
     );
     expect(database.session.findFirst).toHaveBeenCalledWith(

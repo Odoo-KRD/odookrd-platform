@@ -29,6 +29,7 @@ import type { InviteUserDto } from './dto/invite-user.dto';
 import type { BatchUserStatusDto } from './dto/batch-user-status.dto';
 import type { ListUsersQueryDto } from './dto/list-users-query.dto';
 import type { ReplaceUserRolesDto } from './dto/replace-user-roles.dto';
+import type { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import type { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import type {
   UserInvitationResult,
@@ -40,6 +41,9 @@ import { SETTINGS_BY_KEY } from '../settings/settings.registry';
 const USER_SELECT = {
   id: true,
   email: true,
+  displayName: true,
+  whatsappNumber: true,
+  certificateName: true,
   accountScope: true,
   companyId: true,
   status: true,
@@ -60,6 +64,9 @@ const USER_SELECT = {
 interface UserRecord {
   id: string;
   email: string;
+  displayName: string | null;
+  whatsappNumber: string | null;
+  certificateName: string | null;
   accountScope: AccountScope;
   companyId: string | null;
   status: UserStatus;
@@ -259,6 +266,129 @@ export class UsersService {
         user: this.toResponse(user),
       };
     });
+  }
+
+  /**
+   * An administrator's edit of an account's details: email, display name,
+   * WhatsApp number and certificate name. Changing an invited account's email
+   * cancels its outstanding invitation links, since they were sent to the old
+   * address; a new one is issued with "Regenerate invitation".
+   */
+  async updateProfile(
+    principal: AuthenticatedPrincipal,
+    userId: string,
+    dto: UpdateUserProfileDto,
+  ): Promise<UserResponse> {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const existing = await tx.user.findFirst({
+          where: this.scopedUserWhere(principal, userId),
+          select: USER_SELECT,
+        });
+
+        if (!existing) {
+          throw this.notFound();
+        }
+
+        const data: Prisma.UserUpdateInput = {};
+        const changedFields: string[] = [];
+        let invitationsCancelled = false;
+
+        if (dto.email !== undefined && dto.email !== null) {
+          const email = dto.email.normalize('NFKC').trim();
+          const normalizedEmail = email.toLowerCase();
+
+          if (normalizedEmail !== existing.email.toLowerCase()) {
+            const taken = await tx.user.findUnique({
+              where: { normalizedEmail },
+              select: { id: true },
+            });
+            if (taken && taken.id !== existing.id) {
+              throw new ConflictException(
+                'Another account already uses this email address.',
+              );
+            }
+
+            data.email = email;
+            data.normalizedEmail = normalizedEmail;
+            // The new address has not been confirmed by its owner.
+            data.emailVerifiedAt = null;
+            changedFields.push('email');
+
+            if (existing.status === UserStatus.INVITED) {
+              const cancelled = await tx.authToken.updateMany({
+                where: {
+                  userId: existing.id,
+                  type: AuthTokenType.INVITATION,
+                  usedAt: null,
+                },
+                data: { usedAt: new Date() },
+              });
+              invitationsCancelled = cancelled.count > 0;
+            }
+          } else if (email !== existing.email) {
+            // Only the letter case changed.
+            data.email = email;
+            changedFields.push('email');
+          }
+        }
+
+        const optionalFields = [
+          'displayName',
+          'whatsappNumber',
+          'certificateName',
+        ] as const;
+
+        for (const field of optionalFields) {
+          const value = dto[field];
+          if (value === undefined) continue;
+          const normalized = this.optionalText(value);
+          if (normalized !== existing[field]) {
+            data[field] = normalized;
+            changedFields.push(field);
+          }
+        }
+
+        if (changedFields.length === 0) {
+          return this.toResponse(existing);
+        }
+
+        const updated = await tx.user.update({
+          where: { id: existing.id },
+          data,
+          select: USER_SELECT,
+        });
+
+        await this.auditService.write(
+          {
+            actorUserId: principal.userId,
+            companyId: existing.companyId,
+            action: AUDIT_ACTIONS.USER_PROFILE_UPDATED,
+            targetType: 'user',
+            targetId: existing.id,
+            metadata: {
+              fields: changedFields,
+              byAdministrator: true,
+              invitationsCancelled,
+            },
+          },
+          tx,
+        );
+
+        return this.toResponse(updated);
+      });
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        (error as { code?: unknown }).code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'Another account already uses this email address.',
+        );
+      }
+      throw error;
+    }
   }
 
   async updateStatus(
@@ -1120,6 +1250,9 @@ export class UsersService {
     return {
       id: user.id,
       email: user.email,
+      displayName: user.displayName,
+      whatsappNumber: user.whatsappNumber,
+      certificateName: user.certificateName,
       accountScope: user.accountScope,
       companyId: user.companyId,
       status: user.status,
@@ -1128,6 +1261,12 @@ export class UsersService {
       updatedAt: user.updatedAt,
       roles: user.userRoles.map(({ role }) => role.key).sort(),
     };
+  }
+
+  private optionalText(value: string | null): string | null {
+    if (value === null) return null;
+    const normalized = value.normalize('NFKC').trim();
+    return normalized.length > 0 ? normalized : null;
   }
 
   private notFound(): NotFoundException {

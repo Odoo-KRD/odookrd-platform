@@ -9,6 +9,7 @@ import { Badge, PageHeading, Panel } from "@odookrd/ui";
 import Link from "next/link";
 
 import { InvitationAdministrationPanel } from "@/components/users/invitation-administration-panel";
+import { UserProfileForm } from "@/components/users/user-profile-form";
 import { UserRolesForm } from "@/components/users/user-roles-form";
 import { UserStatusBadge } from "@/components/users/user-status-badge";
 import { UserStatusForm } from "@/components/users/user-status-form";
@@ -18,8 +19,13 @@ import { formatDate } from "@/lib/format";
 import { roleAdministrationDictionaries } from "@/lib/i18n/users/roles";
 import { getUsersDictionary } from "@/lib/i18n/users/server";
 import { userInvitationAdminDictionaries } from "@/lib/i18n/users/invitations";
+import { userProfileEditDictionaries } from "@/lib/i18n/users/profile-edit";
 
-import { updateUserRolesAction, updateUserStatusAction } from "../actions";
+import {
+  updateUserProfileAction,
+  updateUserRolesAction,
+  updateUserStatusAction,
+} from "../actions";
 import {
   regenerateInvitationAction,
   resendInvitationAction,
@@ -69,6 +75,7 @@ export default async function UserDetailsPage({
   const allowedRoles = roles.filter((role) => role.scope === user.accountScope);
   const invitationLabels = userInvitationAdminDictionaries[locale];
   const roleAdministrationLabels = roleAdministrationDictionaries[locale];
+  const profileLabels = userProfileEditDictionaries[locale];
   const roleLabels: Record<string, string> = {
     platform_admin: roleCatalog.platformAdmin,
     company_admin: roleCatalog.companyAdmin,
@@ -78,8 +85,12 @@ export default async function UserDetailsPage({
   return (
     <div className="grid gap-7">
       <PageHeading
-        title={user.email}
-        description={users.detailsTitle}
+        title={user.displayName ?? user.email}
+        description={
+          user.displayName
+            ? `${user.email} · ${users.detailsTitle}`
+            : users.detailsTitle
+        }
         actions={
           <Link
             href="/admin/users"
@@ -125,6 +136,33 @@ export default async function UserDetailsPage({
           </div>
         </div>
 
+        <div className="mt-6 grid gap-6 border-t border-line pt-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div>
+            <p className="text-xs font-medium text-muted">
+              {profileLabels.displayName}
+            </p>
+            <p className="mt-3 text-sm font-medium text-content">
+              {user.displayName ?? profileLabels.notSet}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted">
+              {profileLabels.whatsapp}
+            </p>
+            <p dir="ltr" className="mt-3 text-sm font-medium text-content rtl:text-right">
+              {user.whatsappNumber ?? profileLabels.notSet}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted">
+              {profileLabels.certificateName}
+            </p>
+            <p className="mt-3 text-sm font-medium text-content">
+              {user.certificateName ?? profileLabels.notSet}
+            </p>
+          </div>
+        </div>
+
         <div className="mt-6 border-t border-line pt-6">
           <p className="text-xs font-medium text-muted">{users.roles}</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -148,6 +186,22 @@ export default async function UserDetailsPage({
             details={administration}
             resendAction={resendInvitationAction.bind(null, user.id)}
             regenerateAction={regenerateInvitationAction.bind(null, user.id)}
+          />
+        </Panel>
+      ) : null}
+
+      {canManage ? (
+        <Panel className="p-6 sm:p-8">
+          <h2 className="text-base font-semibold text-content">
+            {profileLabels.title}
+          </h2>
+          <p className="mb-6 mt-1 text-sm text-muted">
+            {profileLabels.description}
+          </p>
+          <UserProfileForm
+            action={updateUserProfileAction.bind(null, user.id)}
+            user={user}
+            labels={profileLabels}
           />
         </Panel>
       ) : null}

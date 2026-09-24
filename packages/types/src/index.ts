@@ -148,6 +148,9 @@ export interface CompanyIdentityChangeRequest {
 export interface ManagedUser {
   id: string;
   email: string;
+  displayName: string | null;
+  whatsappNumber: string | null;
+  certificateName: string | null;
   accountScope: AccountScope;
   companyId: string | null;
   status: UserStatus;
@@ -583,7 +586,39 @@ export interface CustomerWorkspaceOverview {
   recentActivity: CustomerActivity[];
 }
 
-export interface CustomerAccountProfile {
+/** The fields of a user's own profile shared by every account type. */
+export interface AccountProfile {
+  id: string;
+  email: string;
+  companyId: string | null;
+  displayName: string | null;
+  whatsappNumber: string | null;
+  certificateName: string | null;
+  avatarFileAssetId: string | null;
+  hasAvatar: boolean;
+  status: UserStatus;
+  emailVerifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company: Company | null;
+  roles: string[];
+  lastSeenAt: string | null;
+}
+
+/** A platform account's own profile: it belongs to no company. */
+export interface PlatformAccountProfile extends AccountProfile {
+  companyId: null;
+  company: null;
+}
+
+export interface UpdateUserProfileInput {
+  email?: string;
+  displayName?: string | null;
+  whatsappNumber?: string | null;
+  certificateName?: string | null;
+}
+
+export interface CustomerAccountProfile extends AccountProfile {
   id: string;
   email: string;
   companyId: string;

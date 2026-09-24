@@ -285,6 +285,24 @@ describe('listTwilioContentTemplates', () => {
   });
 });
 
+describe('normalizeNumber in right-to-left screens', () => {
+  it('ignores invisible direction marks around a pasted number', () => {
+    expect(normalizeNumber('\u200f+12175599232\u200e')).toBe('12175599232');
+    expect(normalizeNumber('\u202a+964 770 159 9232\u202c')).toBe(
+      '9647701599232',
+    );
+  });
+
+  it('reads Arabic-Indic and Persian digits typed on a Kurdish keyboard', () => {
+    expect(normalizeNumber('+١٢١٧٥٥٩٩٢٣٢')).toBe('12175599232');
+    expect(normalizeNumber('+۹۶۴۷۷۰۱۵۹۹۲۳۲')).toBe('9647701599232');
+  });
+
+  it('still rejects text that is not a number', () => {
+    expect(normalizeNumber('+1217559923x')).toBeNull();
+  });
+});
+
 describe('normalizeNumber', () => {
   it('accepts E.164 in common formats and rejects junk', () => {
     expect(normalizeNumber('+964 770 159 9232')).toBe('9647701599232');

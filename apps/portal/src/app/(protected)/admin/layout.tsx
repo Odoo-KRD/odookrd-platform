@@ -17,6 +17,7 @@ import "@fontsource/noto-naskh-arabic/700.css";
 
 import {
   PERMISSIONS,
+  type AccountProfile,
   type CustomerNotificationPage,
   type NotificationUnreadCount,
 } from "@odookrd/types";
@@ -58,9 +59,12 @@ export default async function ProtectedAdminLayout({
     session,
     PERMISSIONS.NOTIFICATIONS_READ,
   );
-  const token = canNotifications ? await getSessionToken() : null;
+  const isPlatform = session.user.accountScope === "PLATFORM";
+  const sessionToken =
+    canNotifications || isPlatform ? await getSessionToken() : null;
+  const token = canNotifications ? sessionToken : null;
 
-  const [notificationPage, unread] = await Promise.all([
+  const [notificationPage, unread, ownProfile] = await Promise.all([
     token
       ? apiRequest<CustomerNotificationPage>("/notifications?limit=5&offset=0", {
           token,
@@ -69,6 +73,12 @@ export default async function ProtectedAdminLayout({
     token
       ? apiRequest<NotificationUnreadCount>("/notifications/unread-count", {
           token,
+        }).catch(() => null)
+      : Promise.resolve(null),
+    // Platform accounts show their own name and photo in the header.
+    isPlatform && sessionToken
+      ? apiRequest<AccountProfile>("/workspace/profile", {
+          token: sessionToken,
         }).catch(() => null)
       : Promise.resolve(null),
   ]);
@@ -136,7 +146,12 @@ export default async function ProtectedAdminLayout({
           languageLabel={dictionary.common.language}
           labels={adminHeaderDictionaries[locale]}
           email={session.user.email}
-          displayName={null}
+          displayName={
+            ownProfile?.displayName ?? ownProfile?.certificateName ?? null
+          }
+          hasAvatar={ownProfile?.hasAvatar ?? false}
+          avatarFileAssetId={ownProfile?.avatarFileAssetId ?? null}
+          canAdminProfile={isPlatform}
           unreadCount={unread?.unread ?? 0}
           notifications={notificationPage?.items ?? []}
           canNotifications={canNotifications}
